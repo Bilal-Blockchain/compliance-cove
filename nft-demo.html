@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NovaMint — NFT Marketplace</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { font-family: 'Inter', system-ui, sans-serif; }
+
+      /* ---- Modals ---- */
+      .modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        z-index: 100; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s ease;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal-box { width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+      /* ---- Glow button ---- */
+      .glow-btn { position: relative; overflow: hidden; }
+      .glow-btn::before {
+        content: ''; position: absolute; inset: -2px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+        border-radius: inherit; z-index: -1; opacity: 0.6; filter: blur(8px); transition: opacity 0.3s;
+      }
+      .glow-btn:hover::before { opacity: 1; }
+
+      /* ---- Risk gauge ---- */
+      .risk-gauge { width: 200px; height: 110px; position: relative; margin: 0 auto; }
+      .risk-gauge svg { width: 100%; height: 100%; }
+
+      /* ---- Workflow steps ---- */
+      .workflow-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; transition: all 0.3s; }
+      .workflow-step.active { background: var(--color-primary-alpha10, rgba(99,102,241,0.1)); }
+      .step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+      .step-connector { width: 2px; height: 16px; margin-left: 29px; border-radius: 1px; }
+      .exposure-bar { height: 22px; border-radius: 4px; min-width: 4px; transition: width 0.6s ease; }
+
+      /* ---- Wallet provider buttons ---- */
+      .wallet-provider-btn {
+        display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px;
+        border-radius: 12px; border: 1px solid var(--border); background: var(--background);
+        cursor: pointer; transition: all 0.15s ease; color: inherit;
+      }
+      .wallet-provider-btn:hover { background: var(--muted); border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+      .wallet-provider-btn .provider-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+      .wallet-provider-btn .provider-info { flex: 1; text-align: left; }
+      .wallet-provider-btn .provider-name { font-size: 14px; font-weight: 600; }
+      .wallet-provider-btn .provider-desc { font-size: 11px; color: var(--muted-foreground); }
+      .wallet-provider-btn .provider-arrow { color: var(--muted-foreground); transition: transform 0.15s; }
+      .wallet-provider-btn:hover .provider-arrow { transform: translateX(2px); color: var(--foreground); }
+      .provider-popular { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 6px; }
+
+      /* ---- Profile ---- */
+      .pulse-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s ease infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+      .profile-avatar {
+        width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 700; color: white; cursor: pointer;
+        background: linear-gradient(135deg, #e11d48, #be123c); position: relative;
+      }
+      .profile-dropdown-wrap { position: relative; }
+      .profile-dropdown {
+        position: absolute; top: calc(100% + 8px); right: 0; width: 220px; z-index: 60;
+        border-radius: 12px; background: var(--card); color: var(--card-foreground);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.18); border: 1px solid var(--border);
+        padding: 6px; display: none; animation: slideUp 0.15s ease;
+      }
+      .profile-dropdown.open { display: block; }
+      .profile-dropdown-item {
+        display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px;
+        font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.1s;
+        color: var(--foreground); width: 100%; border: none; background: none; text-align: left;
+      }
+      .profile-dropdown-item:hover { background: var(--muted); }
+      .profile-dropdown-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+
+      /* ---- NFT cards ---- */
+      .nft-card {
+        border-radius: 14px; border: 1px solid var(--border); background: var(--card);
+        overflow: hidden; cursor: pointer; transition: all 0.25s ease;
+      }
+      .nft-card:hover {
+        border-color: var(--primary); box-shadow: 0 12px 40px rgba(99,102,241,0.15);
+        transform: translateY(-4px);
+      }
+      .nft-art {
+        width: 100%; aspect-ratio: 1; position: relative; overflow: hidden;
+      }
+      .nft-art::after {
+        content: ''; position: absolute; inset: 0;
+        background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.3));
+        pointer-events: none;
+      }
+      .nft-card-body { padding: 12px 14px; }
+      .nft-price-tag {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 14px; font-weight: 700;
+      }
+
+      /* ---- Collection banner ---- */
+      .collection-banner {
+        width: 100%; height: 200px; border-radius: 16px; overflow: hidden; position: relative;
+      }
+      .collection-avatar {
+        width: 96px; height: 96px; border-radius: 16px; border: 4px solid var(--background);
+        position: absolute; bottom: -40px; left: 24px; overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      }
+
+      /* ---- Stat pills ---- */
+      .stat-pill {
+        text-align: center; padding: 12px 20px; border-radius: 12px;
+        background: var(--muted); flex: 1;
+      }
+      .stat-pill-value { font-size: 16px; font-weight: 800; }
+      .stat-pill-label { font-size: 11px; color: var(--muted-foreground); margin-top: 2px; font-weight: 500; }
+
+      /* ---- Tabs ---- */
+      .tab-btn {
+        padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+        cursor: pointer; transition: all 0.15s; border: none; background: none;
+        color: var(--muted-foreground);
+      }
+      .tab-btn.active { background: var(--muted); color: var(--foreground); }
+      .tab-btn:hover:not(.active) { color: var(--foreground); }
+
+      /* ---- NFT grid ---- */
+      .nft-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      }
+      @media (max-width: 768px) { .nft-grid { grid-template-columns: repeat(2, 1fr); } }
+
+      /* ---- Search bar ---- */
+      .search-bar {
+        display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+        border-radius: 10px; border: 1px solid var(--border); background: var(--muted);
+        flex: 1; max-width: 320px; transition: border-color 0.15s;
+      }
+      .search-bar:focus-within { border-color: var(--primary); }
+      .search-bar input {
+        border: none; background: none; outline: none; font-size: 13px;
+        color: var(--foreground); width: 100%;
+      }
+
+      /* ---- Trending ---- */
+      .trending-row {
+        display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+        border-radius: 10px; transition: background 0.15s; cursor: pointer;
+      }
+      .trending-row:hover { background: var(--muted); }
+
+      /* ---- Nav ---- */
+      .nav-link { cursor: pointer; }
+      .nav-link.active { color: var(--foreground); font-weight: 500; }
+
+      /* ---- Verified badge ---- */
+      .verified-badge {
+        width: 18px; height: 18px; border-radius: 50%;
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        display: inline-flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+
+      /* ---- NFT detail view ---- */
+      .nft-detail-art {
+        width: 100%; aspect-ratio: 1; border-radius: 14px; overflow: hidden;
+      }
+      .trait-chip {
+        border-radius: 10px; border: 1px solid var(--border); padding: 8px 12px;
+        background: var(--muted); text-align: center;
+      }
+      .trait-chip-label { font-size: 10px; color: var(--primary); font-weight: 600; text-transform: uppercase; }
+      .trait-chip-value { font-size: 13px; font-weight: 600; margin-top: 2px; }
+      .trait-chip-rarity { font-size: 10px; color: var(--muted-foreground); }
+
+      /* ---- Page views ---- */
+      .page-view { display: none; }
+      .page-view.active { display: block; }
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+
+    <!-- ==================== NAV ==================== -->
+    <nav class="border-b border-border sticky" style="top:0; z-index:50; background: var(--background);">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:56px;">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('explore')">
+            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#e11d48,#be123c);display:flex;align-items:center;justify-content:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </div>
+            <span class="text-base font-bold tracking-tight">NovaMint</span>
+          </div>
+          <div class="flex items-center gap-4 text-sm">
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors active" id="nav-explore" onclick="showPage('explore')">Explore</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors" id="nav-collection" onclick="showPage('collection')" style="display:none;">Collection</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors">Stats</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors">Create</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="search-bar" style="max-width:200px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-muted-foreground"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="text" placeholder="Search NFTs…" />
+          </div>
+          <!-- Right side: Connect or Profile -->
+          <div id="navRight">
+            <div id="navDisconnected">
+              <button onclick="openModal('connect')"
+                class="glow-btn inline-flex items-center justify-center rounded-lg h-8 gap-1.5 px-4 text-sm font-semibold text-primary-foreground transition-all"
+                style="background: linear-gradient(135deg,#e11d48,#be123c); position:relative; z-index:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+                </svg>
+                Connect Wallet
+              </button>
+            </div>
+            <div id="navConnected" style="display:none;" class="flex items-center gap-3">
+              <div class="flex items-center gap-2 text-sm">
+                <div class="pulse-dot bg-success"></div>
+                <span class="text-muted-foreground" id="navAddrShort"></span>
+              </div>
+              <div class="profile-dropdown-wrap">
+                <div class="profile-avatar" id="navAvatar" onclick="toggleProfileDropdown(event)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+                <div class="profile-dropdown" id="profileDropdown">
+                  <div style="padding:8px 10px 4px;">
+                    <p class="text-xs text-muted-foreground">Connected Wallet</p>
+                    <p class="text-sm font-semibold" id="dropdownAddr" style="word-break:break-all;"></p>
+                    <div class="flex items-center gap-1 mt-1">
+                      <div class="pulse-dot bg-success" style="width:6px;height:6px;"></div>
+                      <span class="text-xs text-success font-medium" id="dropdownProvider"></span>
+                    </div>
+                  </div>
+                  <div class="profile-dropdown-sep"></div>
+                  <button class="profile-dropdown-item" onclick="profileAction('disconnect')" style="color:var(--destructive);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Disconnect Wallet
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: EXPLORE (Landing / Browse)                                  -->
+    <!-- ================================================================ -->
+    <div id="page-explore" class="page-view active">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Hero collection feature -->
+        <div class="rounded-xl overflow-hidden" style="position:relative; cursor:pointer;" onclick="showPage('collection')">
+          <div style="height:260px;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);position:relative;overflow:hidden;">
+            <!-- Decorative orbs -->
+            <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(225,29,72,0.3),transparent);top:-80px;right:-40px;"></div>
+            <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.25),transparent);bottom:-60px;left:40px;"></div>
+            <div style="position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.2),transparent);top:40px;left:30%;"></div>
+            <div class="flex items-end" style="position:relative;z-index:1;height:100%;padding:28px;">
+              <div class="flex items-end gap-6" style="width:100%;">
+                <div style="width:120px;height:120px;border-radius:16px;overflow:hidden;flex-shrink:0;border:3px solid rgba(255,255,255,0.15);">
+                  <div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);"></div>
+                </div>
+                <div style="flex:1;">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.5);text-transform:uppercase;letter-spacing:1px;">Featured Collection</span>
+                  </div>
+                  <h2 style="font-size:28px;font-weight:800;color:white;letter-spacing:-0.5px;margin:0;">Celestial Voyagers</h2>
+                  <p style="font-size:13px;color:rgba(255,255,255,0.6);margin-top:4px;">By <span style="color:rgba(255,255,255,0.9);font-weight:600;">AstralForge</span></p>
+                  <div class="flex items-center gap-4 mt-3">
+                    <span style="font-size:12px;color:rgba(255,255,255,0.5);"><span style="color:white;font-weight:700;">2,847</span> items</span>
+                    <span style="font-size:12px;color:rgba(255,255,255,0.5);"><span style="color:white;font-weight:700;">1.2K</span> owners</span>
+                    <span style="font-size:12px;color:rgba(255,255,255,0.5);">Floor <span style="color:white;font-weight:700;">0.42 ETH</span></span>
+                    <span style="font-size:12px;color:rgba(255,255,255,0.5);">Vol <span style="color:white;font-weight:700;">12,480 ETH</span></span>
+                  </div>
+                </div>
+                <div style="flex-shrink:0;">
+                  <button class="inline-flex items-center justify-center rounded-lg h-9 gap-1.5 px-5 text-sm font-semibold text-primary-foreground"
+                    style="background:linear-gradient(135deg,#e11d48,#be123c);" onclick="event.stopPropagation();showPage('collection');">
+                    View Collection →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trending Collections -->
+        <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="px-4 flex items-center justify-between">
+            <h2 class="text-base font-semibold">Trending Collections</h2>
+            <div class="flex gap-1">
+              <button class="tab-btn active">24h</button>
+              <button class="tab-btn">7d</button>
+              <button class="tab-btn">30d</button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="border-b border-border">
+                <tr>
+                  <th class="px-4 py-3 text-left font-medium text-muted-foreground">#</th>
+                  <th class="px-4 py-3 text-left font-medium text-muted-foreground">Collection</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">Floor</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">Volume</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">Sales</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">24h Δ</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y" id="trendingTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Notable Drops -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-base font-semibold">Notable Drops</h2>
+            <span class="text-sm text-muted-foreground">Live & upcoming</span>
+          </div>
+          <div class="nft-grid" id="notableGrid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: COLLECTION (Celestial Voyagers detail)                      -->
+    <!-- ================================================================ -->
+    <div id="page-collection" class="page-view">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Collection banner -->
+        <div style="position:relative; margin-bottom:36px;">
+          <div class="collection-banner" style="background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);position:relative;overflow:hidden;">
+            <div style="position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(225,29,72,0.2),transparent);top:-150px;right:-100px;"></div>
+            <div style="position:absolute;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,0.2),transparent);bottom:-80px;left:20%;"></div>
+          </div>
+          <div class="collection-avatar">
+            <div style="width:100%;height:100%;background:linear-gradient(135deg,#667eea,#764ba2,#f093fb);"></div>
+          </div>
+        </div>
+
+        <!-- Collection info -->
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <h1 class="text-2xl font-bold tracking-tight">Celestial Voyagers</h1>
+            <div class="verified-badge">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+          </div>
+          <p class="text-sm text-muted-foreground">By <span class="text-foreground font-semibold">AstralForge</span> · Created Jan 2024</p>
+          <p class="text-sm text-muted-foreground mt-2" style="max-width:640px;">
+            A generative art collection of 2,847 unique cosmic explorers traversing the digital frontier.
+            Each Voyager is algorithmically composed from over 200 traits across 12 categories, capturing the
+            beauty and mystery of interstellar travel.
+          </p>
+        </div>
+
+        <!-- Stats row -->
+        <div class="flex gap-3">
+          <div class="stat-pill"><div class="stat-pill-value">2,847</div><div class="stat-pill-label">Items</div></div>
+          <div class="stat-pill"><div class="stat-pill-value">1,204</div><div class="stat-pill-label">Owners</div></div>
+          <div class="stat-pill"><div class="stat-pill-value">0.42 ETH</div><div class="stat-pill-label">Floor Price</div></div>
+          <div class="stat-pill"><div class="stat-pill-value">12,480 ETH</div><div class="stat-pill-label">Total Volume</div></div>
+          <div class="stat-pill"><div class="stat-pill-value">5%</div><div class="stat-pill-label">Royalty</div></div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex gap-1 border-b border-border pb-0">
+          <button class="tab-btn active" onclick="showCollectionTab('items')">Items</button>
+          <button class="tab-btn" onclick="showCollectionTab('activity')">Activity</button>
+        </div>
+
+        <!-- Items grid -->
+        <div id="tab-items">
+          <div class="nft-grid" id="collectionGrid"></div>
+        </div>
+
+        <!-- Activity table -->
+        <div id="tab-activity" style="display:none;">
+          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead class="border-b border-border">
+                  <tr>
+                    <th class="px-4 py-3 text-left font-medium text-muted-foreground">Event</th>
+                    <th class="px-4 py-3 text-left font-medium text-muted-foreground">Item</th>
+                    <th class="px-4 py-3 text-right font-medium text-muted-foreground">Price</th>
+                    <th class="px-4 py-3 text-left font-medium text-muted-foreground">From</th>
+                    <th class="px-4 py-3 text-left font-medium text-muted-foreground">To</th>
+                    <th class="px-4 py-3 text-right font-medium text-muted-foreground">Time</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y" id="activityTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: NFT DETAIL                                                  -->
+    <!-- ================================================================ -->
+    <div id="page-detail" class="page-view">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        <button onclick="showPage('collection')" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to collection
+        </button>
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Left: Art -->
+          <div>
+            <div class="nft-detail-art" id="detailArt"></div>
+          </div>
+          <!-- Right: Info -->
+          <div class="space-y-4">
+            <div>
+              <p class="text-sm text-primary font-semibold">Celestial Voyagers</p>
+              <h1 class="text-2xl font-bold tracking-tight mt-1" id="detailName"></h1>
+              <p class="text-sm text-muted-foreground mt-1">Owned by <span class="text-foreground font-medium" id="detailOwner"></span></p>
+            </div>
+
+            <!-- Price card -->
+            <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+              <div class="px-4">
+                <p class="text-xs text-muted-foreground mb-1">Current Price</p>
+                <div class="flex items-center gap-2">
+                  <span style="font-size:24px;font-weight:800;" id="detailPrice"></span>
+                  <span class="text-sm text-muted-foreground" id="detailPriceUSD"></span>
+                </div>
+              </div>
+              <div class="px-4 flex gap-2">
+                <button id="buyNowBtn" onclick="handleBuyClick()"
+                  class="flex-1 inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all"
+                  style="background:linear-gradient(135deg,#e11d48,#be123c);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                  <span id="buyBtnLabel">Connect Wallet to Buy</span>
+                </button>
+                <button onclick="handleMakeOffer()"
+                  class="inline-flex items-center justify-center rounded-lg h-10 gap-1.5 px-4 text-sm font-semibold border border-border bg-background text-foreground hover:bg-muted transition-all">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  Make Offer
+                </button>
+              </div>
+            </div>
+
+            <!-- Traits -->
+            <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+              <div class="px-4 flex items-center justify-between">
+                <h3 class="text-sm font-semibold">Traits</h3>
+                <span class="text-xs text-muted-foreground" id="detailTraitCount"></span>
+              </div>
+              <div class="px-4 grid grid-cols-3 gap-2" id="detailTraits"></div>
+            </div>
+
+            <!-- Details -->
+            <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+              <div class="px-4">
+                <h3 class="text-sm font-semibold mb-3">Details</h3>
+                <div class="space-y-2 text-sm">
+                  <div class="flex justify-between"><span class="text-muted-foreground">Contract</span><span class="font-medium">0x1a2b…3c4d</span></div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Token ID</span><span class="font-medium" id="detailTokenId"></span></div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Chain</span><span class="font-medium">Ethereum</span></div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Standard</span><span class="font-medium">ERC-721</span></div>
+                  <div class="flex justify-between"><span class="text-muted-foreground">Royalty</span><span class="font-medium">5%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================================================================ -->
+    <!-- MODAL: CONNECT WALLET (Address Screening)                         -->
+    <!-- ================================================================ -->
+    <div class="modal-overlay" id="modal-connect">
+      <div class="modal-box rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 mx-4">
+        <div class="px-4 flex items-center justify-between">
+          <h2 class="text-base font-semibold" id="connectModalTitle">Connect Wallet</h2>
+          <button onclick="closeAllModals()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <hr />
+
+        <!-- Step 0: Choose provider -->
+        <div id="step-providers" class="px-4 space-y-3">
+          <p class="text-sm text-muted-foreground">Choose a wallet provider to connect</p>
+          <button class="wallet-provider-btn" onclick="selectProvider('MetaMask')">
+            <div class="provider-icon" style="background:#F6851B1A;">
+              <svg width="24" height="24" viewBox="0 0 256 240" fill="none"><path d="M241.9 0L143.2 73.5L161.4 30.2L241.9 0Z" fill="#E17726"/><path d="M14.1 0L111.9 74.2L94.6 30.2L14.1 0Z" fill="#E27625"/><path d="M207 172L181 214.5L236.5 229.8L252.4 172.8L207 172Z" fill="#E27625"/><path d="M3.7 172.8L19.5 229.8L75 214.5L49 172L3.7 172.8Z" fill="#E27625"/><path d="M143.2 129.7L147.7 69.5L161.4 30.2H94.6L108.3 69.5L111.5 129.7L112.7 148.8L112.8 195H143.2L143.3 148.8L143.2 129.7Z" fill="#F5841F"/></svg>
+            </div>
+            <div class="provider-info">
+              <div class="flex items-center gap-2"><span class="provider-name">MetaMask</span><span class="provider-popular bg-primary/10 text-primary">Popular</span></div>
+              <span class="provider-desc">Connect using browser extension</span>
+            </div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Coinbase Wallet')">
+            <div class="provider-icon" style="background:#0052FF1A;">
+              <svg width="24" height="24" viewBox="0 0 256 256"><rect width="256" height="256" rx="50" fill="#0052FF"/><circle cx="128" cy="128" r="80" fill="white"/><rect x="104" y="104" width="48" height="48" rx="8" fill="#0052FF"/></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">Coinbase Wallet</span><br/><span class="provider-desc">Connect using Coinbase Wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('WalletConnect')">
+            <div class="provider-icon" style="background:#3B99FC1A;">
+              <svg width="24" height="24" viewBox="0 0 300 185"><path d="M61.4 36.3C111.9-12.1 188.1-12.1 238.6 36.3L244.6 42.1C247.1 44.5 247.1 48.4 244.6 50.8L224.3 70.3C223 71.5 221 71.5 219.7 70.3L211.5 62.4C176.3 28.5 123.7 28.5 88.5 62.4L79.7 70.9C78.4 72.1 76.4 72.1 75.1 70.9L54.8 51.4C52.3 49 52.3 45.1 54.8 42.7L61.4 36.3ZM282.1 78.3L300.2 95.8C302.7 98.2 302.7 102.1 300.2 104.5L218.9 183.1C216.4 185.5 212.4 185.5 209.9 183.1L152.5 127.8C151.9 127.2 150.9 127.2 150.2 127.8L92.8 183.1C90.3 185.5 86.3 185.5 83.8 183.1L2.5 104.5C0 102.1 0 98.2 2.5 95.8L20.6 78.3C23.1 75.9 27.1 75.9 29.6 78.3L87 133.6C87.7 134.2 88.7 134.2 89.3 133.6L146.7 78.3C149.2 75.9 153.2 75.9 155.7 78.3L213.1 133.6C213.8 134.2 214.8 134.2 215.4 133.6L272.8 78.3C275.3 75.9 279.3 75.9 281.8 78.3L282.1 78.3Z" fill="#3B99FC"/></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">WalletConnect</span><br/><span class="provider-desc">Scan with mobile wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Phantom')">
+            <div class="provider-icon" style="background:#AB9FF21A;">
+              <svg width="24" height="24" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="url(#pG)"/><path d="M110.5 64.7C110.5 89.5 93.8 99.5 72.6 99.5H69.2C67.6 99.5 66.3 100.9 66.2 102.5L64.5 115.2C64.4 116.5 63.3 117.5 62 117.5H49.1C47.5 117.5 46.3 116 46.5 114.4L56.5 38.5C56.7 36.8 58.2 35.5 59.9 35.5H82.2C99 35.5 110.5 45.8 110.5 64.7Z" fill="white"/><defs><linearGradient id="pG" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#534BB1"/><stop offset="1" stop-color="#551BF9"/></linearGradient></defs></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">Phantom</span><br/><span class="provider-desc">Solana &amp; multi-chain wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Trust Wallet')">
+            <div class="provider-icon" style="background:#0500FF1A;">
+              <svg width="24" height="24" viewBox="0 0 256 256"><path d="M128 20C128 20 200 56 200 128C200 200 128 236 128 236C128 236 56 200 56 128C56 56 128 20 128 20Z" fill="none" stroke="#0500FF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">Trust Wallet</span><br/><span class="provider-desc">Multi-chain mobile wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <!-- Step 1: Enter address -->
+        <div id="step-input" class="px-4 space-y-4" style="display:none;">
+          <div class="flex items-center gap-2">
+            <button onclick="backToProviders()" class="inline-flex items-center justify-center rounded-lg h-8 px-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-all">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="flex items-center gap-2">
+              <div id="selectedProviderIcon" style="width:20px;height:20px;"></div>
+              <span class="text-sm font-medium" id="selectedProviderName"></span>
+            </div>
+          </div>
+          <div class="rounded-lg bg-muted p-3 space-y-2">
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Compliance Powered by Chainalysis
+            </div>
+            <p class="text-xs text-muted-foreground leading-relaxed">
+              Before connecting via <strong id="complianceProvider">your wallet</strong>, your address is screened in real-time using the
+              <strong>Chainalysis Address Screening API</strong> to assess risk exposure. Sanctioned or high-risk wallets are blocked from minting, buying, or trading NFTs.
+            </p>
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Wallet Address</label>
+            <input id="addressInput" type="text" placeholder="0x... or bc1... or any blockchain address"
+              class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
+          </div>
+          <div class="space-y-1" id="workflowSteps">
+            <div class="workflow-step" data-step="1"><div class="step-icon bg-muted text-muted-foreground">1</div><div><div class="text-sm font-medium">Submit Address</div><div class="text-xs text-muted-foreground">User provides wallet address</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="workflow-step" data-step="2"><div class="step-icon bg-muted text-muted-foreground">2</div><div><div class="text-sm font-medium flex items-center gap-1.5">Chainalysis Screening <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="13" height="13" class="text-primary"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg></div><div class="text-xs text-muted-foreground">Address Screening API assesses risk</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="workflow-step" data-step="3"><div class="step-icon bg-muted text-muted-foreground">3</div><div><div class="text-sm font-medium">Risk Decision</div><div class="text-xs text-muted-foreground">Allow or deny connection based on risk</div></div></div>
+          </div>
+          <button id="submitBtn" onclick="screenAddress()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all disabled:opacity-50" style="background: linear-gradient(135deg,#e11d48,#be123c);">Screen &amp; Connect</button>
+        </div>
+
+        <!-- Step 2: Loading -->
+        <div id="step-loading" class="px-4 space-y-4" style="display:none;">
+          <div class="flex flex-col items-center gap-4 py-6">
+            <div class="animate-spin" style="animation-duration:1.5s;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="40" height="40" class="text-primary"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            </div>
+            <div class="text-center space-y-1">
+              <p class="text-sm font-semibold">Screening Address…</p>
+              <p class="text-xs text-muted-foreground" id="loadingAddr"></p>
+            </div>
+            <div class="w-full space-y-1">
+              <div class="workflow-step active"><div class="step-icon bg-success/10 text-success">✓</div><div><div class="text-sm font-medium">Address submitted</div></div></div>
+              <div class="step-connector bg-success/10"></div>
+              <div class="workflow-step active"><div class="step-icon bg-primary/10 text-primary"><div class="animate-spin" style="animation-duration:1s;width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;"></div></div><div><div class="text-sm font-medium">Querying Chainalysis Address Screening API</div><div class="text-xs text-muted-foreground">Analyzing on-chain exposure…</div></div></div>
+              <div class="step-connector bg-muted"></div>
+              <div class="workflow-step"><div class="step-icon bg-muted text-muted-foreground">3</div><div><div class="text-sm font-medium text-muted-foreground">Awaiting result…</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Results -->
+        <div id="step-results" class="px-4 space-y-4" style="display:none;">
+          <div class="flex flex-col items-center gap-2">
+            <div class="risk-gauge"><svg viewBox="0 0 200 110"><path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--muted)" stroke-width="14" stroke-linecap="round"/><path d="M 20 100 A 80 80 0 0 1 60 32" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"/><path d="M 60 32 A 80 80 0 0 1 100 20" fill="none" stroke="#eab308" stroke-width="14"/><path d="M 100 20 A 80 80 0 0 1 140 32" fill="none" stroke="#f97316" stroke-width="14"/><path d="M 140 32 A 80 80 0 0 1 180 100" fill="none" stroke="#ef4444" stroke-width="14" stroke-linecap="round"/><line id="gaugeNeedle" x1="100" y1="100" x2="100" y2="30" stroke="var(--foreground)" stroke-width="2.5" stroke-linecap="round" transform="rotate(0,100,100)"/><circle cx="100" cy="100" r="6" fill="var(--foreground)"/></svg></div>
+            <div class="text-center"><div id="riskBadge"></div><p class="text-xs text-muted-foreground mt-1" id="riskReason"></p></div>
+          </div>
+          <hr />
+          <div class="space-y-3">
+            <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">Address</span><span class="text-xs font-medium" id="resultAddr" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></div>
+            <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">Type</span><span class="text-xs font-medium" id="resultType"></span></div>
+            <div class="flex items-center justify-between" id="clusterRow" style="display:none;"><span class="text-xs text-muted-foreground">Cluster</span><span class="text-xs font-medium" id="resultCluster"></span></div>
+            <div class="flex items-center justify-between" id="categoryRow" style="display:none;"><span class="text-xs text-muted-foreground">Category</span><span class="text-xs font-medium" id="resultCategory"></span></div>
+          </div>
+          <div id="idSection" style="display:none;"></div>
+          <div id="exposureSection" style="display:none;"><p class="text-sm font-medium mb-2">Exposure Breakdown</p><div class="space-y-2" id="exposureBars"></div></div>
+          <hr />
+          <div id="decisionBox"></div>
+          <div class="flex gap-2">
+            <button onclick="resetConnectModal()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Address</button>
+            <button id="proceedBtn" onclick="connectWallet()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#e11d48,#be123c);">Continue</button>
+          </div>
+        </div>
+
+        <!-- Sandbox message -->
+        <div id="step-sandbox" class="px-4" style="display:none;">
+          <div class="rounded-xl bg-info/10 text-info ring-1 ring-foreground/10 p-4 space-y-1">
+            <h3 class="text-sm font-semibold">Can't run workflows from preview</h3>
+            <p class="text-sm opacity-90">Open this page in a new tab to use interactive features.</p>
+          </div>
+          <div class="mt-4"><button onclick="closeAllModals()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Close</button></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+      // =====================================================
+      // STATE
+      // =====================================================
+      let isConnected = false;
+      let connectedAddress = '';
+      let selectedWalletProvider = null;
+      let lastScreeningResult = null;
+      let pendingAction = null; // what the user was trying to do when we asked them to connect
+
+      const providerIcons = {
+        'MetaMask': '<svg width="20" height="20" viewBox="0 0 256 240"><path d="M241.9 0L143.2 73.5L161.4 30.2L241.9 0Z" fill="#E17726"/><path d="M14.1 0L111.9 74.2L94.6 30.2L14.1 0Z" fill="#E27625"/><path d="M143.2 129.7L147.7 69.5L161.4 30.2H94.6L108.3 69.5L111.5 129.7L112.7 148.8L112.8 195H143.2L143.3 148.8L143.2 129.7Z" fill="#F5841F"/></svg>',
+        'Coinbase Wallet': '<svg width="20" height="20" viewBox="0 0 256 256"><rect width="256" height="256" rx="50" fill="#0052FF"/><circle cx="128" cy="128" r="80" fill="white"/><rect x="104" y="104" width="48" height="48" rx="8" fill="#0052FF"/></svg>',
+        'WalletConnect': '<svg width="20" height="20" viewBox="0 0 300 185"><path d="M61.4 36.3C111.9-12.1 188.1-12.1 238.6 36.3L244.6 42.1C247.1 44.5 247.1 48.4 244.6 50.8L224.3 70.3C223 71.5 221 71.5 219.7 70.3L211.5 62.4C176.3 28.5 123.7 28.5 88.5 62.4L79.7 70.9C78.4 72.1 76.4 72.1 75.1 70.9L54.8 51.4C52.3 49 52.3 45.1 54.8 42.7L61.4 36.3ZM282.1 78.3L300.2 95.8C302.7 98.2 302.7 102.1 300.2 104.5L218.9 183.1C216.4 185.5 212.4 185.5 209.9 183.1L152.5 127.8C151.9 127.2 150.9 127.2 150.2 127.8L92.8 183.1C90.3 185.5 86.3 185.5 83.8 183.1L2.5 104.5C0 102.1 0 98.2 2.5 95.8L20.6 78.3C23.1 75.9 27.1 75.9 29.6 78.3L87 133.6C87.7 134.2 88.7 134.2 89.3 133.6L146.7 78.3C149.2 75.9 153.2 75.9 155.7 78.3L213.1 133.6C213.8 134.2 214.8 134.2 215.4 133.6L272.8 78.3C275.3 75.9 279.3 75.9 281.8 78.3L282.1 78.3Z" fill="#3B99FC"/></svg>',
+        'Phantom': '<svg width="20" height="20" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="url(#pG2)"/><path d="M110.5 64.7C110.5 89.5 93.8 99.5 72.6 99.5H69.2C67.6 99.5 66.3 100.9 66.2 102.5L64.5 115.2C64.4 116.5 63.3 117.5 62 117.5H49.1C47.5 117.5 46.3 116 46.5 114.4L56.5 38.5C56.7 36.8 58.2 35.5 59.9 35.5H82.2C99 35.5 110.5 45.8 110.5 64.7Z" fill="white"/><defs><linearGradient id="pG2" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#534BB1"/><stop offset="1" stop-color="#551BF9"/></linearGradient></defs></svg>',
+        'Trust Wallet': '<svg width="20" height="20" viewBox="0 0 256 256"><path d="M128 20C128 20 200 56 200 128C200 200 128 236 128 236C128 236 56 200 56 128C56 56 128 20 128 20Z" fill="none" stroke="#0500FF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+      };
+
+      // =====================================================
+      // NFT DATA
+      // =====================================================
+      const nftGradients = [
+        'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)',
+        'linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%)',
+        'linear-gradient(135deg, #4facfe 0%, #00f2fe 50%, #43e97b 100%)',
+        'linear-gradient(135deg, #fa709a 0%, #fee140 50%, #fa709a 100%)',
+        'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 50%, #a6c1ee 100%)',
+        'linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%)',
+        'linear-gradient(135deg, #89f7fe 0%, #66a6ff 50%, #89f7fe 100%)',
+        'linear-gradient(135deg, #fdcbf1 0%, #e6dee9 50%, #fdcbf1 100%)',
+        'linear-gradient(135deg, #f6d365 0%, #fda085 50%, #f6d365 100%)',
+        'linear-gradient(135deg, #84fab0 0%, #8fd3f4 50%, #84fab0 100%)',
+        'linear-gradient(135deg, #cfd9df 0%, #e2ebf0 50%, #cfd9df 100%)',
+        'linear-gradient(135deg, #fccb90 0%, #d57eeb 50%, #fccb90 100%)',
+      ];
+
+      // Generate abstract SVG art overlay for each NFT
+      function nftArtOverlay(seed) {
+        const shapes = [];
+        const rng = mulberry32(seed);
+        const count = 3 + Math.floor(rng() * 4);
+        for (let i = 0; i < count; i++) {
+          const cx = Math.floor(rng() * 300);
+          const cy = Math.floor(rng() * 300);
+          const r = 30 + Math.floor(rng() * 80);
+          const opacity = (0.1 + rng() * 0.3).toFixed(2);
+          shapes.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="rgba(255,255,255,${opacity})"/>`);
+        }
+        // Add some lines
+        for (let i = 0; i < 2; i++) {
+          const x1 = Math.floor(rng() * 300), y1 = Math.floor(rng() * 300);
+          const x2 = Math.floor(rng() * 300), y2 = Math.floor(rng() * 300);
+          shapes.push(`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="rgba(255,255,255,0.15)" stroke-width="${2+Math.floor(rng()*4)}"/>`);
+        }
+        return `<svg viewBox="0 0 300 300" style="position:absolute;inset:0;width:100%;height:100%;">${shapes.join('')}</svg>`;
+      }
+
+      function mulberry32(a) {
+        return function() {
+          a |= 0; a = a + 0x6D2B79F5 | 0;
+          var t = Math.imul(a ^ a >>> 15, 1 | a);
+          t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+      }
+
+      const voyagerNames = [
+        'Nebula Walker', 'Astral Drifter', 'Cosmic Herald', 'Void Seeker',
+        'Star Weaver', 'Photon Rider', 'Gravity Dancer', 'Solar Nomad',
+        'Quantum Pilgrim', 'Eclipse Hunter', 'Meteor Sage', 'Horizon Keeper',
+        'Pulsar Knight', 'Nova Sentinel', 'Comet Whisper', 'Orbit Wanderer',
+      ];
+
+      const traitCategories = [
+        { name: 'Background', values: ['Deep Space', 'Nebula', 'Supernova', 'Black Hole', 'Aurora'] },
+        { name: 'Body', values: ['Ethereal', 'Crystalline', 'Plasma', 'Obsidian', 'Luminous'] },
+        { name: 'Headgear', values: ['Cosmic Crown', 'Star Helm', 'Void Visor', 'None', 'Halo Ring'] },
+        { name: 'Aura', values: ['Golden', 'Electric Blue', 'Crimson', 'Emerald', 'Prismatic'] },
+        { name: 'Companion', values: ['Star Fox', 'Nebula Cat', 'Void Serpent', 'None', 'Comet Hawk'] },
+        { name: 'Eyes', values: ['Galaxy', 'Solar Flare', 'Void', 'Starlight', 'Prismatic'] },
+      ];
+
+      const collectionNFTs = voyagerNames.map((name, i) => {
+        const rng = mulberry32(i * 7 + 42);
+        const price = (0.2 + rng() * 2.8).toFixed(2);
+        const usdPrice = (parseFloat(price) * 2847).toFixed(0);
+        const tokenId = 1000 + i;
+        const traits = traitCategories.map(cat => ({
+          category: cat.name,
+          value: cat.values[Math.floor(rng() * cat.values.length)],
+          rarity: (1 + Math.floor(rng() * 20)) + '%',
+        }));
+        return {
+          id: i,
+          name,
+          tokenId,
+          price,
+          usdPrice,
+          gradient: nftGradients[i % nftGradients.length],
+          owner: '0x' + Array.from({length:6}, () => Math.floor(rng()*16).toString(16)).join('') + '…' + Array.from({length:4}, () => Math.floor(rng()*16).toString(16)).join(''),
+          traits,
+          lastSale: (parseFloat(price) * (0.7 + rng() * 0.25)).toFixed(2),
+        };
+      });
+
+      // Trending collections data
+      const trendingCollections = [
+        { name: 'Celestial Voyagers', img: nftGradients[0], floor: '0.42', vol: '1,284', sales: '3,421', change: '+124.5%', up: true, verified: true },
+        { name: 'Pixel Punks', img: 'linear-gradient(135deg,#ff6b6b,#feca57)', floor: '12.8', vol: '8,421', sales: '892', change: '+42.1%', up: true, verified: true },
+        { name: 'Abstract Minds', img: 'linear-gradient(135deg,#48dbfb,#0abde3)', floor: '0.18', vol: '342', sales: '1,204', change: '+18.7%', up: true, verified: false },
+        { name: 'Neon Dreams', img: 'linear-gradient(135deg,#f368e0,#ff9ff3)', floor: '0.89', vol: '921', sales: '764', change: '-5.2%', up: false, verified: true },
+        { name: 'Genesis Blocks', img: 'linear-gradient(135deg,#576574,#222f3e)', floor: '3.42', vol: '2,108', sales: '412', change: '+8.9%', up: true, verified: true },
+        { name: 'Chromatic Souls', img: 'linear-gradient(135deg,#ff9f43,#ee5a24)', floor: '0.31', vol: '198', sales: '642', change: '+67.3%', up: true, verified: false },
+      ];
+
+      // Activity data
+      const activityData = [
+        { event: 'Sale', item: 'Nebula Walker', price: '1.42', from: '0x7a2…c4f1', to: '0x3b8…d2a9', time: '2 min ago', color: 'var(--success)' },
+        { event: 'List', item: 'Cosmic Herald', price: '0.89', from: '0x5c1…e8f3', to: '—', time: '8 min ago', color: 'var(--primary)' },
+        { event: 'Offer', item: 'Void Seeker', price: '0.65', from: '0x9d4…a1b2', to: '—', time: '14 min ago', color: 'var(--warning)' },
+        { event: 'Sale', item: 'Star Weaver', price: '2.18', from: '0x2e7…f5c8', to: '0x8a3…b7d6', time: '21 min ago', color: 'var(--success)' },
+        { event: 'Transfer', item: 'Photon Rider', price: '—', from: '0x6f2…d4e1', to: '0x1c9…a3f7', time: '34 min ago', color: 'var(--muted-foreground)' },
+        { event: 'Mint', item: 'Solar Nomad', price: '0.42', from: 'NullAddress', to: '0x4b5…c2d8', time: '1 hr ago', color: 'var(--info)' },
+        { event: 'Sale', item: 'Gravity Dancer', price: '1.85', from: '0x7e1…f9a2', to: '0x2d6…b4c3', time: '2 hr ago', color: 'var(--success)' },
+        { event: 'List', item: 'Quantum Pilgrim', price: '1.20', from: '0x8c3…d7e5', to: '—', time: '3 hr ago', color: 'var(--primary)' },
+      ];
+
+      // =====================================================
+      // RENDER FUNCTIONS
+      // =====================================================
+      function renderTrending() {
+        document.getElementById('trendingTable').innerHTML = trendingCollections.map((c, i) => `
+          <tr class="hover:bg-muted transition-colors cursor-pointer" ${i === 0 ? 'onclick="showPage(\'collection\')"' : ''}>
+            <td class="px-4 py-3 text-muted-foreground">${i + 1}</td>
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <div style="width:36px;height:36px;border-radius:8px;background:${c.img};flex-shrink:0;"></div>
+                <div class="flex items-center gap-1.5">
+                  <span class="font-medium">${c.name}</span>
+                  ${c.verified ? '<div class="verified-badge" style="width:14px;height:14px;"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>' : ''}
+                </div>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-right font-medium">${c.floor} ETH</td>
+            <td class="px-4 py-3 text-right">${c.vol} ETH</td>
+            <td class="px-4 py-3 text-right">${c.sales}</td>
+            <td class="px-4 py-3 text-right"><span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${c.up ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive'}">${c.change}</span></td>
+          </tr>
+        `).join('');
+      }
+
+      function renderNFTCard(nft, container) {
+        return `
+          <div class="nft-card" onclick="openNFTDetail(${nft.id})">
+            <div class="nft-art" style="background:${nft.gradient};">
+              ${nftArtOverlay(nft.id)}
+            </div>
+            <div class="nft-card-body">
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs text-muted-foreground">Celestial Voyagers</p>
+                <div class="verified-badge" style="width:14px;height:14px;"><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              </div>
+              <p class="text-sm font-semibold">${nft.name}</p>
+              <div class="flex items-center justify-between mt-2">
+                <div>
+                  <p class="text-xs text-muted-foreground">Price</p>
+                  <div class="nft-price-tag">
+                    <span style="color:var(--foreground);">Ξ ${nft.price}</span>
+                  </div>
+                </div>
+                <div style="text-align:right;">
+                  <p class="text-xs text-muted-foreground">Last</p>
+                  <p class="text-xs font-medium">Ξ ${nft.lastSale}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderCollectionGrid() {
+        document.getElementById('collectionGrid').innerHTML = collectionNFTs.map(nft => renderNFTCard(nft)).join('');
+      }
+
+      function renderNotableDrops() {
+        document.getElementById('notableGrid').innerHTML = collectionNFTs.slice(0, 4).map(nft => renderNFTCard(nft)).join('');
+      }
+
+      function renderActivity() {
+        document.getElementById('activityTable').innerHTML = activityData.map(a => `
+          <tr class="hover:bg-muted transition-colors">
+            <td class="px-4 py-3"><span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium" style="background:color-mix(in srgb, ${a.color} 15%, transparent);color:${a.color};">${a.event}</span></td>
+            <td class="px-4 py-3 font-medium">${a.item}</td>
+            <td class="px-4 py-3 text-right font-medium">${a.price !== '—' ? 'Ξ ' + a.price : '—'}</td>
+            <td class="px-4 py-3 text-muted-foreground">${a.from}</td>
+            <td class="px-4 py-3 text-muted-foreground">${a.to}</td>
+            <td class="px-4 py-3 text-right text-muted-foreground">${a.time}</td>
+          </tr>
+        `).join('');
+      }
+
+      // =====================================================
+      // NFT DETAIL VIEW
+      // =====================================================
+      let currentNFT = null;
+
+      function openNFTDetail(id) {
+        currentNFT = collectionNFTs[id];
+        document.getElementById('detailArt').style.background = currentNFT.gradient;
+        document.getElementById('detailArt').innerHTML = nftArtOverlay(currentNFT.id);
+        document.getElementById('detailName').textContent = currentNFT.name + ' #' + currentNFT.tokenId;
+        document.getElementById('detailOwner').textContent = currentNFT.owner;
+        document.getElementById('detailPrice').textContent = 'Ξ ' + currentNFT.price;
+        document.getElementById('detailPriceUSD').textContent = '($' + Number(currentNFT.usdPrice).toLocaleString() + ')';
+        document.getElementById('detailTokenId').textContent = '#' + currentNFT.tokenId;
+        document.getElementById('detailTraitCount').textContent = currentNFT.traits.length + ' traits';
+        document.getElementById('detailTraits').innerHTML = currentNFT.traits.map(t => `
+          <div class="trait-chip">
+            <div class="trait-chip-label">${t.category}</div>
+            <div class="trait-chip-value">${t.value}</div>
+            <div class="trait-chip-rarity">${t.rarity} have this</div>
+          </div>
+        `).join('');
+        updateBuyButton();
+        showPage('detail');
+      }
+
+      function updateBuyButton() {
+        const label = document.getElementById('buyBtnLabel');
+        if (isConnected) {
+          label.textContent = 'Buy Now';
+        } else {
+          label.textContent = 'Connect Wallet to Buy';
+        }
+      }
+
+      function handleBuyClick() {
+        if (isConnected) {
+          alert(`Purchase of ${currentNFT.name} #${currentNFT.tokenId} for Ξ ${currentNFT.price} executed! (Demo)`);
+        } else {
+          pendingAction = 'buy';
+          openModal('connect');
+        }
+      }
+
+      function handleMakeOffer() {
+        if (isConnected) {
+          alert(`Offer submitted for ${currentNFT.name} #${currentNFT.tokenId}! (Demo)`);
+        } else {
+          pendingAction = 'offer';
+          openModal('connect');
+        }
+      }
+
+      // =====================================================
+      // PAGE & TAB NAVIGATION
+      // =====================================================
+      function showPage(page) {
+        document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        const nl = document.getElementById('nav-' + page);
+        if (nl) nl.classList.add('active');
+        if (page === 'collection' || page === 'detail') {
+          document.getElementById('nav-collection').style.display = '';
+          document.getElementById('nav-collection').classList.add('active');
+          document.getElementById('nav-explore').classList.remove('active');
+        }
+        window.scrollTo(0, 0);
+      }
+
+      function showCollectionTab(tab) {
+        document.getElementById('tab-items').style.display = tab === 'items' ? '' : 'none';
+        document.getElementById('tab-activity').style.display = tab === 'activity' ? '' : 'none';
+        document.querySelectorAll('#page-collection .tab-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+      }
+
+      // =====================================================
+      // UI STATE TRANSITIONS
+      // =====================================================
+      function updateUIState() {
+        if (isConnected) {
+          document.getElementById('navDisconnected').style.display = 'none';
+          document.getElementById('navConnected').style.display = '';
+          document.getElementById('navAddrShort').textContent = connectedAddress.slice(0,6) + '…' + connectedAddress.slice(-4);
+          document.getElementById('dropdownAddr').textContent = connectedAddress.slice(0,6) + '…' + connectedAddress.slice(-4);
+          document.getElementById('dropdownProvider').textContent = selectedWalletProvider || 'Connected';
+        } else {
+          document.getElementById('navDisconnected').style.display = '';
+          document.getElementById('navConnected').style.display = 'none';
+          document.getElementById('profileDropdown').classList.remove('open');
+        }
+        updateBuyButton();
+      }
+
+      // =====================================================
+      // PROFILE DROPDOWN
+      // =====================================================
+      function toggleProfileDropdown(e) {
+        e.stopPropagation();
+        document.getElementById('profileDropdown').classList.toggle('open');
+      }
+
+      function profileAction(action) {
+        document.getElementById('profileDropdown').classList.remove('open');
+        if (action === 'disconnect') {
+          isConnected = false;
+          connectedAddress = '';
+          selectedWalletProvider = null;
+          lastScreeningResult = null;
+          updateUIState();
+        }
+      }
+
+      document.addEventListener('click', function(e) {
+        const dd = document.getElementById('profileDropdown');
+        if (dd && !dd.contains(e.target) && e.target.id !== 'navAvatar') {
+          dd.classList.remove('open');
+        }
+      });
+
+      // =====================================================
+      // MODAL MANAGEMENT
+      // =====================================================
+      function openModal(type) {
+        closeAllModals();
+        const m = document.getElementById('modal-' + type);
+        if (m) m.classList.add('active');
+        if (type === 'connect') {
+          document.getElementById('step-providers').style.display = '';
+          document.getElementById('step-input').style.display = 'none';
+        }
+      }
+      function closeAllModals() {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+      }
+      document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.addEventListener('click', function(e) { if (e.target === this) closeAllModals(); });
+      });
+
+      // =====================================================
+      // CONNECT WALLET FLOW (Address Screening)
+      // =====================================================
+      const SLUG = 'demochain-address-screen';
+
+      function selectProvider(name) {
+        selectedWalletProvider = name;
+        document.getElementById('step-providers').style.display = 'none';
+        document.getElementById('step-input').style.display = '';
+        document.getElementById('selectedProviderName').textContent = name;
+        document.getElementById('selectedProviderIcon').innerHTML = providerIcons[name] || '';
+        document.getElementById('complianceProvider').textContent = name;
+        document.getElementById('addressInput').focus();
+      }
+
+      function backToProviders() {
+        document.getElementById('step-input').style.display = 'none';
+        document.getElementById('step-providers').style.display = '';
+      }
+
+      function resetConnectModal() {
+        ['step-providers','step-input','step-loading','step-results','step-sandbox'].forEach((id,i) => {
+          document.getElementById(id).style.display = i === 0 ? '' : 'none';
+        });
+        document.getElementById('addressInput').value = '';
+        selectedWalletProvider = null;
+        document.querySelectorAll('#workflowSteps .workflow-step').forEach(s => {
+          s.classList.remove('active','done');
+          const ic = s.querySelector('.step-icon');
+          ic.className = 'step-icon bg-muted text-muted-foreground';
+          ic.textContent = s.dataset.step;
+        });
+      }
+
+      document.getElementById('addressInput').addEventListener('keydown', e => { if (e.key === 'Enter') screenAddress(); });
+
+      async function screenAddress() {
+        const address = document.getElementById('addressInput').value.trim();
+        if (!address) { document.getElementById('addressInput').style.borderColor = 'var(--destructive)'; return; }
+        document.getElementById('addressInput').style.borderColor = '';
+        document.getElementById('step-input').style.display = 'none';
+        document.getElementById('step-loading').style.display = '';
+        document.getElementById('loadingAddr').textContent = address.length > 30 ? address.slice(0,16)+'…'+address.slice(-12) : address;
+        try {
+          const res = await fetch(`/api/workflow/${SLUG}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:{address}}) });
+          if (!res.ok) throw new Error(`API returned ${res.status}`);
+          const data = await res.json();
+          const result = data.output ?? data;
+          if (result.error) throw new Error(result.error);
+          lastScreeningResult = result;
+          showResults(result);
+        } catch(e) {
+          if (e instanceof TypeError) {
+            document.getElementById('step-loading').style.display = 'none';
+            document.getElementById('step-sandbox').style.display = '';
+          } else {
+            document.getElementById('step-loading').style.display = 'none';
+            document.getElementById('step-results').style.display = '';
+            document.getElementById('step-results').innerHTML = `<div class="alert alert-destructive" role="alert"><div class="alert-title">Screening Failed</div><div class="alert-description">${e.message}</div></div><button onclick="resetConnectModal()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Again</button>`;
+          }
+        }
+      }
+
+      function showResults(r) {
+        document.getElementById('step-loading').style.display = 'none';
+        document.getElementById('step-results').style.display = '';
+        const riskAngles = { Low:-70, Medium:-20, High:25, Severe:65 };
+        const riskBgClass = { Low:'bg-success/10 text-success', Medium:'bg-warning/10 text-warning', High:'bg-warning/10 text-warning', Severe:'bg-destructive/10 text-destructive' };
+        const risk = r.risk || 'Unknown';
+        document.getElementById('gaugeNeedle').setAttribute('transform', `rotate(${riskAngles[risk]??0},100,100)`);
+        document.getElementById('riskBadge').innerHTML = `<span class="inline-flex h-6 items-center rounded-full border border-transparent px-3 py-0.5 text-sm font-semibold ${riskBgClass[risk]||'bg-muted text-foreground'}">${risk} Risk</span>`;
+        document.getElementById('riskReason').textContent = r.riskReason || 'No additional risk information';
+        document.getElementById('resultAddr').textContent = r.address;
+        document.getElementById('resultType').textContent = r.addressType === 'PRIVATE_WALLET' ? 'Private Wallet' : r.addressType === 'LIQUIDITY_POOL' ? 'Liquidity Pool' : (r.addressType || '—');
+        document.getElementById('clusterRow').style.display = r.cluster?.name || r.cluster?.category ? '' : 'none';
+        document.getElementById('resultCluster').textContent = r.cluster?.name || '—';
+        document.getElementById('categoryRow').style.display = r.cluster?.category ? '' : 'none';
+        document.getElementById('resultCategory').textContent = r.cluster?.category || '';
+
+        const idSection = document.getElementById('idSection');
+        if (r.identifications?.length > 0) {
+          idSection.style.display = '';
+          idSection.innerHTML = `<p class="text-sm font-medium mb-2">Identifications</p>` + r.identifications.map(id => `<div class="rounded-lg bg-destructive/10 p-2 mb-1"><span class="text-xs font-semibold text-destructive">${id.category||''}</span>${id.name?` <span class="text-xs text-foreground ml-2">${id.name}</span>`:''}</div>`).join('');
+        } else idSection.style.display = 'none';
+
+        const expSection = document.getElementById('exposureSection');
+        const expBars = document.getElementById('exposureBars');
+        if (r.exposures?.length > 0) {
+          expSection.style.display = '';
+          const top = r.exposures.slice(0,6);
+          const max = Math.max(...top.map(e=>e.value));
+          expBars.innerHTML = top.map(e => {
+            const pct = max>0?(e.value/max*100):0;
+            const label = e.category.charAt(0).toUpperCase()+e.category.slice(1);
+            const val = e.value>=1e6?`$${(e.value/1e6).toFixed(1)}M`:e.value>=1e3?`$${(e.value/1e3).toFixed(1)}K`:`$${e.value.toFixed(2)}`;
+            const col = /scam|stolen|sanction|ransomware|darknet/.test(e.category)?'background:var(--destructive)':/gambling|no kyc/.test(e.category)?'background:var(--warning)':'background:var(--primary)';
+            return `<div class="flex items-center gap-2 text-xs"><span class="text-muted-foreground" style="min-width:120px;text-align:right;">${label}</span><div class="flex-1 bg-muted rounded-full" style="height:8px;overflow:hidden;"><div class="exposure-bar" style="width:${pct}%;height:100%;border-radius:4px;${col};"></div></div><span class="font-medium" style="min-width:60px;">${val}</span><span class="inline-flex h-4 items-center rounded-full border border-transparent px-1.5 text-xs font-medium ${e.exposureType==='direct'?'bg-primary/10 text-primary':'bg-muted text-muted-foreground'}">${e.exposureType}</span></div>`;
+          }).join('');
+        } else expSection.style.display = 'none';
+
+        const dec = document.getElementById('decisionBox');
+        const pbtn = document.getElementById('proceedBtn');
+        if (risk === 'Low') {
+          dec.innerHTML = `<div class="rounded-lg bg-success/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p class="text-sm font-semibold text-success">Wallet Approved</p><p class="text-xs text-muted-foreground">This address passed compliance screening. You may mint, buy, and trade NFTs.</p></div></div>`;
+          pbtn.style.display = ''; pbtn.textContent = 'Connect Wallet';
+        } else if (risk === 'Medium') {
+          dec.innerHTML = `<div class="rounded-lg bg-warning/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-warning flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><p class="text-sm font-semibold text-warning">Enhanced Review Required</p><p class="text-xs text-muted-foreground">Moderate risk indicators detected. Trading may be limited pending verification.</p></div></div>`;
+          pbtn.style.display = ''; pbtn.textContent = 'Proceed with Caution';
+        } else if (risk === 'High' || risk === 'Severe') {
+          dec.innerHTML = `<div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-destructive flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><p class="text-sm font-semibold text-destructive">Connection Denied</p><p class="text-xs text-muted-foreground">This wallet has been flagged with ${risk.toLowerCase()} risk. Minting, buying, and trading are blocked to protect marketplace integrity.</p></div></div>`;
+          pbtn.style.display = 'none';
+        } else { dec.innerHTML = ''; pbtn.style.display = ''; pbtn.textContent = 'Close'; }
+      }
+
+      function connectWallet() {
+        const addr = lastScreeningResult?.address || document.getElementById('addressInput').value.trim();
+        if (!addr) return;
+        connectedAddress = addr;
+        isConnected = true;
+        updateUIState();
+        closeAllModals();
+        resetConnectModal();
+        // If there was a pending action, complete it
+        if (pendingAction === 'buy' && currentNFT) {
+          setTimeout(() => alert(`Purchase of ${currentNFT.name} #${currentNFT.tokenId} for Ξ ${currentNFT.price} executed! (Demo)`), 300);
+        } else if (pendingAction === 'offer' && currentNFT) {
+          setTimeout(() => alert(`Offer submitted for ${currentNFT.name} #${currentNFT.tokenId}! (Demo)`), 300);
+        }
+        pendingAction = null;
+      }
+
+      // =====================================================
+      // INIT
+      // =====================================================
+      renderTrending();
+      renderCollectionGrid();
+      renderNotableDrops();
+      renderActivity();
+      updateUIState();
+    </script>
+  </body>
+</html>
