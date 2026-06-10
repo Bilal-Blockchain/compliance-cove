@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DemoChain — DeFi Trading</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+      * { font-family: 'Inter', system-ui, sans-serif; }
+      .modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        z-index: 100; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s ease;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal-box { width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+      .glow-btn { position: relative; overflow: hidden; }
+      .glow-btn::before {
+        content: ''; position: absolute; inset: -2px;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+        border-radius: inherit; z-index: -1; opacity: 0.6; filter: blur(8px); transition: opacity 0.3s;
+      }
+      .glow-btn:hover::before { opacity: 1; }
+      .risk-gauge { width: 200px; height: 110px; position: relative; margin: 0 auto; }
+      .risk-gauge svg { width: 100%; height: 100%; }
+      .workflow-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; transition: all 0.3s; }
+      .workflow-step.active { background: var(--color-primary-alpha10, rgba(99,102,241,0.1)); }
+      .workflow-step.done { opacity: 0.7; }
+      .step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+      .step-connector { width: 2px; height: 16px; margin-left: 29px; border-radius: 1px; }
+      .ticker-tape { display: flex; overflow: hidden; white-space: nowrap; }
+      .ticker-content { display: flex; gap: 32px; animation: scroll 30s linear infinite; }
+      @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+      .pulse-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s ease infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+      .exposure-bar { height: 22px; border-radius: 4px; min-width: 4px; transition: width 0.6s ease; }
+      .wallet-provider-btn {
+        display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px;
+        border-radius: 12px; border: 1px solid var(--border); background: var(--background);
+        cursor: pointer; transition: all 0.15s ease; color: inherit;
+      }
+      .wallet-provider-btn:hover { background: var(--muted); border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+      .wallet-provider-btn .provider-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+      .wallet-provider-btn .provider-info { flex: 1; text-align: left; }
+      .wallet-provider-btn .provider-name { font-size: 14px; font-weight: 600; }
+      .wallet-provider-btn .provider-desc { font-size: 11px; color: var(--muted-foreground); }
+      .wallet-provider-btn .provider-arrow { color: var(--muted-foreground); transition: transform 0.15s; }
+      .wallet-provider-btn:hover .provider-arrow { transform: translateX(2px); color: var(--foreground); }
+      .provider-popular { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 6px; }
+      /* Page views */
+      .page-view { display: none; }
+      .page-view.active { display: block; }
+      /* Nav link active state */
+      .nav-link { cursor: pointer; }
+      .nav-link.active { color: var(--foreground); font-weight: 500; }
+      /* Profile avatar */
+      .profile-avatar {
+        width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 13px; font-weight: 700; color: white; cursor: pointer;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        position: relative;
+      }
+      /* Profile dropdown */
+      .profile-dropdown-wrap { position: relative; }
+      .profile-dropdown {
+        position: absolute; top: calc(100% + 8px); right: 0;
+        width: 220px; z-index: 60;
+        border-radius: 12px;
+        background: var(--card); color: var(--card-foreground);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+        border: 1px solid var(--border);
+        padding: 6px;
+        display: none;
+        animation: slideUp 0.15s ease;
+      }
+      .profile-dropdown.open { display: block; }
+      .profile-dropdown-item {
+        display: flex; align-items: center; gap: 10px;
+        padding: 8px 10px; border-radius: 8px;
+        font-size: 13px; font-weight: 500;
+        cursor: pointer; transition: background 0.1s;
+        color: var(--foreground);
+        width: 100%; border: none; background: none; text-align: left;
+      }
+      .profile-dropdown-item:hover { background: var(--muted); }
+      .profile-dropdown-item svg { flex-shrink: 0; }
+      .profile-dropdown-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+      /* Animated step transitions */
+      .kyt-step { transition: all 0.4s ease; }
+      .kyt-step.pending .step-icon { background: var(--muted); color: var(--muted-foreground); }
+      .kyt-step.running .step-icon { background: rgba(99,102,241,0.1); color: var(--primary); }
+      .kyt-step.success .step-icon { background: rgba(34,197,94,0.1); color: var(--success); }
+      .kyt-step.alert .step-icon { background: rgba(239,68,68,0.1); color: var(--destructive); }
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+
+    <!-- ==================== NAV ==================== -->
+    <nav class="border-b border-border sticky" style="top:0; z-index:50; background: var(--background);">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:56px;">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('trade')">
+            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+              </svg>
+            </div>
+            <span class="text-base font-bold tracking-tight">DemoChain</span>
+          </div>
+          <div class="flex items-center gap-4 text-sm">
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors active" id="nav-trade" onclick="showPage('trade')">Trade</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors" id="nav-account" onclick="showPage('account')" style="display:none;">Account</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors">Pool</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors">Stake</a>
+          </div>
+        </div>
+        <!-- Right side: Connect or Profile -->
+        <div id="navRight">
+          <!-- Disconnected state -->
+          <div id="navDisconnected">
+            <button onclick="openModal('connect')"
+              class="glow-btn inline-flex items-center justify-center rounded-lg h-8 gap-1.5 px-4 text-sm font-semibold text-primary-foreground transition-all"
+              style="background: linear-gradient(135deg,#6366f1,#8b5cf6); position:relative; z-index:1;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/>
+              </svg>
+              Connect Wallet
+            </button>
+          </div>
+          <!-- Connected state -->
+          <div id="navConnected" style="display:none;" class="flex items-center gap-3">
+            <div class="flex items-center gap-2 text-sm">
+              <div class="pulse-dot bg-success"></div>
+              <span class="text-muted-foreground" id="navAddrShort"></span>
+            </div>
+            <div class="profile-dropdown-wrap">
+              <div class="profile-avatar" id="navAvatar" onclick="toggleProfileDropdown(event)" title="Account">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                </svg>
+              </div>
+              <div class="profile-dropdown" id="profileDropdown">
+                <!-- Wallet info header -->
+                <div style="padding:8px 10px 4px;">
+                  <p class="text-xs text-muted-foreground">Connected Wallet</p>
+                  <p class="text-sm font-semibold" id="dropdownAddr" style="word-break:break-all;"></p>
+                  <div class="flex items-center gap-1 mt-1">
+                    <div class="pulse-dot bg-success" style="width:6px;height:6px;"></div>
+                    <span class="text-xs text-success font-medium" id="dropdownProvider"></span>
+                  </div>
+                </div>
+                <div class="profile-dropdown-sep"></div>
+                <!-- Balance -->
+                <button class="profile-dropdown-item" onclick="profileAction('balance')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><circle cx="16" cy="14" r="2"/></svg>
+                  Balance
+                </button>
+                <div class="profile-dropdown-sep"></div>
+                <!-- Disconnect -->
+                <button class="profile-dropdown-item" onclick="profileAction('disconnect')" style="color:var(--destructive);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  Disconnect Wallet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ==================== TICKER ==================== -->
+    <div class="border-b border-border py-2 bg-muted/50">
+      <div class="ticker-tape">
+        <div class="ticker-content text-xs text-muted-foreground" id="ticker"></div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: TRADE                                                       -->
+    <!-- ================================================================ -->
+    <div id="page-trade" class="page-view active">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        <!-- Trading pair header -->
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center">
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#627eea,#3b5998);display:flex;align-items:center;justify-content:center;z-index:2;position:relative;">
+                <span style="color:white;font-weight:700;font-size:16px;">Ξ</span>
+              </div>
+              <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#26a17b,#1a7a5e);display:flex;align-items:center;justify-content:center;margin-left:-10px;z-index:1;">
+                <span style="color:white;font-weight:700;font-size:11px;">$</span>
+              </div>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold tracking-tight">ETH / USDT</h1>
+              <p class="text-xs text-muted-foreground">Ethereum • Tether USD</p>
+            </div>
+            <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success">+2.41%</span>
+          </div>
+          <div class="flex items-center gap-6 text-sm">
+            <div><span class="text-muted-foreground">24h Vol</span> <span class="font-semibold">$1.28B</span></div>
+            <div><span class="text-muted-foreground">TVL</span> <span class="font-semibold">$842M</span></div>
+            <div><span class="text-muted-foreground">Fee Tier</span> <span class="font-semibold">0.3%</span></div>
+          </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Chart -->
+          <div class="md:col-span-2 rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+            <div class="px-4 flex items-center justify-between">
+              <div>
+                <span class="text-2xl font-bold">$2,847.32</span>
+                <span class="text-success text-sm font-medium ml-2">▲ $67.12</span>
+              </div>
+              <div class="flex gap-1">
+                <button class="inline-flex items-center justify-center rounded-lg h-8 px-2.5 text-xs font-medium text-foreground hover:bg-muted transition-all">1H</button>
+                <button class="inline-flex items-center justify-center rounded-lg h-8 px-2.5 text-xs font-medium bg-primary text-primary-foreground transition-all">1D</button>
+                <button class="inline-flex items-center justify-center rounded-lg h-8 px-2.5 text-xs font-medium text-foreground hover:bg-muted transition-all">1W</button>
+                <button class="inline-flex items-center justify-center rounded-lg h-8 px-2.5 text-xs font-medium text-foreground hover:bg-muted transition-all">1M</button>
+              </div>
+            </div>
+            <div class="px-4"><canvas id="priceChart" height="220"></canvas></div>
+          </div>
+
+          <!-- Swap card -->
+          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+            <div class="px-4 flex items-center justify-between">
+              <h2 class="text-base font-semibold">Swap</h2>
+              <button class="text-muted-foreground hover:text-foreground transition-colors" title="Settings">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2m-9.07-3.93l1.41 1.41m12.73-12.73l1.41 1.41M1 12h2m18 0h2M4.93 4.93l1.41 1.41m12.73 12.73l1.41 1.41"/>
+                </svg>
+              </button>
+            </div>
+            <div class="px-4 space-y-4">
+              <div class="rounded-lg bg-muted p-3 space-y-2">
+                <div class="flex items-center justify-between text-xs text-muted-foreground"><span>From</span><span>Balance: 4.2851</span></div>
+                <div class="flex items-center justify-between">
+                  <input type="text" value="1.0" class="bg-transparent text-xl font-bold outline-none" style="width:100px;" />
+                  <span class="inline-flex items-center gap-1 rounded-lg bg-background px-2 py-1 text-sm font-medium ring-1 ring-foreground/10">
+                    <span style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#627eea,#3b5998);display:inline-flex;align-items:center;justify-content:center;"><span style="color:white;font-size:10px;font-weight:700;">Ξ</span></span> ETH
+                  </span>
+                </div>
+              </div>
+              <div class="flex justify-center">
+                <div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;" class="bg-muted ring-1 ring-foreground/10">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14m-7-7l7 7 7-7"/></svg>
+                </div>
+              </div>
+              <div class="rounded-lg bg-muted p-3 space-y-2">
+                <div class="flex items-center justify-between text-xs text-muted-foreground"><span>To (estimated)</span><span>Balance: 12,450.00</span></div>
+                <div class="flex items-center justify-between">
+                  <input type="text" value="2,847.32" readonly class="bg-transparent text-xl font-bold outline-none text-muted-foreground" style="width:140px;" />
+                  <span class="inline-flex items-center gap-1 rounded-lg bg-background px-2 py-1 text-sm font-medium ring-1 ring-foreground/10">
+                    <span style="width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#26a17b,#1a7a5e);display:inline-flex;align-items:center;justify-content:center;"><span style="color:white;font-size:9px;font-weight:700;">$</span></span> USDT
+                  </span>
+                </div>
+              </div>
+              <div class="text-xs text-muted-foreground space-y-1">
+                <div class="flex justify-between"><span>Rate</span><span>1 ETH = 2,847.32 USDT</span></div>
+                <div class="flex justify-between"><span>Price Impact</span><span class="text-success">&lt; 0.01%</span></div>
+                <div class="flex justify-between"><span>Network Fee</span><span>~$3.42</span></div>
+                <div class="flex justify-between"><span>Route</span><span>ETH → WETH → USDT</span></div>
+              </div>
+              <!-- STATE-DEPENDENT SWAP BUTTON -->
+              <button id="swapBtn" onclick="handleSwapClick()"
+                class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all"
+                style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">
+                Connect Wallet to Swap
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Pools -->
+        <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="px-4">
+            <h2 class="text-base font-semibold">Top Pools</h2>
+            <p class="text-sm text-muted-foreground">Most traded pairs in the last 24 hours</p>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="border-b border-border">
+                <tr>
+                  <th class="px-4 py-3 text-left font-medium text-muted-foreground">#</th>
+                  <th class="px-4 py-3 text-left font-medium text-muted-foreground">Pool</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">TVL</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">24h Volume</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">7d APR</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">24h Δ</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y" id="poolsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: ACCOUNT                                                     -->
+    <!-- ================================================================ -->
+    <div id="page-account" class="page-view">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Account header -->
+        <div class="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 class="text-xl font-bold tracking-tight">Account Balance</h1>
+            <p class="text-sm text-muted-foreground" id="accountAddrDisplay"></p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openModal('deposit')"
+              class="inline-flex items-center justify-center rounded-lg h-8 gap-1.5 px-4 text-sm font-semibold text-primary-foreground transition-all"
+              style="background: linear-gradient(135deg,#22c55e,#16a34a);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg>
+              Deposit
+            </button>
+            <button onclick="openModal('withdraw')"
+              class="inline-flex items-center justify-center rounded-lg h-8 gap-1.5 px-4 text-sm font-semibold text-primary-foreground transition-all"
+              style="background: linear-gradient(135deg,#f97316,#ea580c);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7 7 7-7"/></svg>
+              Withdraw
+            </button>
+          </div>
+        </div>
+
+        <!-- Portfolio summary cards -->
+        <div class="grid grid-cols-3 gap-4">
+          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+            <div class="px-4">
+              <p class="text-xs text-muted-foreground">Total Balance</p>
+              <p class="text-2xl font-bold mt-1">$48,291.07</p>
+              <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success mt-1">+3.12% today</span>
+            </div>
+          </div>
+          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+            <div class="px-4">
+              <p class="text-xs text-muted-foreground">24h P&L</p>
+              <p class="text-2xl font-bold mt-1 text-success">+$1,458.32</p>
+              <p class="text-xs text-muted-foreground mt-1">Across 7 assets</p>
+            </div>
+          </div>
+          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+            <div class="px-4">
+              <p class="text-xs text-muted-foreground">Transactions</p>
+              <p class="text-2xl font-bold mt-1">142</p>
+              <p class="text-xs text-muted-foreground mt-1">Last 30 days</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assets table -->
+        <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="px-4 flex items-center justify-between">
+            <h2 class="text-base font-semibold">Your Assets</h2>
+            <div class="flex gap-2">
+              <button onclick="openModal('deposit')" class="inline-flex items-center justify-center rounded-lg h-8 gap-1.5 px-2.5 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg>
+                Deposit
+              </button>
+              <button onclick="openModal('withdraw')" class="inline-flex items-center justify-center rounded-lg h-8 gap-1.5 px-2.5 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7 7 7-7"/></svg>
+                Withdraw
+              </button>
+            </div>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm" id="assetsTable">
+              <thead class="border-b border-border">
+                <tr>
+                  <th class="px-4 py-3 text-left font-medium text-muted-foreground">Asset</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">Price</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">Balance</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">Value</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">24h</th>
+                  <th class="px-4 py-3 text-right font-medium text-muted-foreground">Allocation</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y" id="assetsBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="px-4"><h2 class="text-base font-semibold">Recent Activity</h2></div>
+          <div class="divide-y" id="activityList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- MODAL: CONNECT WALLET (Address Screening)                         -->
+    <!-- ================================================================ -->
+    <div class="modal-overlay" id="modal-connect">
+      <div class="modal-box rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 mx-4">
+        <div class="px-4 flex items-center justify-between">
+          <h2 class="text-base font-semibold" id="connectModalTitle">Connect Wallet</h2>
+          <button onclick="closeAllModals()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <hr />
+
+        <!-- Step 0: Choose provider -->
+        <div id="step-providers" class="px-4 space-y-3">
+          <p class="text-sm text-muted-foreground">Choose a wallet provider to connect</p>
+          <button class="wallet-provider-btn" onclick="selectProvider('MetaMask')">
+            <div class="provider-icon" style="background:#F6851B1A;">
+              <svg width="24" height="24" viewBox="0 0 256 240" fill="none"><path d="M241.9 0L143.2 73.5L161.4 30.2L241.9 0Z" fill="#E17726"/><path d="M14.1 0L111.9 74.2L94.6 30.2L14.1 0Z" fill="#E27625"/><path d="M207 172L181 214.5L236.5 229.8L252.4 172.8L207 172Z" fill="#E27625"/><path d="M3.7 172.8L19.5 229.8L75 214.5L49 172L3.7 172.8Z" fill="#E27625"/><path d="M72 104.2L56.6 127.2L111.5 129.7L109.8 70.7L72 104.2Z" fill="#E27625"/><path d="M184 104.2L145.6 70L143.2 129.7L198.1 127.2L184 104.2Z" fill="#E27625"/><path d="M75 214.5L108.3 198.2L79.5 173.2L75 214.5Z" fill="#E27625"/><path d="M147.7 198.2L181 214.5L176.5 173.2L147.7 198.2Z" fill="#E27625"/><path d="M181 214.5L147.7 198.2L150.5 221.3L150.2 229.1L181 214.5Z" fill="#D5BFB2"/><path d="M75 214.5L105.8 229.1L105.6 221.3L108.3 198.2L75 214.5Z" fill="#D5BFB2"/><path d="M106.3 160.2L78.7 152L98 143L106.3 160.2Z" fill="#233447"/><path d="M149.7 160.2L158 143L177.4 152L149.7 160.2Z" fill="#233447"/><path d="M75 214.5L79.7 172L49 172.8L75 214.5Z" fill="#CC6228"/><path d="M176.3 172L181 214.5L207 172.8L176.3 172Z" fill="#CC6228"/><path d="M198.1 127.2L143.2 129.7L149.7 160.2L158 143L177.4 152L198.1 127.2Z" fill="#CC6228"/><path d="M78.7 152L98 143L106.3 160.2L111.5 129.7L56.6 127.2L78.7 152Z" fill="#CC6228"/><path d="M56.6 127.2L79.5 173.2L78.7 152L56.6 127.2Z" fill="#E27625"/><path d="M177.4 152L176.5 173.2L198.1 127.2L177.4 152Z" fill="#E27625"/><path d="M111.5 129.7L106.3 160.2L112.8 195L114.3 148.7L111.5 129.7Z" fill="#E27625"/><path d="M143.2 129.7L141.5 148.6L143.2 195L149.7 160.2L143.2 129.7Z" fill="#E27625"/><path d="M149.7 160.2L143.2 195L147.7 198.2L176.5 173.2L177.4 152L149.7 160.2Z" fill="#F5841F"/><path d="M78.7 152L79.5 173.2L108.3 198.2L112.8 195L106.3 160.2L78.7 152Z" fill="#F5841F"/><path d="M150.2 229.1L150.5 221.3L147.9 219H108.1L105.6 221.3L105.8 229.1L75 214.5L86.2 223.7L107.8 239.3H148.3L169.9 223.7L181 214.5L150.2 229.1Z" fill="#C0AC9D"/><path d="M147.7 198.2L143.2 195H112.8L108.3 198.2L105.6 221.3L108.1 219H147.9L150.5 221.3L147.7 198.2Z" fill="#161616"/><path d="M246.1 78.1L254.8 37.5L241.9 0L147.7 69.5L184 104.2L235.1 119.7L246.6 106.2L241.5 102.5L249.5 95.2L243.3 90.5L251.3 84.3L246.1 78.1Z" fill="#763E1A"/><path d="M1.2 37.5L9.9 78.1L4.6 84.3L12.7 90.5L6.5 95.2L14.5 102.5L9.4 106.2L20.9 119.7L72 104.2L108.3 69.5L14.1 0L1.2 37.5Z" fill="#763E1A"/><path d="M235.1 119.7L184 104.2L198.1 127.2L176.5 173.2L207 172.8H252.4L235.1 119.7Z" fill="#F5841F"/><path d="M72 104.2L20.9 119.7L3.7 172.8H49L79.5 173.2L56.6 127.2L72 104.2Z" fill="#F5841F"/><path d="M143.2 129.7L147.7 69.5L161.4 30.2H94.6L108.3 69.5L111.5 129.7L112.7 148.8L112.8 195H143.2L143.3 148.8L143.2 129.7Z" fill="#F5841F"/></svg>
+            </div>
+            <div class="provider-info">
+              <div class="flex items-center gap-2"><span class="provider-name">MetaMask</span><span class="provider-popular bg-primary/10 text-primary">Popular</span></div>
+              <span class="provider-desc">Connect using browser extension</span>
+            </div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Coinbase Wallet')">
+            <div class="provider-icon" style="background:#0052FF1A;">
+              <svg width="24" height="24" viewBox="0 0 256 256"><rect width="256" height="256" rx="50" fill="#0052FF"/><circle cx="128" cy="128" r="80" fill="white"/><rect x="104" y="104" width="48" height="48" rx="8" fill="#0052FF"/></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">Coinbase Wallet</span><br/><span class="provider-desc">Connect using Coinbase Wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('WalletConnect')">
+            <div class="provider-icon" style="background:#3B99FC1A;">
+              <svg width="24" height="24" viewBox="0 0 300 185"><path d="M61.4 36.3C111.9-12.1 188.1-12.1 238.6 36.3L244.6 42.1C247.1 44.5 247.1 48.4 244.6 50.8L224.3 70.3C223 71.5 221 71.5 219.7 70.3L211.5 62.4C176.3 28.5 123.7 28.5 88.5 62.4L79.7 70.9C78.4 72.1 76.4 72.1 75.1 70.9L54.8 51.4C52.3 49 52.3 45.1 54.8 42.7L61.4 36.3ZM282.1 78.3L300.2 95.8C302.7 98.2 302.7 102.1 300.2 104.5L218.9 183.1C216.4 185.5 212.4 185.5 209.9 183.1L152.5 127.8C151.9 127.2 150.9 127.2 150.2 127.8L92.8 183.1C90.3 185.5 86.3 185.5 83.8 183.1L2.5 104.5C0 102.1 0 98.2 2.5 95.8L20.6 78.3C23.1 75.9 27.1 75.9 29.6 78.3L87 133.6C87.7 134.2 88.7 134.2 89.3 133.6L146.7 78.3C149.2 75.9 153.2 75.9 155.7 78.3L213.1 133.6C213.8 134.2 214.8 134.2 215.4 133.6L272.8 78.3C275.3 75.9 279.3 75.9 281.8 78.3L282.1 78.3Z" fill="#3B99FC"/></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">WalletConnect</span><br/><span class="provider-desc">Scan with mobile wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Phantom')">
+            <div class="provider-icon" style="background:#AB9FF21A;">
+              <svg width="24" height="24" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="url(#pG)"/><path d="M110.5 64.7C110.5 89.5 93.8 99.5 72.6 99.5H69.2C67.6 99.5 66.3 100.9 66.2 102.5L64.5 115.2C64.4 116.5 63.3 117.5 62 117.5H49.1C47.5 117.5 46.3 116 46.5 114.4L56.5 38.5C56.7 36.8 58.2 35.5 59.9 35.5H82.2C99 35.5 110.5 45.8 110.5 64.7Z" fill="white"/><defs><linearGradient id="pG" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#534BB1"/><stop offset="1" stop-color="#551BF9"/></linearGradient></defs></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">Phantom</span><br/><span class="provider-desc">Solana &amp; multi-chain wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Trust Wallet')">
+            <div class="provider-icon" style="background:#0500FF1A;">
+              <svg width="24" height="24" viewBox="0 0 256 256"><path d="M128 20C128 20 200 56 200 128C200 200 128 236 128 236C128 236 56 200 56 128C56 56 128 20 128 20Z" fill="none" stroke="#0500FF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">Trust Wallet</span><br/><span class="provider-desc">Multi-chain mobile wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Rabby Wallet')">
+            <div class="provider-icon" style="background:#7084FF1A;">
+              <svg width="24" height="24" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#7084FF"/><ellipse cx="64" cy="58" rx="30" ry="26" fill="white"/><ellipse cx="54" cy="54" rx="4" ry="5" fill="#7084FF"/><ellipse cx="74" cy="54" rx="4" ry="5" fill="#7084FF"/></svg>
+            </div>
+            <div class="provider-info"><span class="provider-name">Rabby Wallet</span><br/><span class="provider-desc">Desktop browser wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <!-- Step 1: Enter address -->
+        <div id="step-input" class="px-4 space-y-4" style="display:none;">
+          <div class="flex items-center gap-2">
+            <button onclick="backToProviders()" class="inline-flex items-center justify-center rounded-lg h-8 px-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-all">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="flex items-center gap-2">
+              <div id="selectedProviderIcon" style="width:20px;height:20px;"></div>
+              <span class="text-sm font-medium" id="selectedProviderName"></span>
+            </div>
+          </div>
+          <div class="rounded-lg bg-muted p-3 space-y-2">
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Compliance Powered by Chainalysis
+            </div>
+            <p class="text-xs text-muted-foreground leading-relaxed">
+              Before connecting via <strong id="complianceProvider">your wallet</strong>, your address is screened in real-time using the
+              <strong>Chainalysis Address Screening API</strong> to assess risk exposure.
+            </p>
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Wallet Address</label>
+            <input id="addressInput" type="text" placeholder="0x... or bc1... or any blockchain address"
+              class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
+          </div>
+          <div class="space-y-1" id="workflowSteps">
+            <div class="workflow-step" data-step="1"><div class="step-icon bg-muted text-muted-foreground">1</div><div><div class="text-sm font-medium">Submit Address</div><div class="text-xs text-muted-foreground">User provides wallet address</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="workflow-step" data-step="2"><div class="step-icon bg-muted text-muted-foreground">2</div><div><div class="text-sm font-medium flex items-center gap-1.5">Chainalysis Screening <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="13" height="13" class="text-primary"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg></div><div class="text-xs text-muted-foreground">Address Screening API assesses risk</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="workflow-step" data-step="3"><div class="step-icon bg-muted text-muted-foreground">3</div><div><div class="text-sm font-medium">Risk Decision</div><div class="text-xs text-muted-foreground">Allow or deny connection based on risk</div></div></div>
+          </div>
+          <button id="submitBtn" onclick="screenAddress()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all disabled:opacity-50" style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">Screen &amp; Connect</button>
+        </div>
+
+        <!-- Step 2: Loading -->
+        <div id="step-loading" class="px-4 space-y-4" style="display:none;">
+          <div class="flex flex-col items-center gap-4 py-6">
+            <div class="animate-spin" style="animation-duration:1.5s;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="40" height="40" class="text-primary"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            </div>
+            <div class="text-center space-y-1">
+              <p class="text-sm font-semibold">Screening Address…</p>
+              <p class="text-xs text-muted-foreground" id="loadingAddr"></p>
+            </div>
+            <div class="w-full space-y-1">
+              <div class="workflow-step active"><div class="step-icon bg-success/10 text-success">✓</div><div><div class="text-sm font-medium">Address submitted</div></div></div>
+              <div class="step-connector bg-success/10"></div>
+              <div class="workflow-step active"><div class="step-icon bg-primary/10 text-primary"><div class="animate-spin" style="animation-duration:1s;width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;"></div></div><div><div class="text-sm font-medium">Querying Chainalysis Address Screening API</div><div class="text-xs text-muted-foreground">Analyzing on-chain exposure…</div></div></div>
+              <div class="step-connector bg-muted"></div>
+              <div class="workflow-step"><div class="step-icon bg-muted text-muted-foreground">3</div><div><div class="text-sm font-medium text-muted-foreground">Awaiting result…</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Results -->
+        <div id="step-results" class="px-4 space-y-4" style="display:none;">
+          <div class="flex flex-col items-center gap-2">
+            <div class="risk-gauge"><svg viewBox="0 0 200 110"><path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--muted)" stroke-width="14" stroke-linecap="round"/><path d="M 20 100 A 80 80 0 0 1 60 32" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"/><path d="M 60 32 A 80 80 0 0 1 100 20" fill="none" stroke="#eab308" stroke-width="14"/><path d="M 100 20 A 80 80 0 0 1 140 32" fill="none" stroke="#f97316" stroke-width="14"/><path d="M 140 32 A 80 80 0 0 1 180 100" fill="none" stroke="#ef4444" stroke-width="14" stroke-linecap="round"/><line id="gaugeNeedle" x1="100" y1="100" x2="100" y2="30" stroke="var(--foreground)" stroke-width="2.5" stroke-linecap="round" transform="rotate(0,100,100)"/><circle cx="100" cy="100" r="6" fill="var(--foreground)"/></svg></div>
+            <div class="text-center"><div id="riskBadge"></div><p class="text-xs text-muted-foreground mt-1" id="riskReason"></p></div>
+          </div>
+          <hr />
+          <div class="space-y-3">
+            <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">Address</span><span class="text-xs font-medium" id="resultAddr" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></div>
+            <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">Type</span><span class="text-xs font-medium" id="resultType"></span></div>
+            <div class="flex items-center justify-between" id="clusterRow" style="display:none;"><span class="text-xs text-muted-foreground">Cluster</span><span class="text-xs font-medium" id="resultCluster"></span></div>
+            <div class="flex items-center justify-between" id="categoryRow" style="display:none;"><span class="text-xs text-muted-foreground">Category</span><span class="text-xs font-medium" id="resultCategory"></span></div>
+          </div>
+          <div id="idSection" style="display:none;"></div>
+          <div id="exposureSection" style="display:none;"><p class="text-sm font-medium mb-2">Exposure Breakdown</p><div class="space-y-2" id="exposureBars"></div></div>
+          <hr />
+          <div id="decisionBox"></div>
+          <div class="flex gap-2">
+            <button onclick="resetConnectModal()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Address</button>
+            <button id="proceedBtn" onclick="connectWallet()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">Continue</button>
+          </div>
+        </div>
+
+        <!-- Sandbox message -->
+        <div id="step-sandbox" class="px-4" style="display:none;">
+          <div class="rounded-xl bg-info/10 text-info ring-1 ring-foreground/10 p-4 space-y-1">
+            <h3 class="text-sm font-semibold">Can't run workflows from preview</h3>
+            <p class="text-sm opacity-90">Open this page in a new tab to use interactive features.</p>
+          </div>
+          <div class="mt-4"><button onclick="closeAllModals()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Close</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- MODAL: DEPOSIT (KYT Transfer Monitoring Demo)                     -->
+    <!-- ================================================================ -->
+    <div class="modal-overlay" id="modal-deposit">
+      <div class="modal-box rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 mx-4">
+        <div class="px-4 flex items-center justify-between">
+          <h2 class="text-base font-semibold">Deposit Funds</h2>
+          <button onclick="closeAllModals()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <hr />
+
+        <!-- Deposit form -->
+        <div id="deposit-form" class="px-4 space-y-4">
+          <div class="rounded-lg bg-muted p-3 space-y-2">
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              KYT — Know Your Transaction
+            </div>
+            <p class="text-xs text-muted-foreground leading-relaxed">
+              Every incoming deposit is registered with the <strong>Chainalysis KYT API</strong> as a received transfer.
+              KYT continuously monitors the transaction, analyzes on-chain exposure, and generates an alert if the funds
+              trace back to high-risk or sanctioned entities.
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Asset</label>
+            <select id="depositAsset" class="w-full">
+              <option value="ETH">Ethereum (ETH)</option>
+              <option value="BTC">Bitcoin (BTC)</option>
+              <option value="USDT">Tether (USDT)</option>
+              <option value="SOL">Solana (SOL)</option>
+            </select>
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Amount</label>
+            <input type="text" id="depositAmount" value="2.5" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
+          </div>
+
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">KYT Workflow</p>
+            <div class="kyt-step pending" id="dep-s1"><div class="step-icon">1</div><div><div class="text-sm font-medium">Execute Deposit</div><div class="text-xs text-muted-foreground">Transaction submitted to the blockchain</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending" id="dep-s2"><div class="step-icon">2</div><div><div class="text-sm font-medium">Register Transfer with KYT</div><div class="text-xs text-muted-foreground">POST /v2/users/{userId}/transfers — register as "received"</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending" id="dep-s3"><div class="step-icon">3</div><div><div class="text-sm font-medium">KYT Monitors &amp; Scores</div><div class="text-xs text-muted-foreground">Analyze exposure, check counterparty risk categories</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending" id="dep-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Alert or Clear</div><div class="text-xs text-muted-foreground">Generate alert if high-risk exposure is detected</div></div></div>
+          </div>
+
+          <button onclick="simulateDeposit()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#22c55e,#16a34a);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg>
+            Simulate Deposit
+          </button>
+        </div>
+
+        <!-- Deposit simulation result -->
+        <div id="deposit-result" class="px-4 space-y-4" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- MODAL: WITHDRAW (KYT Withdrawal Pre-screening Demo)               -->
+    <!-- ================================================================ -->
+    <div class="modal-overlay" id="modal-withdraw">
+      <div class="modal-box rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 mx-4">
+        <div class="px-4 flex items-center justify-between">
+          <h2 class="text-base font-semibold">Withdraw Funds</h2>
+          <button onclick="closeAllModals()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <hr />
+
+        <!-- Withdraw form -->
+        <div id="withdraw-form" class="px-4 space-y-4">
+          <div class="rounded-lg bg-muted p-3 space-y-2">
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              KYT — Withdrawal Pre-Screening
+            </div>
+            <p class="text-xs text-muted-foreground leading-relaxed">
+              Before sending funds, the destination address is pre-screened using the <strong>Chainalysis KYT Withdrawal Attempts API</strong>.
+              This checks whether the receiving address is associated with sanctioned entities, darknet markets, ransomware, or other
+              high-risk categories — <em>before</em> the transaction is broadcast, allowing the platform to block risky outflows.
+            </p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Destination Address</label>
+            <input type="text" id="withdrawAddress" placeholder="Enter the recipient's wallet address" class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-none">Asset</label>
+              <select id="withdrawAsset" class="w-full">
+                <option value="ETH">ETH</option>
+                <option value="BTC">BTC</option>
+                <option value="USDT">USDT</option>
+                <option value="SOL">SOL</option>
+              </select>
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-none">Amount</label>
+              <input type="text" id="withdrawAmount" value="0.5" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">KYT Withdrawal Workflow</p>
+            <div class="kyt-step pending" id="wd-s1"><div class="step-icon">1</div><div><div class="text-sm font-medium">User Requests Withdrawal</div><div class="text-xs text-muted-foreground">Destination address and amount submitted</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending" id="wd-s2"><div class="step-icon">2</div><div><div class="text-sm font-medium">Pre-Screen via KYT</div><div class="text-xs text-muted-foreground">POST /v2/users/{userId}/withdrawal-attempts — screen before sending</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending" id="wd-s3"><div class="step-icon">3</div><div><div class="text-sm font-medium">Analyze Destination Risk</div><div class="text-xs text-muted-foreground">Check address identifications, exposure, and fraud assessment</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending" id="wd-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Allow or Block</div><div class="text-xs text-muted-foreground">Approve clean withdrawals, freeze suspicious ones for review</div></div></div>
+          </div>
+
+          <button onclick="simulateWithdrawal()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#f97316,#ea580c);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M12 19V5"/><path d="M5 12l7 7 7-7"/></svg>
+            Pre-Screen &amp; Withdraw
+          </button>
+        </div>
+
+        <!-- Withdraw simulation result -->
+        <div id="withdraw-result" class="px-4 space-y-4" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script src="/assets/chart.min.js"></script>
+    <script>
+      // =====================================================
+      // STATE
+      // =====================================================
+      let isConnected = false;
+      let connectedAddress = '';
+      let selectedWalletProvider = null;
+      let lastScreeningResult = null;
+
+      const providerIcons = {
+        'MetaMask': '<svg width="20" height="20" viewBox="0 0 256 240"><path d="M241.9 0L143.2 73.5L161.4 30.2L241.9 0Z" fill="#E17726"/><path d="M14.1 0L111.9 74.2L94.6 30.2L14.1 0Z" fill="#E27625"/><path d="M143.2 129.7L147.7 69.5L161.4 30.2H94.6L108.3 69.5L111.5 129.7L112.7 148.8L112.8 195H143.2L143.3 148.8L143.2 129.7Z" fill="#F5841F"/></svg>',
+        'Coinbase Wallet': '<svg width="20" height="20" viewBox="0 0 256 256"><rect width="256" height="256" rx="50" fill="#0052FF"/><circle cx="128" cy="128" r="80" fill="white"/><rect x="104" y="104" width="48" height="48" rx="8" fill="#0052FF"/></svg>',
+        'WalletConnect': '<svg width="20" height="20" viewBox="0 0 300 185"><path d="M61.4 36.3C111.9-12.1 188.1-12.1 238.6 36.3L244.6 42.1C247.1 44.5 247.1 48.4 244.6 50.8L224.3 70.3C223 71.5 221 71.5 219.7 70.3L211.5 62.4C176.3 28.5 123.7 28.5 88.5 62.4L79.7 70.9C78.4 72.1 76.4 72.1 75.1 70.9L54.8 51.4C52.3 49 52.3 45.1 54.8 42.7L61.4 36.3ZM282.1 78.3L300.2 95.8C302.7 98.2 302.7 102.1 300.2 104.5L218.9 183.1C216.4 185.5 212.4 185.5 209.9 183.1L152.5 127.8C151.9 127.2 150.9 127.2 150.2 127.8L92.8 183.1C90.3 185.5 86.3 185.5 83.8 183.1L2.5 104.5C0 102.1 0 98.2 2.5 95.8L20.6 78.3C23.1 75.9 27.1 75.9 29.6 78.3L87 133.6C87.7 134.2 88.7 134.2 89.3 133.6L146.7 78.3C149.2 75.9 153.2 75.9 155.7 78.3L213.1 133.6C213.8 134.2 214.8 134.2 215.4 133.6L272.8 78.3C275.3 75.9 279.3 75.9 281.8 78.3L282.1 78.3Z" fill="#3B99FC"/></svg>',
+        'Phantom': '<svg width="20" height="20" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="url(#pG2)"/><path d="M110.5 64.7C110.5 89.5 93.8 99.5 72.6 99.5H69.2C67.6 99.5 66.3 100.9 66.2 102.5L64.5 115.2C64.4 116.5 63.3 117.5 62 117.5H49.1C47.5 117.5 46.3 116 46.5 114.4L56.5 38.5C56.7 36.8 58.2 35.5 59.9 35.5H82.2C99 35.5 110.5 45.8 110.5 64.7Z" fill="white"/><defs><linearGradient id="pG2" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#534BB1"/><stop offset="1" stop-color="#551BF9"/></linearGradient></defs></svg>',
+        'Trust Wallet': '<svg width="20" height="20" viewBox="0 0 256 256"><path d="M128 20C128 20 200 56 200 128C200 200 128 236 128 236C128 236 56 200 56 128C56 56 128 20 128 20Z" fill="none" stroke="#0500FF" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        'Rabby Wallet': '<svg width="20" height="20" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="#7084FF"/><ellipse cx="64" cy="58" rx="30" ry="26" fill="white"/><ellipse cx="54" cy="54" rx="4" ry="5" fill="#7084FF"/><ellipse cx="74" cy="54" rx="4" ry="5" fill="#7084FF"/></svg>',
+      };
+
+      // =====================================================
+      // FAKE DATA
+      // =====================================================
+      const tickers = [
+        { pair: 'BTC/USDT', price: '68,421.30', change: '+1.82%', up: true },
+        { pair: 'ETH/USDT', price: '2,847.32', change: '+2.41%', up: true },
+        { pair: 'SOL/USDT', price: '178.54', change: '+5.12%', up: true },
+        { pair: 'ARB/USDT', price: '1.24', change: '-0.87%', up: false },
+        { pair: 'MATIC/USDT', price: '0.72', change: '-1.33%', up: false },
+        { pair: 'AVAX/USDT', price: '38.91', change: '+3.07%', up: true },
+        { pair: 'LINK/USDT', price: '18.43', change: '+0.62%', up: true },
+        { pair: 'UNI/USDT', price: '11.87', change: '-0.45%', up: false },
+      ];
+      const tickerEl = document.getElementById('ticker');
+      const tickerHTML = tickers.map(t =>
+        `<span class="inline-flex items-center gap-2"><strong>${t.pair}</strong> $${t.price} <span class="${t.up ? 'text-success' : 'text-destructive'}">${t.change}</span></span>`
+      ).join('');
+      tickerEl.innerHTML = tickerHTML + tickerHTML;
+
+      const pools = [
+        { pair: 'ETH / USDT', fee: '0.3%', tvl: '$842.1M', vol: '$1.28B', apr: '18.42%', change: '+2.41%', up: true },
+        { pair: 'BTC / USDT', fee: '0.3%', tvl: '$1.12B', vol: '$2.34B', apr: '12.87%', change: '+1.82%', up: true },
+        { pair: 'SOL / USDC', fee: '0.05%', tvl: '$324.5M', vol: '$891M', apr: '24.11%', change: '+5.12%', up: true },
+        { pair: 'ARB / ETH', fee: '0.3%', tvl: '$89.2M', vol: '$156M', apr: '31.04%', change: '-0.87%', up: false },
+        { pair: 'AVAX / USDC', fee: '0.05%', tvl: '$201.8M', vol: '$412M', apr: '15.63%', change: '+3.07%', up: true },
+      ];
+      document.getElementById('poolsTable').innerHTML = pools.map((p, i) => `
+        <tr class="hover:bg-muted transition-colors">
+          <td class="px-4 py-3 text-muted-foreground">${i+1}</td>
+          <td class="px-4 py-3 font-medium">${p.pair} <span class="text-xs text-muted-foreground ml-1">${p.fee}</span></td>
+          <td class="px-4 py-3 text-right">${p.tvl}</td>
+          <td class="px-4 py-3 text-right">${p.vol}</td>
+          <td class="px-4 py-3 text-right text-success font-medium">${p.apr}</td>
+          <td class="px-4 py-3 text-right"><span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${p.up?'bg-success/10 text-success':'bg-destructive/10 text-destructive'}">${p.change}</span></td>
+        </tr>`).join('');
+
+      // Account page assets
+      const assets = [
+        { icon:'Ξ', bg:'#627eea', name:'Ethereum', sym:'ETH', price:'$2,847.32', bal:'4.2851', val:'$12,203.84', chg:'+2.41%', up:true, alloc:25.3 },
+        { icon:'₿', bg:'#f7931a', name:'Bitcoin', sym:'BTC', price:'$68,421.30', bal:'0.3214', val:'$21,990.21', chg:'+1.82%', up:true, alloc:45.5 },
+        { icon:'$', bg:'#26a17b', name:'Tether', sym:'USDT', price:'$1.00', bal:'8,450.00', val:'$8,450.00', chg:'+0.01%', up:true, alloc:17.5 },
+        { icon:'◎', bg:'#9945FF', name:'Solana', sym:'SOL', price:'$178.54', bal:'18.42', val:'$3,288.31', chg:'+5.12%', up:true, alloc:6.8 },
+        { icon:'◆', bg:'#2b6cb0', name:'Chainlink', sym:'LINK', price:'$18.43', bal:'52.1', val:'$960.20', chg:'+0.62%', up:true, alloc:2.0 },
+        { icon:'▲', bg:'#E84142', name:'Avalanche', sym:'AVAX', price:'$38.91', bal:'18.0', val:'$700.38', chg:'+3.07%', up:true, alloc:1.5 },
+        { icon:'⬡', bg:'#8247E5', name:'Polygon', sym:'MATIC', price:'$0.72', bal:'970.3', val:'$698.62', chg:'-1.33%', up:false, alloc:1.4 },
+      ];
+
+      function renderAssets() {
+        document.getElementById('assetsBody').innerHTML = assets.map(a => `
+          <tr class="hover:bg-muted transition-colors">
+            <td class="px-4 py-3"><div class="flex items-center gap-2">
+              <div style="width:28px;height:28px;border-radius:50%;background:${a.bg};display:flex;align-items:center;justify-content:center;"><span style="color:white;font-size:12px;font-weight:700;">${a.icon}</span></div>
+              <div><div class="font-medium">${a.name}</div><div class="text-xs text-muted-foreground">${a.sym}</div></div>
+            </div></td>
+            <td class="px-4 py-3 text-right">${a.price}</td>
+            <td class="px-4 py-3 text-right">${a.bal} ${a.sym}</td>
+            <td class="px-4 py-3 text-right font-medium">${a.val}</td>
+            <td class="px-4 py-3 text-right"><span class="${a.up?'text-success':'text-destructive'}">${a.chg}</span></td>
+            <td class="px-4 py-3 text-right">
+              <div class="flex items-center justify-end gap-2"><div class="bg-muted rounded-full" style="width:60px;height:6px;overflow:hidden;"><div style="width:${a.alloc}%;height:100%;border-radius:3px;background:${a.bg};"></div></div><span class="text-xs text-muted-foreground">${a.alloc}%</span></div>
+            </td>
+          </tr>`).join('');
+      }
+
+      const activities = [
+        { type:'swap', desc:'Swapped 1.0 ETH → 2,847.32 USDT', time:'2 hours ago', icon:'⇄', color:'var(--primary)' },
+        { type:'deposit', desc:'Deposited 0.25 BTC', time:'5 hours ago', icon:'↓', color:'var(--success)' },
+        { type:'withdraw', desc:'Withdrew 500 USDT to 0x7a2…c4f1', time:'1 day ago', icon:'↑', color:'var(--warning)' },
+        { type:'swap', desc:'Swapped 100 USDT → 0.56 SOL', time:'2 days ago', icon:'⇄', color:'var(--primary)' },
+        { type:'deposit', desc:'Deposited 2.0 ETH', time:'3 days ago', icon:'↓', color:'var(--success)' },
+      ];
+
+      function renderActivity() {
+        document.getElementById('activityList').innerHTML = activities.map(a => `
+          <div class="px-4 py-3 flex items-center justify-between hover:bg-muted transition-colors">
+            <div class="flex items-center gap-3">
+              <div style="width:28px;height:28px;border-radius:50%;background:${a.color};opacity:0.15;display:flex;align-items:center;justify-content:center;position:relative;">
+                <span style="position:absolute;color:${a.color};font-size:14px;font-weight:700;">${a.icon}</span>
+              </div>
+              <div><div class="text-sm font-medium">${a.desc}</div><div class="text-xs text-muted-foreground">${a.time}</div></div>
+            </div>
+          </div>`).join('');
+      }
+      renderAssets();
+      renderActivity();
+
+      // =====================================================
+      // CHART
+      // =====================================================
+      const priceData = (() => { let p=2780; return Array.from({length:96},()=>(p+=(Math.random()-0.47)*18,p)); })();
+      const labels = Array.from({length:priceData.length},(_,i)=>`${Math.floor(i*24/priceData.length).toString().padStart(2,'0')}:00`);
+      const ctx = document.getElementById('priceChart').getContext('2d');
+      const gradient = ctx.createLinearGradient(0,0,0,220);
+      gradient.addColorStop(0,'rgba(99,102,241,0.25)'); gradient.addColorStop(1,'rgba(99,102,241,0)');
+      new Chart(ctx,{type:'line',data:{labels,datasets:[{data:priceData,borderColor:'#6366f1',backgroundColor:gradient,borderWidth:2,fill:true,tension:0.4,pointRadius:0,pointHitRadius:10}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:c=>`$${c.parsed.y.toFixed(2)}`}}},scales:{x:{display:true,grid:{display:false},ticks:{maxTicksLimit:8,font:{size:10}}},y:{display:true,grid:{color:'rgba(128,128,128,0.1)'},ticks:{callback:v=>'$'+v.toFixed(0),font:{size:10}}}},interaction:{mode:'nearest',axis:'x',intersect:false}}});
+
+      // =====================================================
+      // PAGE NAVIGATION
+      // =====================================================
+      function showPage(page) {
+        document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        const nl = document.getElementById('nav-' + page);
+        if (nl) nl.classList.add('active');
+      }
+
+      // =====================================================
+      // UI STATE TRANSITIONS
+      // =====================================================
+      function updateUIState() {
+        const btn = document.getElementById('swapBtn');
+        if (isConnected) {
+          document.getElementById('navDisconnected').style.display = 'none';
+          document.getElementById('navConnected').style.display = '';
+          document.getElementById('navAddrShort').textContent = connectedAddress.slice(0,6) + '…' + connectedAddress.slice(-4);
+          document.getElementById('dropdownAddr').textContent = connectedAddress.slice(0,6) + '…' + connectedAddress.slice(-4);
+          document.getElementById('dropdownProvider').textContent = selectedWalletProvider || 'Connected';
+          document.getElementById('nav-account').style.display = '';
+          document.getElementById('accountAddrDisplay').textContent = connectedAddress;
+          btn.textContent = 'Execute Swap';
+          btn.onclick = () => alert('Swap executed! (Demo)');
+        } else {
+          document.getElementById('navDisconnected').style.display = '';
+          document.getElementById('navConnected').style.display = 'none';
+          document.getElementById('nav-account').style.display = 'none';
+          document.getElementById('profileDropdown').classList.remove('open');
+          btn.textContent = 'Connect Wallet to Swap';
+          showPage('trade');
+          btn.onclick = () => openModal('connect');
+        }
+      }
+
+      function handleSwapClick() {
+        if (isConnected) alert('Swap executed! (Demo)');
+        else openModal('connect');
+      }
+      // =====================================================
+      // PROFILE DROPDOWN
+      // =====================================================
+      function toggleProfileDropdown(e) {
+        e.stopPropagation();
+        document.getElementById('profileDropdown').classList.toggle('open');
+      }
+
+      function profileAction(action) {
+        document.getElementById('profileDropdown').classList.remove('open');
+        if (action === 'balance') {
+          showPage('account');
+        } else if (action === 'disconnect') {
+          isConnected = false;
+          connectedAddress = '';
+          selectedWalletProvider = null;
+          lastScreeningResult = null;
+          updateUIState();
+        }
+      }
+
+      // Close dropdown when clicking outside
+      document.addEventListener('click', function(e) {
+        const dd = document.getElementById('profileDropdown');
+        if (dd && !dd.contains(e.target) && e.target.id !== 'navAvatar') {
+          dd.classList.remove('open');
+        }
+      });
+
+
+      // =====================================================
+      // MODAL MANAGEMENT
+      // =====================================================
+      function openModal(type) {
+        closeAllModals();
+        const m = document.getElementById('modal-' + type);
+        if (m) m.classList.add('active');
+        if (type === 'connect') {
+          document.getElementById('step-providers').style.display = '';
+          document.getElementById('step-input').style.display = 'none';
+        }
+      }
+      function closeAllModals() {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+      }
+
+      // Close on overlay click
+      document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.addEventListener('click', function(e) { if (e.target === this) closeAllModals(); });
+      });
+
+      // =====================================================
+      // CONNECT WALLET FLOW
+      // =====================================================
+      const SLUG = 'demochain-address-screen';
+
+      function selectProvider(name) {
+        selectedWalletProvider = name;
+        document.getElementById('step-providers').style.display = 'none';
+        document.getElementById('step-input').style.display = '';
+        document.getElementById('selectedProviderName').textContent = name;
+        document.getElementById('selectedProviderIcon').innerHTML = providerIcons[name] || '';
+        document.getElementById('complianceProvider').textContent = name;
+        document.getElementById('addressInput').focus();
+      }
+      function backToProviders() {
+        document.getElementById('step-input').style.display = 'none';
+        document.getElementById('step-providers').style.display = '';
+      }
+      function resetConnectModal() {
+        ['step-providers','step-input','step-loading','step-results','step-sandbox'].forEach((id,i) => {
+          document.getElementById(id).style.display = i === 0 ? '' : 'none';
+        });
+        document.getElementById('addressInput').value = '';
+        selectedWalletProvider = null;
+        document.querySelectorAll('#workflowSteps .workflow-step').forEach(s => {
+          s.classList.remove('active','done');
+          const ic = s.querySelector('.step-icon');
+          ic.className = 'step-icon bg-muted text-muted-foreground';
+          ic.textContent = s.dataset.step;
+        });
+      }
+
+      document.getElementById('addressInput').addEventListener('keydown', e => { if (e.key === 'Enter') screenAddress(); });
+
+      async function screenAddress() {
+        const address = document.getElementById('addressInput').value.trim();
+        if (!address) { document.getElementById('addressInput').style.borderColor = 'var(--destructive)'; return; }
+        document.getElementById('addressInput').style.borderColor = '';
+        document.getElementById('step-input').style.display = 'none';
+        document.getElementById('step-loading').style.display = '';
+        document.getElementById('loadingAddr').textContent = address.length > 30 ? address.slice(0,16)+'…'+address.slice(-12) : address;
+        try {
+          const res = await fetch(`/api/workflow/${SLUG}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:{address}}) });
+          if (!res.ok) throw new Error(`API returned ${res.status}`);
+          const data = await res.json();
+          const result = data.output ?? data;
+          if (result.error) throw new Error(result.error);
+          lastScreeningResult = result;
+          showResults(result);
+        } catch(e) {
+          if (e instanceof TypeError) {
+            document.getElementById('step-loading').style.display = 'none';
+            document.getElementById('step-sandbox').style.display = '';
+          } else {
+            document.getElementById('step-loading').style.display = 'none';
+            document.getElementById('step-results').style.display = '';
+            document.getElementById('step-results').innerHTML = `<div class="alert alert-destructive" role="alert"><div class="alert-title">Screening Failed</div><div class="alert-description">${e.message}</div></div><button onclick="resetConnectModal()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Again</button>`;
+          }
+        }
+      }
+
+      function showResults(r) {
+        document.getElementById('step-loading').style.display = 'none';
+        document.getElementById('step-results').style.display = '';
+        const riskAngles = { Low:-70, Medium:-20, High:25, Severe:65 };
+        const riskBgClass = { Low:'bg-success/10 text-success', Medium:'bg-warning/10 text-warning', High:'bg-warning/10 text-warning', Severe:'bg-destructive/10 text-destructive' };
+        const risk = r.risk || 'Unknown';
+        document.getElementById('gaugeNeedle').setAttribute('transform', `rotate(${riskAngles[risk]??0},100,100)`);
+        document.getElementById('riskBadge').innerHTML = `<span class="inline-flex h-6 items-center rounded-full border border-transparent px-3 py-0.5 text-sm font-semibold ${riskBgClass[risk]||'bg-muted text-foreground'}">${risk} Risk</span>`;
+        document.getElementById('riskReason').textContent = r.riskReason || 'No additional risk information';
+        document.getElementById('resultAddr').textContent = r.address;
+        document.getElementById('resultType').textContent = r.addressType === 'PRIVATE_WALLET' ? 'Private Wallet' : r.addressType === 'LIQUIDITY_POOL' ? 'Liquidity Pool' : (r.addressType || '—');
+        document.getElementById('clusterRow').style.display = r.cluster?.name || r.cluster?.category ? '' : 'none';
+        document.getElementById('resultCluster').textContent = r.cluster?.name || '—';
+        document.getElementById('categoryRow').style.display = r.cluster?.category ? '' : 'none';
+        document.getElementById('resultCategory').textContent = r.cluster?.category || '';
+
+        const idSection = document.getElementById('idSection');
+        if (r.identifications?.length > 0) {
+          idSection.style.display = '';
+          idSection.innerHTML = `<p class="text-sm font-medium mb-2">Identifications</p>` + r.identifications.map(id => `<div class="rounded-lg bg-destructive/10 p-2 mb-1"><span class="text-xs font-semibold text-destructive">${id.category||''}</span>${id.name?` <span class="text-xs text-foreground ml-2">${id.name}</span>`:''}</div>`).join('');
+        } else idSection.style.display = 'none';
+
+        const expSection = document.getElementById('exposureSection');
+        const expBars = document.getElementById('exposureBars');
+        if (r.exposures?.length > 0) {
+          expSection.style.display = '';
+          const top = r.exposures.slice(0,6);
+          const max = Math.max(...top.map(e=>e.value));
+          expBars.innerHTML = top.map(e => {
+            const pct = max>0?(e.value/max*100):0;
+            const label = e.category.charAt(0).toUpperCase()+e.category.slice(1);
+            const val = e.value>=1e6?`$${(e.value/1e6).toFixed(1)}M`:e.value>=1e3?`$${(e.value/1e3).toFixed(1)}K`:`$${e.value.toFixed(2)}`;
+            const col = /scam|stolen|sanction|ransomware|darknet/.test(e.category)?'background:var(--destructive)':/gambling|no kyc/.test(e.category)?'background:var(--warning)':'background:var(--primary)';
+            return `<div class="flex items-center gap-2 text-xs"><span class="text-muted-foreground" style="min-width:120px;text-align:right;">${label}</span><div class="flex-1 bg-muted rounded-full" style="height:8px;overflow:hidden;"><div class="exposure-bar" style="width:${pct}%;height:100%;border-radius:4px;${col};"></div></div><span class="font-medium" style="min-width:60px;">${val}</span><span class="inline-flex h-4 items-center rounded-full border border-transparent px-1.5 text-xs font-medium ${e.exposureType==='direct'?'bg-primary/10 text-primary':'bg-muted text-muted-foreground'}">${e.exposureType}</span></div>`;
+          }).join('');
+        } else expSection.style.display = 'none';
+
+        const dec = document.getElementById('decisionBox');
+        const pbtn = document.getElementById('proceedBtn');
+        if (risk === 'Low') {
+          dec.innerHTML = `<div class="rounded-lg bg-success/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p class="text-sm font-semibold text-success">Wallet Approved</p><p class="text-xs text-muted-foreground">This address passed compliance screening.</p></div></div>`;
+          pbtn.style.display = ''; pbtn.textContent = 'Connect Wallet';
+        } else if (risk === 'Medium') {
+          dec.innerHTML = `<div class="rounded-lg bg-warning/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-warning flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><p class="text-sm font-semibold text-warning">Enhanced Review Required</p><p class="text-xs text-muted-foreground">Moderate risk indicators detected. Additional verification may be needed.</p></div></div>`;
+          pbtn.style.display = ''; pbtn.textContent = 'Proceed with Caution';
+        } else if (risk === 'High' || risk === 'Severe') {
+          dec.innerHTML = `<div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-destructive flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><p class="text-sm font-semibold text-destructive">Connection Denied</p><p class="text-xs text-muted-foreground">Flagged with ${risk.toLowerCase()} risk. Blocked to protect platform integrity.</p></div></div>`;
+          pbtn.style.display = 'none';
+        } else { dec.innerHTML = ''; pbtn.style.display = ''; pbtn.textContent = 'Close'; }
+      }
+
+      function connectWallet() {
+        const addr = lastScreeningResult?.address || document.getElementById('addressInput').value.trim();
+        if (!addr) return;
+        connectedAddress = addr;
+        isConnected = true;
+        updateUIState();
+        closeAllModals();
+        resetConnectModal();
+      }
+
+      // =====================================================
+      // DEPOSIT SIMULATION (KYT Transfer Monitoring)
+      // =====================================================
+      async function simulateDeposit() {
+        const asset = document.getElementById('depositAsset').value;
+        const amount = document.getElementById('depositAmount').value;
+        const steps = ['dep-s1','dep-s2','dep-s3','dep-s4'];
+
+        // Reset
+        steps.forEach(id => { const s = document.getElementById(id); s.className = 'kyt-step pending workflow-step'; s.querySelector('.step-icon').textContent = steps.indexOf(id)+1; });
+
+        // Determine if "risky" — random for demo
+        const isRisky = Math.random() < 0.3;
+
+        // Step 1: Execute
+        await animateStep('dep-s1', 'running', 600);
+        await animateStep('dep-s1', 'success', 0);
+        document.getElementById('dep-s1').querySelector('.step-icon').textContent = '✓';
+
+        // Step 2: Register
+        await animateStep('dep-s2', 'running', 900);
+        await animateStep('dep-s2', 'success', 0);
+        document.getElementById('dep-s2').querySelector('.step-icon').textContent = '✓';
+
+        // Step 3: Monitor
+        await animateStep('dep-s3', 'running', 1200);
+        await animateStep('dep-s3', 'success', 0);
+        document.getElementById('dep-s3').querySelector('.step-icon').textContent = '✓';
+
+        // Step 4: Alert or Clear
+        await animateStep('dep-s4', 'running', 600);
+        if (isRisky) {
+          await animateStep('dep-s4', 'alert', 0);
+          document.getElementById('dep-s4').querySelector('.step-icon').textContent = '!';
+        } else {
+          await animateStep('dep-s4', 'success', 0);
+          document.getElementById('dep-s4').querySelector('.step-icon').textContent = '✓';
+        }
+
+        // Show result
+        const resultEl = document.getElementById('deposit-result');
+        resultEl.style.display = '';
+        if (isRisky) {
+          resultEl.innerHTML = `
+            <div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-destructive flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div>
+                <p class="text-sm font-semibold text-destructive">⚠ KYT Alert Generated</p>
+                <p class="text-xs text-muted-foreground mt-1">The deposit of <strong>${amount} ${asset}</strong> triggered a <strong>HIGH</strong> severity alert. KYT detected indirect exposure to a <em>darknet marketplace</em> category (14.2% of traced funds). The compliance team has been notified and the funds are held pending review.</p>
+                <div class="mt-2 flex gap-2">
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">Alert ID: KYT-${Math.random().toString(36).slice(2,8).toUpperCase()}</span>
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-warning/10 text-warning">Under Review</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="resetDeposit()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Simulate Another Deposit</button>`;
+        } else {
+          resultEl.innerHTML = `
+            <div class="rounded-lg bg-success/10 p-3 flex items-start gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div>
+                <p class="text-sm font-semibold text-success">Deposit Cleared</p>
+                <p class="text-xs text-muted-foreground mt-1">The deposit of <strong>${amount} ${asset}</strong> was monitored by KYT. No high-risk exposure detected — all traced counterparties are categorized as exchanges, DeFi protocols, or private wallets. Funds are available immediately.</p>
+                <div class="mt-2">
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success">No Alerts</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="resetDeposit()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Simulate Another Deposit</button>`;
+        }
+      }
+
+      function resetDeposit() {
+        document.getElementById('deposit-result').style.display = 'none';
+        document.getElementById('deposit-result').innerHTML = '';
+        ['dep-s1','dep-s2','dep-s3','dep-s4'].forEach((id,i) => {
+          const s = document.getElementById(id);
+          s.className = 'kyt-step pending workflow-step';
+          s.querySelector('.step-icon').textContent = i+1;
+        });
+      }
+
+      // =====================================================
+      // WITHDRAWAL SIMULATION (KYT Pre-screening)
+      // =====================================================
+      async function simulateWithdrawal() {
+        const address = document.getElementById('withdrawAddress').value.trim();
+        if (!address) { document.getElementById('withdrawAddress').style.borderColor = 'var(--destructive)'; return; }
+        document.getElementById('withdrawAddress').style.borderColor = '';
+        const asset = document.getElementById('withdrawAsset').value;
+        const amount = document.getElementById('withdrawAmount').value;
+        const steps = ['wd-s1','wd-s2','wd-s3','wd-s4'];
+
+        // Reset
+        steps.forEach((id,i) => { const s = document.getElementById(id); s.className = 'kyt-step pending workflow-step'; s.querySelector('.step-icon').textContent = i+1; });
+
+        // Use address screening API for real risk data
+        let riskLevel = 'Low';
+        let riskData = null;
+
+        // Step 1
+        await animateStep('wd-s1', 'running', 500);
+        await animateStep('wd-s1', 'success', 0);
+        document.getElementById('wd-s1').querySelector('.step-icon').textContent = '✓';
+
+        // Step 2: Pre-screen
+        await animateStep('wd-s2', 'running', 400);
+        try {
+          const res = await fetch(`/api/workflow/${SLUG}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:{address}}) });
+          if (res.ok) {
+            const data = await res.json();
+            riskData = data.output ?? data;
+            riskLevel = riskData.risk || 'Low';
+          }
+        } catch(e) {
+          // Sandbox or error — use simulated data
+          riskLevel = Math.random() < 0.3 ? 'High' : 'Low';
+        }
+        await animateStep('wd-s2', 'success', 0);
+        document.getElementById('wd-s2').querySelector('.step-icon').textContent = '✓';
+
+        // Step 3: Analyze
+        await animateStep('wd-s3', 'running', 800);
+        await animateStep('wd-s3', 'success', 0);
+        document.getElementById('wd-s3').querySelector('.step-icon').textContent = '✓';
+
+        // Step 4: Decision
+        const isBlocked = (riskLevel === 'High' || riskLevel === 'Severe');
+        await animateStep('wd-s4', 'running', 500);
+        if (isBlocked) {
+          await animateStep('wd-s4', 'alert', 0);
+          document.getElementById('wd-s4').querySelector('.step-icon').textContent = '✗';
+        } else {
+          await animateStep('wd-s4', 'success', 0);
+          document.getElementById('wd-s4').querySelector('.step-icon').textContent = '✓';
+        }
+
+        // Show result
+        const resultEl = document.getElementById('withdraw-result');
+        resultEl.style.display = '';
+
+        const addrShort = address.length > 20 ? address.slice(0,10) + '…' + address.slice(-6) : address;
+        const riskBg = { Low:'bg-success/10 text-success', Medium:'bg-warning/10 text-warning', High:'bg-destructive/10 text-destructive', Severe:'bg-destructive/10 text-destructive' };
+
+        if (isBlocked) {
+          resultEl.innerHTML = `
+            <div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-destructive flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <div>
+                <p class="text-sm font-semibold text-destructive">Withdrawal Blocked</p>
+                <p class="text-xs text-muted-foreground mt-1">KYT pre-screening flagged the destination <strong>${addrShort}</strong> with <strong>${riskLevel}</strong> risk. ${riskData?.riskReason || 'The address is associated with high-risk activity.'} The withdrawal of <strong>${amount} ${asset}</strong> has been frozen pending compliance review.</p>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${riskBg[riskLevel]}">${riskLevel} Risk</span>
+                  ${riskData?.cluster?.category ? `<span class="inline-flex h-5 items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-foreground">${riskData.cluster.category}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <button onclick="resetWithdraw()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Withdrawal</button>`;
+        } else {
+          const cautionNote = riskLevel === 'Medium'
+            ? `<p class="text-xs text-muted-foreground mt-1">KYT flagged moderate risk for <strong>${addrShort}</strong>: ${riskData?.riskReason || 'Some risk factors present.'}. The withdrawal proceeds but has been logged for enhanced monitoring.</p>`
+            : `<p class="text-xs text-muted-foreground mt-1">KYT pre-screened the destination <strong>${addrShort}</strong> and found no high-risk exposure. Your withdrawal of <strong>${amount} ${asset}</strong> has been approved and broadcast to the network.</p>`;
+
+          resultEl.innerHTML = `
+            <div class="rounded-lg ${riskLevel==='Medium'?'bg-warning/10':'bg-success/10'} p-3 flex items-start gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${riskLevel==='Medium'?'text-warning':'text-success'} flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div>
+                <p class="text-sm font-semibold ${riskLevel==='Medium'?'text-warning':'text-success'}">${riskLevel==='Medium'?'Withdrawal Approved (With Caution)':'Withdrawal Approved'}</p>
+                ${cautionNote}
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${riskBg[riskLevel]||riskBg.Low}">${riskLevel} Risk</span>
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success">Tx Broadcast</span>
+                </div>
+              </div>
+            </div>
+            <button onclick="resetWithdraw()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Withdrawal</button>`;
+        }
+      }
+
+      function resetWithdraw() {
+        document.getElementById('withdraw-result').style.display = 'none';
+        document.getElementById('withdraw-result').innerHTML = '';
+        document.getElementById('withdrawAddress').value = '';
+        ['wd-s1','wd-s2','wd-s3','wd-s4'].forEach((id,i) => {
+          const s = document.getElementById(id);
+          s.className = 'kyt-step pending workflow-step';
+          s.querySelector('.step-icon').textContent = i+1;
+        });
+      }
+
+      // =====================================================
+      // HELPERS
+      // =====================================================
+      function animateStep(id, state, delay) {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            const el = document.getElementById(id);
+            el.className = `kyt-step ${state} workflow-step`;
+            if (state === 'running') el.classList.add('active');
+            resolve();
+          }, delay);
+        });
+      }
+
+      // Init
+      updateUIState();
+    </script>
+  </body>
+</html>
