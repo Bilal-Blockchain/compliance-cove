@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basecamp — Premium Outdoor Gear</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      * { font-family: 'Inter', system-ui, sans-serif; }
+
+      /* ---- Modals ---- */
+      .modal-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        z-index: 100; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s ease;
+      }
+      .modal-overlay.active { display: flex; }
+      .modal-box { width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+      /* ---- Accent ---- */
+      .accent-gradient { background: linear-gradient(135deg, #f97316, #ea580c); }
+      .accent-text { color: #f97316; }
+
+      /* ---- Risk gauge ---- */
+      .risk-gauge { width: 200px; height: 110px; position: relative; margin: 0 auto; }
+      .risk-gauge svg { width: 100%; height: 100%; }
+      .exposure-bar { height: 22px; border-radius: 4px; min-width: 4px; transition: width 0.6s ease; }
+
+      /* ---- Wallet provider buttons ---- */
+      .wallet-provider-btn {
+        display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px;
+        border-radius: 12px; border: 1px solid var(--border); background: var(--background);
+        cursor: pointer; transition: all 0.15s ease; color: inherit;
+      }
+      .wallet-provider-btn:hover { background: var(--muted); border-color: #f97316; box-shadow: 0 0 0 1px #f97316; }
+      .wallet-provider-btn .provider-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+      .wallet-provider-btn .provider-info { flex: 1; text-align: left; }
+      .wallet-provider-btn .provider-name { font-size: 14px; font-weight: 600; }
+      .wallet-provider-btn .provider-desc { font-size: 11px; color: var(--muted-foreground); }
+      .wallet-provider-btn .provider-arrow { color: var(--muted-foreground); transition: transform 0.15s; }
+      .wallet-provider-btn:hover .provider-arrow { transform: translateX(2px); color: var(--foreground); }
+      .provider-popular { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 6px; }
+
+      /* ---- Workflow steps ---- */
+      .workflow-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; transition: all 0.3s; }
+      .workflow-step.active { background: rgba(249,115,22,0.08); }
+      .step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+      .step-connector { width: 2px; height: 16px; margin-left: 29px; border-radius: 1px; }
+
+      /* ---- KYT animated steps ---- */
+      .kyt-step { transition: all 0.4s ease; }
+      .kyt-step.pending .step-icon { background: var(--muted); color: var(--muted-foreground); }
+      .kyt-step.running .step-icon { background: rgba(249,115,22,0.1); color: #f97316; }
+      .kyt-step.success .step-icon { background: rgba(34,197,94,0.1); color: var(--success); }
+      .kyt-step.alert .step-icon { background: rgba(239,68,68,0.1); color: var(--destructive); }
+
+      /* ---- Page views ---- */
+      .page-view { display: none; }
+      .page-view.active { display: block; }
+
+      /* ---- Nav link ---- */
+      .nav-link { cursor: pointer; }
+      .nav-link.active { color: var(--foreground); font-weight: 500; }
+
+      /* ---- Product grid ---- */
+      .product-grid {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+      }
+      @media (max-width: 900px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+
+      /* ---- Product card ---- */
+      .product-card {
+        border-radius: 14px; border: 1px solid var(--border); background: var(--card);
+        overflow: hidden; cursor: pointer; transition: all 0.25s ease;
+      }
+      .product-card:hover {
+        border-color: #f97316; box-shadow: 0 8px 30px rgba(249,115,22,0.12);
+        transform: translateY(-3px);
+      }
+      .product-img {
+        width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+        position: relative; overflow: hidden;
+      }
+      .product-card-body { padding: 12px 14px; }
+
+      /* ---- Payment tabs ---- */
+      .pay-tab {
+        flex: 1; padding: 14px 12px; border-radius: 12px; border: 2px solid var(--border);
+        background: var(--background); cursor: pointer; transition: all 0.15s;
+        text-align: center; color: inherit;
+      }
+      .pay-tab:hover { border-color: var(--muted-foreground); }
+      .pay-tab.active { border-color: #f97316; background: rgba(249,115,22,0.05); }
+
+      /* ---- Checkout sections ---- */
+      .checkout-section { border-radius: 14px; border: 1px solid var(--border); background: var(--card); padding: 20px; }
+
+      /* ---- Cart item ---- */
+      .cart-item {
+        display: flex; align-items: center; gap: 14px; padding: 14px 0;
+      }
+      .cart-item-img {
+        width: 72px; height: 72px; border-radius: 10px; display: flex;
+        align-items: center; justify-content: center; flex-shrink: 0;
+      }
+      .qty-btn {
+        width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
+        background: var(--background); display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.1s; font-weight: 600; font-size: 14px; color: var(--foreground);
+      }
+      .qty-btn:hover { background: var(--muted); border-color: var(--muted-foreground); }
+
+      /* ---- Cart badge ---- */
+      .cart-badge {
+        position: absolute; top: -4px; right: -6px; width: 16px; height: 16px;
+        border-radius: 50%; background: #f97316; color: white; font-size: 9px;
+        font-weight: 700; display: flex; align-items: center; justify-content: center;
+      }
+
+      /* ---- Pulse dot ---- */
+      .pulse-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s ease infinite; }
+      @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+
+      /* ---- Chainalysis compliance banner ---- */
+      .compliance-banner {
+        border-radius: 10px; padding: 12px 14px;
+        background: linear-gradient(135deg, rgba(249,115,22,0.06), rgba(234,88,12,0.04));
+        border: 1px solid rgba(249,115,22,0.15);
+      }
+
+      /* ---- Step progress bar ---- */
+      .checkout-progress { display: flex; align-items: center; gap: 0; }
+      .progress-step {
+        display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600;
+        color: var(--muted-foreground); white-space: nowrap;
+      }
+      .progress-step.active { color: var(--foreground); }
+      .progress-step.done { color: var(--success); }
+      .progress-step .step-num {
+        width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center;
+        justify-content: center; font-size: 11px; background: var(--muted);
+      }
+      .progress-step.active .step-num { background: #f97316; color: white; }
+      .progress-step.done .step-num { background: rgba(34,197,94,0.15); color: var(--success); }
+      .progress-line { flex: 1; height: 2px; background: var(--border); margin: 0 8px; min-width: 20px; }
+      .progress-line.done { background: var(--success); }
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+
+    <!-- ==================== NAV ==================== -->
+    <nav class="border-b border-border sticky" style="top:0; z-index:50; background: var(--background);">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:56px;">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('shop')">
+            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+              </svg>
+            </div>
+            <span class="text-base font-bold tracking-tight">Basecamp</span>
+          </div>
+          <div class="flex items-center gap-4 text-sm">
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors active" id="nav-shop" onclick="showPage('shop')">Shop</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors">About</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors">Sustainability</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <div style="position:relative;cursor:pointer;" onclick="showPage('cart')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground hover:text-foreground transition-colors">
+              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+            </svg>
+            <div class="cart-badge" id="cartBadge">0</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: SHOP                                                        -->
+    <!-- ================================================================ -->
+    <div id="page-shop" class="page-view active">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Hero -->
+        <div class="rounded-xl overflow-hidden" style="position:relative;">
+          <div style="height:220px;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);position:relative;overflow:hidden;">
+            <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,0.2),transparent);top:-100px;right:-50px;"></div>
+            <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(234,88,12,0.15),transparent);bottom:-60px;left:10%;"></div>
+            <div class="flex items-end" style="position:relative;z-index:1;height:100%;padding:28px;">
+              <div style="max-width:480px;">
+                <span style="font-size:11px;font-weight:700;color:#f97316;text-transform:uppercase;letter-spacing:1.5px;">Summer Collection 2026</span>
+                <h1 style="font-size:32px;font-weight:900;color:white;letter-spacing:-1px;margin:6px 0 0;">Gear Built for the Trail</h1>
+                <p style="font-size:14px;color:rgba(255,255,255,0.6);margin-top:8px;">Premium outdoor equipment designed for serious adventurers. Now accepting cryptocurrency payments.</p>
+                <div class="flex gap-2 mt-4">
+                  <span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;background:rgba(249,115,22,0.2);color:#f97316;">Free Shipping Over $100</span>
+                  <span style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);">Pay with Crypto</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section label -->
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-semibold">All Products</h2>
+          <span class="text-sm text-muted-foreground" id="productCount"></span>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="product-grid" id="productGrid"></div>
+
+        <!-- Crypto accepted banner -->
+        <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="px-4 flex items-center gap-4">
+            <div style="width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold">Crypto Payments with Compliance Built In</h3>
+              <p class="text-xs text-muted-foreground mt-1">Every crypto payment at Basecamp is screened and monitored in real-time using <strong>Chainalysis Address Screening</strong> and <strong>KYT (Know Your Transaction)</strong>. We accept BTC, ETH, USDT, and SOL with full regulatory compliance.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: PRODUCT DETAIL                                              -->
+    <!-- ================================================================ -->
+    <div id="page-product" class="page-view">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        <button onclick="showPage('shop')" class="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          Back to shop
+        </button>
+        <div class="grid md:grid-cols-2 gap-6">
+          <div class="rounded-xl overflow-hidden" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;" id="pdpImage"></div>
+          <div class="space-y-4">
+            <div>
+              <span class="text-xs font-semibold accent-text uppercase tracking-wide" id="pdpCategory"></span>
+              <h1 class="text-2xl font-bold tracking-tight mt-1" id="pdpName"></h1>
+              <div class="flex items-center gap-2 mt-2">
+                <div class="flex items-center gap-0.5" id="pdpStars"></div>
+                <span class="text-sm text-muted-foreground" id="pdpReviewCount"></span>
+              </div>
+            </div>
+            <p class="text-2xl font-bold" id="pdpPrice"></p>
+            <p class="text-sm text-muted-foreground leading-relaxed" id="pdpDesc"></p>
+            <div class="space-y-2" id="pdpSpecs"></div>
+            <div class="flex gap-2 mt-4">
+              <button onclick="addToCartFromPDP()"
+                class="flex-1 inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all accent-gradient">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                Add to Cart
+              </button>
+              <button onclick="addToCartFromPDP(); showPage('cart');"
+                class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold border border-border bg-background text-foreground hover:bg-muted transition-all">
+                Buy Now
+              </button>
+            </div>
+            <div class="flex gap-4 text-xs text-muted-foreground pt-2">
+              <span class="flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> Free shipping</span>
+              <span class="flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 17"/></svg> Crypto accepted</span>
+              <span class="flex items-center gap-1"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> 2-yr warranty</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: CART                                                         -->
+    <!-- ================================================================ -->
+    <div id="page-cart" class="page-view">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+        <h1 class="text-xl font-bold tracking-tight">Shopping Cart</h1>
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Cart items -->
+          <div class="md:col-span-2 rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+            <div class="px-4" id="cartItemsContainer">
+              <p class="text-sm text-muted-foreground" id="cartEmpty">Your cart is empty.</p>
+            </div>
+          </div>
+          <!-- Order summary -->
+          <div class="checkout-section space-y-4" id="cartSummary">
+            <h3 class="text-sm font-semibold">Order Summary</h3>
+            <div class="space-y-2 text-sm">
+              <div class="flex justify-between"><span class="text-muted-foreground">Subtotal</span><span class="font-medium" id="cartSubtotal">$0.00</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">Shipping</span><span class="font-medium" id="cartShipping">Free</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">Tax (est.)</span><span class="font-medium" id="cartTax">$0.00</span></div>
+              <hr />
+              <div class="flex justify-between"><span class="font-semibold">Total</span><span class="font-bold text-base" id="cartTotal">$0.00</span></div>
+            </div>
+            <button onclick="showPage('checkout')"
+              class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all accent-gradient"
+              id="checkoutBtn">
+              Proceed to Checkout
+            </button>
+            <p class="text-xs text-muted-foreground text-center">Crypto payments accepted at checkout</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- PAGE: CHECKOUT                                                    -->
+    <!-- ================================================================ -->
+    <div id="page-checkout" class="page-view">
+      <div class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+        <!-- Progress bar -->
+        <div class="checkout-progress">
+          <div class="progress-step done"><span class="step-num">✓</span> Cart</div>
+          <div class="progress-line done"></div>
+          <div class="progress-step active" id="prog-shipping"><span class="step-num">2</span> Shipping</div>
+          <div class="progress-line" id="prog-line2"></div>
+          <div class="progress-step" id="prog-payment"><span class="step-num">3</span> Payment</div>
+          <div class="progress-line" id="prog-line3"></div>
+          <div class="progress-step" id="prog-confirm"><span class="step-num">4</span> Confirmation</div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+          <!-- Left: checkout flow -->
+          <div class="md:col-span-2 space-y-4">
+
+            <!-- Shipping (pre-filled) -->
+            <div class="checkout-section space-y-4" id="shippingSection">
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-semibold">Shipping Address</h3>
+                <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success">Pre-filled for demo</span>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="space-y-1"><label class="text-xs font-medium text-muted-foreground">First Name</label><input type="text" value="Alex" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none" readonly /></div>
+                <div class="space-y-1"><label class="text-xs font-medium text-muted-foreground">Last Name</label><input type="text" value="Thompson" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none" readonly /></div>
+              </div>
+              <div class="space-y-1"><label class="text-xs font-medium text-muted-foreground">Address</label><input type="text" value="742 Evergreen Trail, Boulder, CO 80302" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none" readonly /></div>
+              <div class="space-y-1"><label class="text-xs font-medium text-muted-foreground">Email</label><input type="text" value="alex.thompson@email.com" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none" readonly /></div>
+              <button onclick="proceedToPayment()"
+                class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all accent-gradient">
+                Continue to Payment
+              </button>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="checkout-section space-y-4" id="paymentSection" style="display:none;">
+              <h3 class="text-sm font-semibold">Payment Method</h3>
+
+              <!-- Payment tabs -->
+              <div class="flex gap-2">
+                <button class="pay-tab active" id="tab-card" onclick="selectPayMethod('card')">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 4px;display:block;"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                  <div class="text-xs font-semibold">Card</div>
+                </button>
+                <button class="pay-tab" id="tab-later" onclick="selectPayMethod('later')">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 4px;display:block;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <div class="text-xs font-semibold">Pay Later</div>
+                </button>
+                <button class="pay-tab" id="tab-crypto" onclick="selectPayMethod('crypto')">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 4px;display:block;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  <div class="text-xs font-semibold">Crypto</div>
+                </button>
+              </div>
+
+              <!-- ======== CARD PAY ======== -->
+              <div id="pay-card" class="space-y-3">
+                <div class="space-y-1"><label class="text-xs font-medium text-muted-foreground">Card Number</label><input type="text" value="•••• •••• •••• 4242" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none" readonly /></div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="space-y-1"><label class="text-xs font-medium text-muted-foreground">Expiry</label><input type="text" value="12 / 28" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none" readonly /></div>
+                  <div class="space-y-1"><label class="text-xs font-medium text-muted-foreground">CVC</label><input type="text" value="•••" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none" readonly /></div>
+                </div>
+                <button onclick="completeCardPayment()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all accent-gradient" id="cardPayBtn">
+                  Pay $0.00
+                </button>
+              </div>
+
+              <!-- ======== PAY LATER ======== -->
+              <div id="pay-later" class="space-y-3" style="display:none;">
+                <div class="rounded-lg bg-muted p-4 space-y-3">
+                  <div class="flex items-center gap-2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span class="text-sm font-semibold">Split into 4 interest-free payments</span>
+                  </div>
+                  <div class="grid grid-cols-4 gap-2" id="installmentGrid"></div>
+                  <p class="text-xs text-muted-foreground">No interest · No fees · Instant approval</p>
+                </div>
+                <button onclick="completePayLater()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+                  Apply & Pay Later
+                </button>
+              </div>
+
+              <!-- ======== CRYPTO PAY ======== -->
+              <div id="pay-crypto" class="space-y-4" style="display:none;">
+
+                <!-- Compliance banner -->
+                <div class="compliance-banner space-y-2">
+                  <div class="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="16" height="16" class="accent-text"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+                    <span class="text-sm font-semibold">Compliance Powered by Chainalysis</span>
+                  </div>
+                  <p class="text-xs text-muted-foreground leading-relaxed">
+                    Crypto payments are processed with <strong>two layers of compliance</strong>:
+                    <strong>Address Screening</strong> checks your wallet for sanctions and risk exposure at connect time.
+                    <strong>KYT (Know Your Transaction)</strong> monitors the payment to trace the source of funds and flag suspicious activity before the order is fulfilled.
+                  </p>
+                </div>
+
+                <!-- Crypto currency selector -->
+                <div class="space-y-2">
+                  <label class="text-xs font-medium text-muted-foreground">Pay with</label>
+                  <div class="flex gap-2" id="cryptoSelector">
+                    <button class="pay-tab active" data-coin="ETH" onclick="selectCoin('ETH')" style="padding:8px;flex:unset;width:72px;">
+                      <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#627eea,#3b5998);display:flex;align-items:center;justify-content:center;margin:0 auto 2px;"><span style="color:white;font-size:12px;font-weight:700;">Ξ</span></div>
+                      <div class="text-xs font-semibold">ETH</div>
+                    </button>
+                    <button class="pay-tab" data-coin="BTC" onclick="selectCoin('BTC')" style="padding:8px;flex:unset;width:72px;">
+                      <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#f7931a,#e8850e);display:flex;align-items:center;justify-content:center;margin:0 auto 2px;"><span style="color:white;font-size:12px;font-weight:700;">₿</span></div>
+                      <div class="text-xs font-semibold">BTC</div>
+                    </button>
+                    <button class="pay-tab" data-coin="USDT" onclick="selectCoin('USDT')" style="padding:8px;flex:unset;width:72px;">
+                      <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#26a17b,#1a7a5e);display:flex;align-items:center;justify-content:center;margin:0 auto 2px;"><span style="color:white;font-size:10px;font-weight:700;">$</span></div>
+                      <div class="text-xs font-semibold">USDT</div>
+                    </button>
+                    <button class="pay-tab" data-coin="SOL" onclick="selectCoin('SOL')" style="padding:8px;flex:unset;width:72px;">
+                      <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#9945ff,#14f195);display:flex;align-items:center;justify-content:center;margin:0 auto 2px;"><span style="color:white;font-size:12px;font-weight:700;">◎</span></div>
+                      <div class="text-xs font-semibold">SOL</div>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Amount display -->
+                <div class="rounded-lg bg-muted p-3">
+                  <div class="flex items-center justify-between text-sm">
+                    <span class="text-muted-foreground">You pay</span>
+                    <span class="font-bold" id="cryptoAmount"></span>
+                  </div>
+                  <div class="flex items-center justify-between text-xs text-muted-foreground mt-1">
+                    <span>Rate updates every 30s</span>
+                    <span id="cryptoRate"></span>
+                  </div>
+                </div>
+
+                <!-- Connect wallet to pay -->
+                <div id="cryptoConnectSection">
+                  <button onclick="openModal('connect')"
+                    class="w-full inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all accent-gradient">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                    Connect Wallet to Pay
+                  </button>
+                </div>
+
+                <!-- After wallet connected -->
+                <div id="cryptoPaySection" style="display:none;" class="space-y-3">
+                  <div class="rounded-lg bg-success/10 p-3 flex items-center gap-2">
+                    <div class="pulse-dot bg-success"></div>
+                    <div>
+                      <span class="text-xs font-semibold text-success">Wallet Connected & Screened</span>
+                      <span class="text-xs text-muted-foreground ml-2" id="cryptoWalletAddr"></span>
+                    </div>
+                  </div>
+
+                  <!-- KYT compliance steps preview -->
+                  <div class="rounded-lg border border-border p-3 space-y-2">
+                    <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">What happens when you pay</p>
+                    <div class="flex items-start gap-2 text-xs">
+                      <span style="width:16px;height:16px;border-radius:50%;background:rgba(249,115,22,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:#f97316;font-weight:700;font-size:9px;">1</span>
+                      <span class="text-muted-foreground">Your payment is broadcast on-chain and detected by the merchant</span>
+                    </div>
+                    <div class="flex items-start gap-2 text-xs">
+                      <span style="width:16px;height:16px;border-radius:50%;background:rgba(249,115,22,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:#f97316;font-weight:700;font-size:9px;">2</span>
+                      <span class="text-muted-foreground">Transaction registered with <strong>Chainalysis KYT</strong> as a received transfer</span>
+                    </div>
+                    <div class="flex items-start gap-2 text-xs">
+                      <span style="width:16px;height:16px;border-radius:50%;background:rgba(249,115,22,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:#f97316;font-weight:700;font-size:9px;">3</span>
+                      <span class="text-muted-foreground">KYT traces <strong>source of funds</strong> — analyzing where the crypto came from</span>
+                    </div>
+                    <div class="flex items-start gap-2 text-xs">
+                      <span style="width:16px;height:16px;border-radius:50%;background:rgba(249,115,22,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;color:#f97316;font-weight:700;font-size:9px;">4</span>
+                      <span class="text-muted-foreground">Risk decision made — order fulfilled or held for compliance review</span>
+                    </div>
+                  </div>
+
+                  <button onclick="submitCryptoPayment()"
+                    class="w-full inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all accent-gradient" id="confirmPayBtn">
+                    Confirm & Pay
+                  </button>
+                </div>
+
+                <!-- KYT monitoring flow (after payment) -->
+                <div id="cryptoKYTSection" style="display:none;" class="space-y-3">
+                  <div class="space-y-1">
+                    <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">KYT — Monitoring Payment</p>
+                    <div class="kyt-step pending workflow-step" id="kyt-s1"><div class="step-icon">1</div><div><div class="text-sm font-medium">Payment Detected On-Chain</div><div class="text-xs text-muted-foreground">Transaction broadcast and confirmed</div></div></div>
+                    <div class="step-connector bg-muted"></div>
+                    <div class="kyt-step pending workflow-step" id="kyt-s2"><div class="step-icon">2</div><div><div class="text-sm font-medium">Registered with Chainalysis KYT</div><div class="text-xs text-muted-foreground">POST /v2/users/{userId}/transfers — registered as "received"</div></div></div>
+                    <div class="step-connector bg-muted"></div>
+                    <div class="kyt-step pending workflow-step" id="kyt-s3"><div class="step-icon">3</div><div><div class="text-sm font-medium">Source of Funds Analysis</div><div class="text-xs text-muted-foreground">Tracing fund origins through the blockchain graph</div></div></div>
+                    <div class="step-connector bg-muted"></div>
+                    <div class="kyt-step pending workflow-step" id="kyt-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Compliance Decision</div><div class="text-xs text-muted-foreground">Clear for fulfillment or escalate to compliance team</div></div></div>
+                  </div>
+                </div>
+
+                <!-- KYT result -->
+                <div id="cryptoResultSection" style="display:none;" class="space-y-4"></div>
+              </div>
+            </div>
+
+            <!-- Order confirmed (non-crypto) -->
+            <div class="checkout-section space-y-4" id="orderConfirmSection" style="display:none;">
+              <div class="flex flex-col items-center gap-3 py-4">
+                <div style="width:56px;height:56px;border-radius:50%;background:rgba(34,197,94,0.1);display:flex;align-items:center;justify-content:center;">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-success"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <h2 class="text-lg font-bold">Order Confirmed!</h2>
+                <p class="text-sm text-muted-foreground text-center">Your order #BC-28471 has been placed. You'll receive a confirmation email at alex.thompson@email.com.</p>
+                <button onclick="resetCheckout(); showPage('shop');" class="inline-flex items-center justify-center rounded-lg h-9 px-4 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all mt-2">
+                  Continue Shopping
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: order summary (sticky) -->
+          <div>
+            <div class="checkout-section space-y-3" style="position:sticky;top:72px;">
+              <h3 class="text-sm font-semibold">Order Summary</h3>
+              <div id="checkoutItems" class="space-y-2"></div>
+              <hr />
+              <div class="space-y-2 text-sm">
+                <div class="flex justify-between"><span class="text-muted-foreground">Subtotal</span><span class="font-medium" id="coSubtotal">$0.00</span></div>
+                <div class="flex justify-between"><span class="text-muted-foreground">Shipping</span><span class="font-medium">Free</span></div>
+                <div class="flex justify-between"><span class="text-muted-foreground">Tax</span><span class="font-medium" id="coTax">$0.00</span></div>
+                <hr />
+                <div class="flex justify-between"><span class="font-semibold">Total</span><span class="font-bold" id="coTotal">$0.00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- MODAL: CONNECT WALLET (Address Screening at Checkout)             -->
+    <!-- ================================================================ -->
+    <div class="modal-overlay" id="modal-connect">
+      <div class="modal-box rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 mx-4">
+        <div class="px-4 flex items-center justify-between">
+          <h2 class="text-base font-semibold">Connect Wallet to Pay</h2>
+          <button onclick="closeAllModals()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <hr />
+
+        <!-- Step 0: Choose provider -->
+        <div id="step-providers" class="px-4 space-y-3">
+          <p class="text-sm text-muted-foreground">Select your wallet to complete the crypto payment</p>
+          <button class="wallet-provider-btn" onclick="selectProvider('MetaMask')">
+            <div class="provider-icon" style="background:#F6851B1A;">
+              <svg width="24" height="24" viewBox="0 0 256 240" fill="none"><path d="M241.9 0L143.2 73.5L161.4 30.2L241.9 0Z" fill="#E17726"/><path d="M14.1 0L111.9 74.2L94.6 30.2L14.1 0Z" fill="#E27625"/><path d="M143.2 129.7L147.7 69.5L161.4 30.2H94.6L108.3 69.5L111.5 129.7L112.7 148.8L112.8 195H143.2L143.3 148.8L143.2 129.7Z" fill="#F5841F"/></svg>
+            </div>
+            <div class="provider-info"><div class="flex items-center gap-2"><span class="provider-name">MetaMask</span><span class="provider-popular bg-primary/10 text-primary">Popular</span></div><span class="provider-desc">Connect using browser extension</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Coinbase Wallet')">
+            <div class="provider-icon" style="background:#0052FF1A;"><svg width="24" height="24" viewBox="0 0 256 256"><rect width="256" height="256" rx="50" fill="#0052FF"/><circle cx="128" cy="128" r="80" fill="white"/><rect x="104" y="104" width="48" height="48" rx="8" fill="#0052FF"/></svg></div>
+            <div class="provider-info"><span class="provider-name">Coinbase Wallet</span><br/><span class="provider-desc">Connect using Coinbase Wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('WalletConnect')">
+            <div class="provider-icon" style="background:#3B99FC1A;"><svg width="24" height="24" viewBox="0 0 300 185"><path d="M61.4 36.3C111.9-12.1 188.1-12.1 238.6 36.3L244.6 42.1C247.1 44.5 247.1 48.4 244.6 50.8L224.3 70.3C223 71.5 221 71.5 219.7 70.3L211.5 62.4C176.3 28.5 123.7 28.5 88.5 62.4L79.7 70.9C78.4 72.1 76.4 72.1 75.1 70.9L54.8 51.4C52.3 49 52.3 45.1 54.8 42.7L61.4 36.3ZM282.1 78.3L300.2 95.8C302.7 98.2 302.7 102.1 300.2 104.5L218.9 183.1C216.4 185.5 212.4 185.5 209.9 183.1L152.5 127.8C151.9 127.2 150.9 127.2 150.2 127.8L92.8 183.1C90.3 185.5 86.3 185.5 83.8 183.1L2.5 104.5C0 102.1 0 98.2 2.5 95.8L20.6 78.3C23.1 75.9 27.1 75.9 29.6 78.3L87 133.6C87.7 134.2 88.7 134.2 89.3 133.6L146.7 78.3C149.2 75.9 153.2 75.9 155.7 78.3L213.1 133.6C213.8 134.2 214.8 134.2 215.4 133.6L272.8 78.3C275.3 75.9 279.3 75.9 281.8 78.3L282.1 78.3Z" fill="#3B99FC"/></svg></div>
+            <div class="provider-info"><span class="provider-name">WalletConnect</span><br/><span class="provider-desc">Scan with mobile wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="wallet-provider-btn" onclick="selectProvider('Phantom')">
+            <div class="provider-icon" style="background:#AB9FF21A;"><svg width="24" height="24" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="url(#pG)"/><path d="M110.5 64.7C110.5 89.5 93.8 99.5 72.6 99.5H69.2C67.6 99.5 66.3 100.9 66.2 102.5L64.5 115.2C64.4 116.5 63.3 117.5 62 117.5H49.1C47.5 117.5 46.3 116 46.5 114.4L56.5 38.5C56.7 36.8 58.2 35.5 59.9 35.5H82.2C99 35.5 110.5 45.8 110.5 64.7Z" fill="white"/><defs><linearGradient id="pG" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#534BB1"/><stop offset="1" stop-color="#551BF9"/></linearGradient></defs></svg></div>
+            <div class="provider-info"><span class="provider-name">Phantom</span><br/><span class="provider-desc">Solana &amp; multi-chain wallet</span></div>
+            <svg class="provider-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <!-- Step 1: Enter address -->
+        <div id="step-input" class="px-4 space-y-4" style="display:none;">
+          <div class="flex items-center gap-2">
+            <button onclick="backToProviders()" class="inline-flex items-center justify-center rounded-lg h-8 px-2 text-sm font-medium text-muted-foreground hover:bg-muted transition-all">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="flex items-center gap-2">
+              <div id="selectedProviderIcon" style="width:20px;height:20px;"></div>
+              <span class="text-sm font-medium" id="selectedProviderName"></span>
+            </div>
+          </div>
+          <div class="rounded-lg bg-muted p-3 space-y-2">
+            <div class="flex items-center gap-2 text-sm font-medium">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Step 1 — Address Screening
+            </div>
+            <p class="text-xs text-muted-foreground leading-relaxed">
+              Before accepting payment via <strong id="complianceProvider">your wallet</strong>, the merchant screens your wallet address using the
+              <strong>Chainalysis Address Screening API</strong>. This checks for sanctions, darknet, ransomware, and other high-risk associations.
+            </p>
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Wallet Address</label>
+            <input id="addressInput" type="text" placeholder="0x... or bc1... or any blockchain address"
+              class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
+          </div>
+          <div class="space-y-1" id="workflowSteps">
+            <div class="workflow-step" data-step="1"><div class="step-icon bg-muted text-muted-foreground">1</div><div><div class="text-sm font-medium">Submit Address</div><div class="text-xs text-muted-foreground">Customer provides wallet address</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="workflow-step" data-step="2"><div class="step-icon bg-muted text-muted-foreground">2</div><div><div class="text-sm font-medium flex items-center gap-1.5">Chainalysis Screening <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="13" height="13" class="accent-text"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg></div><div class="text-xs text-muted-foreground">Address Screening API assesses risk</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="workflow-step" data-step="3"><div class="step-icon bg-muted text-muted-foreground">3</div><div><div class="text-sm font-medium">Risk Decision</div><div class="text-xs text-muted-foreground">Allow or deny payment based on risk</div></div></div>
+          </div>
+          <button onclick="screenAddress()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all accent-gradient">Screen &amp; Connect</button>
+        </div>
+
+        <!-- Step 2: Loading -->
+        <div id="step-loading" class="px-4 space-y-4" style="display:none;">
+          <div class="flex flex-col items-center gap-4 py-6">
+            <div class="animate-spin" style="animation-duration:1.5s;">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="40" height="40" class="accent-text"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            </div>
+            <div class="text-center space-y-1"><p class="text-sm font-semibold">Screening Address…</p><p class="text-xs text-muted-foreground" id="loadingAddr"></p></div>
+            <div class="w-full space-y-1">
+              <div class="workflow-step active"><div class="step-icon bg-success/10 text-success">✓</div><div><div class="text-sm font-medium">Address submitted</div></div></div>
+              <div class="step-connector bg-success/10"></div>
+              <div class="workflow-step active"><div class="step-icon bg-primary/10 text-primary"><div class="animate-spin" style="animation-duration:1s;width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;"></div></div><div><div class="text-sm font-medium">Querying Chainalysis Address Screening API</div><div class="text-xs text-muted-foreground">Checking sanctions, risk exposure…</div></div></div>
+              <div class="step-connector bg-muted"></div>
+              <div class="workflow-step"><div class="step-icon bg-muted text-muted-foreground">3</div><div><div class="text-sm font-medium text-muted-foreground">Awaiting result…</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Results -->
+        <div id="step-results" class="px-4 space-y-4" style="display:none;">
+          <div class="flex flex-col items-center gap-2">
+            <div class="risk-gauge"><svg viewBox="0 0 200 110"><path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--muted)" stroke-width="14" stroke-linecap="round"/><path d="M 20 100 A 80 80 0 0 1 60 32" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"/><path d="M 60 32 A 80 80 0 0 1 100 20" fill="none" stroke="#eab308" stroke-width="14"/><path d="M 100 20 A 80 80 0 0 1 140 32" fill="none" stroke="#f97316" stroke-width="14"/><path d="M 140 32 A 80 80 0 0 1 180 100" fill="none" stroke="#ef4444" stroke-width="14" stroke-linecap="round"/><line id="gaugeNeedle" x1="100" y1="100" x2="100" y2="30" stroke="var(--foreground)" stroke-width="2.5" stroke-linecap="round" transform="rotate(0,100,100)"/><circle cx="100" cy="100" r="6" fill="var(--foreground)"/></svg></div>
+            <div class="text-center"><div id="riskBadge"></div><p class="text-xs text-muted-foreground mt-1" id="riskReason"></p></div>
+          </div>
+          <hr />
+          <div class="space-y-3">
+            <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">Address</span><span class="text-xs font-medium" id="resultAddr" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></div>
+            <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">Type</span><span class="text-xs font-medium" id="resultType"></span></div>
+            <div class="flex items-center justify-between" id="clusterRow" style="display:none;"><span class="text-xs text-muted-foreground">Cluster</span><span class="text-xs font-medium" id="resultCluster"></span></div>
+            <div class="flex items-center justify-between" id="categoryRow" style="display:none;"><span class="text-xs text-muted-foreground">Category</span><span class="text-xs font-medium" id="resultCategory"></span></div>
+          </div>
+          <div id="idSection" style="display:none;"></div>
+          <div id="exposureSection" style="display:none;"><p class="text-sm font-medium mb-2">Exposure Breakdown</p><div class="space-y-2" id="exposureBars"></div></div>
+          <hr />
+          <div id="decisionBox"></div>
+          <div class="flex gap-2">
+            <button onclick="resetConnectModal()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Address</button>
+            <button id="proceedBtn" onclick="connectWallet()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all accent-gradient">Continue to Pay</button>
+          </div>
+        </div>
+
+        <!-- Sandbox message -->
+        <div id="step-sandbox" class="px-4" style="display:none;">
+          <div class="rounded-xl bg-info/10 text-info ring-1 ring-foreground/10 p-4 space-y-1">
+            <h3 class="text-sm font-semibold">Can't run workflows from preview</h3>
+            <p class="text-sm opacity-90">Open this page in a new tab to use interactive features.</p>
+          </div>
+          <div class="mt-4"><button onclick="closeAllModals()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Close</button></div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+      // =====================================================
+      // STATE
+      // =====================================================
+      let cart = [];
+      let selectedCoin = 'ETH';
+      let connectedAddress = '';
+      let selectedWalletProvider = null;
+      let lastScreeningResult = null;
+      let currentPDP = null;
+
+      const providerIcons = {
+        'MetaMask': '<svg width="20" height="20" viewBox="0 0 256 240"><path d="M241.9 0L143.2 73.5L161.4 30.2L241.9 0Z" fill="#E17726"/><path d="M14.1 0L111.9 74.2L94.6 30.2L14.1 0Z" fill="#E27625"/><path d="M143.2 129.7L147.7 69.5L161.4 30.2H94.6L108.3 69.5L111.5 129.7L112.7 148.8L112.8 195H143.2L143.3 148.8L143.2 129.7Z" fill="#F5841F"/></svg>',
+        'Coinbase Wallet': '<svg width="20" height="20" viewBox="0 0 256 256"><rect width="256" height="256" rx="50" fill="#0052FF"/><circle cx="128" cy="128" r="80" fill="white"/><rect x="104" y="104" width="48" height="48" rx="8" fill="#0052FF"/></svg>',
+        'WalletConnect': '<svg width="20" height="20" viewBox="0 0 300 185"><path d="M61.4 36.3C111.9-12.1 188.1-12.1 238.6 36.3L244.6 42.1C247.1 44.5 247.1 48.4 244.6 50.8L224.3 70.3C223 71.5 221 71.5 219.7 70.3L211.5 62.4C176.3 28.5 123.7 28.5 88.5 62.4L79.7 70.9C78.4 72.1 76.4 72.1 75.1 70.9L54.8 51.4C52.3 49 52.3 45.1 54.8 42.7L61.4 36.3ZM282.1 78.3L300.2 95.8C302.7 98.2 302.7 102.1 300.2 104.5L218.9 183.1C216.4 185.5 212.4 185.5 209.9 183.1L152.5 127.8C151.9 127.2 150.9 127.2 150.2 127.8L92.8 183.1C90.3 185.5 86.3 185.5 83.8 183.1L2.5 104.5C0 102.1 0 98.2 2.5 95.8L20.6 78.3C23.1 75.9 27.1 75.9 29.6 78.3L87 133.6C87.7 134.2 88.7 134.2 89.3 133.6L146.7 78.3C149.2 75.9 153.2 75.9 155.7 78.3L213.1 133.6C213.8 134.2 214.8 134.2 215.4 133.6L272.8 78.3C275.3 75.9 279.3 75.9 281.8 78.3L282.1 78.3Z" fill="#3B99FC"/></svg>',
+        'Phantom': '<svg width="20" height="20" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="url(#pG2)"/><path d="M110.5 64.7C110.5 89.5 93.8 99.5 72.6 99.5H69.2C67.6 99.5 66.3 100.9 66.2 102.5L64.5 115.2C64.4 116.5 63.3 117.5 62 117.5H49.1C47.5 117.5 46.3 116 46.5 114.4L56.5 38.5C56.7 36.8 58.2 35.5 59.9 35.5H82.2C99 35.5 110.5 45.8 110.5 64.7Z" fill="white"/><defs><linearGradient id="pG2" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#534BB1"/><stop offset="1" stop-color="#551BF9"/></linearGradient></defs></svg>',
+      };
+
+      const cryptoPrices = { ETH: 2847.32, BTC: 68421.30, USDT: 1.00, SOL: 178.54 };
+      const cryptoSymbols = { ETH: 'Ξ', BTC: '₿', USDT: '$', SOL: '◎' };
+
+      // =====================================================
+      // PRODUCT DATA
+      // =====================================================
+      const products = [
+        { id:0, name:'Alpine Trail Jacket', cat:'Outerwear', price:189, rating:4.8, reviews:342, bg:'linear-gradient(135deg,#065f46,#047857)', icon:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L4 9v12h5v-7h6v7h5V9z"/></svg>', desc:'Waterproof, breathable 3-layer shell with sealed seams. Built for summit pushes and alpine conditions. DWR treated with recycled materials.', specs:['Waterproof 20K/20K','Weight: 340g','Recycled nylon shell'] },
+        { id:1, name:'Summit Pack 45L', cat:'Packs', price:245, rating:4.9, reviews:518, bg:'linear-gradient(135deg,#92400e,#b45309)', icon:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="18" rx="2"/><path d="M8 2v4M16 2v4M9 14h6"/></svg>', desc:'Top-loading expedition pack with adjustable torso, hip belt pockets, and integrated rain cover. Perfect for multi-day treks.', specs:['Volume: 45 liters','Frame: Aluminum stay','Hip belt: Dual pockets'] },
+        { id:2, name:'Titanium Flask 750ml', cat:'Hydration', price:68, rating:4.7, reviews:891, bg:'linear-gradient(135deg,#374151,#6b7280)', icon:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8l1 5H7l1-5z"/><rect x="7" y="7" width="10" height="14" rx="2"/></svg>', desc:'Ultra-light titanium construction keeps drinks hot for 12 hours or cold for 24. Scratch-resistant finish with leak-proof lid.', specs:['Weight: 165g','Capacity: 750ml','BPA-free titanium'] },
+        { id:3, name:'Merino Base Layer', cat:'Apparel', price:95, rating:4.6, reviews:267, bg:'linear-gradient(135deg,#1e3a5f,#2563eb)', icon:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l-3 6h-6L6 3z"/><rect x="5" y="9" width="14" height="12" rx="1"/></svg>', desc:'200gsm merino wool mid-weight layer. Naturally odor-resistant, temperature regulating, and incredibly soft against skin.', specs:['Fabric: 100% Merino','Weight: 200gsm','UPF 30+ protection'] },
+        { id:4, name:'Ultralight Headlamp', cat:'Lighting', price:78, rating:4.8, reviews:423, bg:'linear-gradient(135deg,#ca8a04,#eab308)', icon:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="5"/><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 5V2"/></svg>', desc:'800 lumens with red-light mode. USB-C rechargeable, IPX8 waterproof. 60-hour battery life on low. Weighs just 52 grams.', specs:['Brightness: 800 lm','Battery: 60 hrs (low)','Weight: 52g'] },
+        { id:5, name:'Solar Charge Panel', cat:'Electronics', price:156, rating:4.5, reviews:189, bg:'linear-gradient(135deg,#1d4ed8,#3b82f6)', icon:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="1"/><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2"/></svg>', desc:'21W foldable solar panel with dual USB-A and USB-C outputs. SunPower cells with 23% conversion efficiency.', specs:['Power: 21W','Efficiency: 23%','Ports: USB-A + USB-C'] },
+        { id:6, name:'Carbon Trekking Poles', cat:'Accessories', price:142, rating:4.7, reviews:312, bg:'linear-gradient(135deg,#44403c,#78716c)', icon:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="2" x2="11" y2="22"/><line x1="13" y1="2" x2="17" y2="22"/><path d="M5 6h6M13 6h6"/></svg>', desc:'Full carbon fiber construction. FlickLock adjustment, ergonomic cork grips, and interchangeable baskets. Pair weight: 380g.', specs:['Material: Carbon fiber','Weight: 190g each','Adjustable: 100-130cm'] },
+        { id:7, name:'Insulated Camp Mug', cat:'Camp Kitchen', price:34, rating:4.9, reviews:1247, bg:'linear-gradient(135deg,#ea580c,#f97316)', icon:'<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>', desc:'Double-wall vacuum insulated camp mug. Keeps coffee hot for hours. BPA-free Tritan lid with slide-lock.', specs:['Capacity: 350ml','Insulation: 4+ hours','Lid: Tritan slide-lock'] },
+      ];
+
+      // Pre-fill cart
+      cart = [
+        { product: products[0], qty: 1 },
+        { product: products[2], qty: 1 },
+        { product: products[4], qty: 1 },
+      ];
+
+      // =====================================================
+      // RENDER: PRODUCTS
+      // =====================================================
+      function renderProductGrid() {
+        document.getElementById('productGrid').innerHTML = products.map(p => `
+          <div class="product-card" onclick="openProduct(${p.id})">
+            <div class="product-img" style="background:${p.bg};">${p.icon}</div>
+            <div class="product-card-body">
+              <p class="text-xs text-muted-foreground">${p.cat}</p>
+              <p class="text-sm font-semibold mt-0.5">${p.name}</p>
+              <div class="flex items-center justify-between mt-2">
+                <span class="text-sm font-bold">$${p.price.toFixed(2)}</span>
+                <span class="text-xs text-muted-foreground">★ ${p.rating}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+        document.getElementById('productCount').textContent = products.length + ' products';
+      }
+
+      function openProduct(id) {
+        currentPDP = products[id];
+        const p = currentPDP;
+        document.getElementById('pdpImage').style.background = p.bg;
+        document.getElementById('pdpImage').innerHTML = p.icon.replace(/width="40"/g,'width="80"').replace(/height="40"/g,'height="80"');
+        document.getElementById('pdpCategory').textContent = p.cat;
+        document.getElementById('pdpName').textContent = p.name;
+        document.getElementById('pdpPrice').textContent = '$' + p.price.toFixed(2);
+        document.getElementById('pdpDesc').textContent = p.desc;
+        document.getElementById('pdpReviewCount').textContent = `(${p.reviews} reviews)`;
+        document.getElementById('pdpStars').innerHTML = '★★★★★'.split('').map((s,i) => `<span style="color:${i < Math.floor(p.rating) ? '#eab308' : 'var(--muted)'};">${s}</span>`).join('');
+        document.getElementById('pdpSpecs').innerHTML = p.specs.map(s => `<div class="flex items-center gap-2 text-sm"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-success"><polyline points="20 6 9 17 4 12"/></svg><span class="text-muted-foreground">${s}</span></div>`).join('');
+        showPage('product');
+      }
+
+      function addToCartFromPDP() {
+        if (!currentPDP) return;
+        const existing = cart.find(c => c.product.id === currentPDP.id);
+        if (existing) existing.qty++;
+        else cart.push({ product: currentPDP, qty: 1 });
+        updateCartBadge();
+        // Flash feedback
+        const btn = event.target.closest('button');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Added!';
+        setTimeout(() => btn.innerHTML = orig, 1000);
+      }
+
+      // =====================================================
+      // RENDER: CART
+      // =====================================================
+      function updateCartBadge() {
+        const count = cart.reduce((s, c) => s + c.qty, 0);
+        document.getElementById('cartBadge').textContent = count;
+        document.getElementById('cartBadge').style.display = count > 0 ? '' : 'none';
+      }
+
+      function getSubtotal() { return cart.reduce((s,c) => s + c.product.price * c.qty, 0); }
+      function getTax() { return getSubtotal() * 0.08; }
+      function getTotal() { return getSubtotal() + getTax(); }
+
+      function renderCart() {
+        const container = document.getElementById('cartItemsContainer');
+        const emptyMsg = document.getElementById('cartEmpty');
+        if (cart.length === 0) {
+          emptyMsg.style.display = '';
+          container.querySelectorAll('.cart-item').forEach(el => el.remove());
+        } else {
+          emptyMsg.style.display = 'none';
+          let html = '';
+          cart.forEach((c, i) => {
+            html += `
+              <div class="cart-item ${i > 0 ? 'border-t border-border' : ''}">
+                <div class="cart-item-img" style="background:${c.product.bg};border-radius:10px;">${c.product.icon.replace(/width="40"/g,'width="28"').replace(/height="40"/g,'height="28"')}</div>
+                <div class="flex-1">
+                  <p class="text-sm font-semibold">${c.product.name}</p>
+                  <p class="text-xs text-muted-foreground">${c.product.cat}</p>
+                  <p class="text-sm font-bold mt-1">$${(c.product.price * c.qty).toFixed(2)}</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button class="qty-btn" onclick="changeQty(${i}, -1)">−</button>
+                  <span class="text-sm font-semibold" style="min-width:20px;text-align:center;">${c.qty}</span>
+                  <button class="qty-btn" onclick="changeQty(${i}, 1)">+</button>
+                </div>
+                <button onclick="removeFromCart(${i})" class="text-muted-foreground hover:text-destructive transition-colors" style="padding:4px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>`;
+          });
+          // Remove old cart items and re-render
+          container.querySelectorAll('.cart-item').forEach(el => el.remove());
+          container.insertAdjacentHTML('beforeend', html);
+        }
+        // Update summaries
+        document.getElementById('cartSubtotal').textContent = '$' + getSubtotal().toFixed(2);
+        document.getElementById('cartTax').textContent = '$' + getTax().toFixed(2);
+        document.getElementById('cartTotal').textContent = '$' + getTotal().toFixed(2);
+        document.getElementById('checkoutBtn').disabled = cart.length === 0;
+        updateCartBadge();
+      }
+
+      function changeQty(idx, delta) {
+        cart[idx].qty = Math.max(1, cart[idx].qty + delta);
+        renderCart();
+      }
+      function removeFromCart(idx) {
+        cart.splice(idx, 1);
+        renderCart();
+      }
+
+      // =====================================================
+      // RENDER: CHECKOUT
+      // =====================================================
+      function renderCheckoutSummary() {
+        document.getElementById('checkoutItems').innerHTML = cart.map(c => `
+          <div class="flex items-center gap-2">
+            <div style="width:36px;height:36px;border-radius:6px;background:${c.product.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${c.product.icon.replace(/width="40"/g,'width="16"').replace(/height="40"/g,'height="16"')}</div>
+            <div class="flex-1"><p class="text-xs font-medium">${c.product.name}</p><p class="text-xs text-muted-foreground">Qty: ${c.qty}</p></div>
+            <span class="text-xs font-semibold">$${(c.product.price * c.qty).toFixed(2)}</span>
+          </div>`).join('');
+        document.getElementById('coSubtotal').textContent = '$' + getSubtotal().toFixed(2);
+        document.getElementById('coTax').textContent = '$' + getTax().toFixed(2);
+        document.getElementById('coTotal').textContent = '$' + getTotal().toFixed(2);
+        document.getElementById('cardPayBtn').textContent = 'Pay $' + getTotal().toFixed(2);
+        // Installments
+        const inst = (getTotal() / 4).toFixed(2);
+        document.getElementById('installmentGrid').innerHTML = [1,2,3,4].map(n => `
+          <div class="rounded-lg bg-background p-2 text-center ring-1 ring-foreground/10">
+            <p class="text-xs text-muted-foreground">Pmt ${n}</p>
+            <p class="text-sm font-bold">$${inst}</p>
+          </div>`).join('');
+        updateCryptoAmount();
+      }
+
+      function updateCryptoAmount() {
+        const total = getTotal();
+        const rate = cryptoPrices[selectedCoin];
+        const amount = (total / rate);
+        const fmt = amount < 0.01 ? amount.toFixed(6) : amount < 1 ? amount.toFixed(4) : amount.toFixed(4);
+        document.getElementById('cryptoAmount').textContent = cryptoSymbols[selectedCoin] + ' ' + fmt + ' ' + selectedCoin;
+        document.getElementById('cryptoRate').textContent = '1 ' + selectedCoin + ' = $' + rate.toLocaleString();
+        document.getElementById('confirmPayBtn').textContent = 'Confirm & Pay ' + cryptoSymbols[selectedCoin] + ' ' + fmt;
+      }
+
+      // =====================================================
+      // PAGE NAVIGATION
+      // =====================================================
+      function showPage(page) {
+        document.querySelectorAll('.page-view').forEach(v => v.classList.remove('active'));
+        document.getElementById('page-' + page).classList.add('active');
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        const nl = document.getElementById('nav-' + page);
+        if (nl) nl.classList.add('active');
+        if (page === 'cart') renderCart();
+        if (page === 'checkout') renderCheckoutSummary();
+        window.scrollTo(0, 0);
+      }
+
+      // =====================================================
+      // CHECKOUT FLOW
+      // =====================================================
+      function proceedToPayment() {
+        document.getElementById('shippingSection').style.display = 'none';
+        document.getElementById('paymentSection').style.display = '';
+        // Update progress
+        document.getElementById('prog-shipping').classList.remove('active');
+        document.getElementById('prog-shipping').classList.add('done');
+        document.getElementById('prog-shipping').querySelector('.step-num').textContent = '✓';
+        document.getElementById('prog-line2').classList.add('done');
+        document.getElementById('prog-payment').classList.add('active');
+      }
+
+      function selectPayMethod(method) {
+        ['card','later','crypto'].forEach(m => {
+          document.getElementById('tab-'+m).classList.toggle('active', m === method);
+          document.getElementById('pay-'+m).style.display = m === method ? '' : 'none';
+        });
+      }
+
+      function selectCoin(coin) {
+        selectedCoin = coin;
+        document.querySelectorAll('#cryptoSelector .pay-tab').forEach(b => {
+          b.classList.toggle('active', b.dataset.coin === coin);
+        });
+        updateCryptoAmount();
+      }
+
+      function completeCardPayment() { showOrderConfirm(); }
+      function completePayLater() { showOrderConfirm(); }
+
+      function showOrderConfirm() {
+        document.getElementById('paymentSection').style.display = 'none';
+        document.getElementById('orderConfirmSection').style.display = '';
+        document.getElementById('prog-payment').classList.remove('active');
+        document.getElementById('prog-payment').classList.add('done');
+        document.getElementById('prog-payment').querySelector('.step-num').textContent = '✓';
+        document.getElementById('prog-line3').classList.add('done');
+        document.getElementById('prog-confirm').classList.add('active');
+      }
+
+      function resetCheckout() {
+        document.getElementById('shippingSection').style.display = '';
+        document.getElementById('paymentSection').style.display = 'none';
+        document.getElementById('orderConfirmSection').style.display = 'none';
+        // Reset crypto
+        document.getElementById('cryptoConnectSection').style.display = '';
+        document.getElementById('cryptoPaySection').style.display = 'none';
+        document.getElementById('cryptoKYTSection').style.display = 'none';
+        document.getElementById('cryptoResultSection').style.display = 'none';
+        document.getElementById('cryptoResultSection').innerHTML = '';
+        connectedAddress = '';
+        selectedWalletProvider = null;
+        lastScreeningResult = null;
+        // Reset KYT steps
+        ['kyt-s1','kyt-s2','kyt-s3','kyt-s4'].forEach((id,i) => {
+          const s = document.getElementById(id);
+          s.className = 'kyt-step pending workflow-step';
+          s.querySelector('.step-icon').textContent = i+1;
+        });
+        // Reset progress
+        ['prog-shipping','prog-payment','prog-confirm'].forEach(id => {
+          const el = document.getElementById(id);
+          el.classList.remove('active','done');
+          el.querySelector('.step-num').textContent = id === 'prog-shipping' ? '2' : id === 'prog-payment' ? '3' : '4';
+        });
+        document.getElementById('prog-shipping').classList.add('active');
+        ['prog-line2','prog-line3'].forEach(id => document.getElementById(id).classList.remove('done'));
+        selectPayMethod('card');
+      }
+
+      // =====================================================
+      // MODAL MANAGEMENT
+      // =====================================================
+      function openModal(type) {
+        closeAllModals();
+        const m = document.getElementById('modal-' + type);
+        if (m) m.classList.add('active');
+        if (type === 'connect') {
+          document.getElementById('step-providers').style.display = '';
+          document.getElementById('step-input').style.display = 'none';
+        }
+      }
+      function closeAllModals() {
+        document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+      }
+      document.querySelectorAll('.modal-overlay').forEach(m => {
+        m.addEventListener('click', function(e) { if (e.target === this) closeAllModals(); });
+      });
+
+      // =====================================================
+      // CONNECT WALLET FLOW (Address Screening)
+      // =====================================================
+      const SLUG = 'demochain-address-screen';
+
+      function selectProvider(name) {
+        selectedWalletProvider = name;
+        document.getElementById('step-providers').style.display = 'none';
+        document.getElementById('step-input').style.display = '';
+        document.getElementById('selectedProviderName').textContent = name;
+        document.getElementById('selectedProviderIcon').innerHTML = providerIcons[name] || '';
+        document.getElementById('complianceProvider').textContent = name;
+        document.getElementById('addressInput').focus();
+      }
+      function backToProviders() {
+        document.getElementById('step-input').style.display = 'none';
+        document.getElementById('step-providers').style.display = '';
+      }
+      function resetConnectModal() {
+        ['step-providers','step-input','step-loading','step-results','step-sandbox'].forEach((id,i) => {
+          document.getElementById(id).style.display = i === 0 ? '' : 'none';
+        });
+        document.getElementById('addressInput').value = '';
+        selectedWalletProvider = null;
+      }
+
+      document.getElementById('addressInput').addEventListener('keydown', e => { if (e.key === 'Enter') screenAddress(); });
+
+      async function screenAddress() {
+        const address = document.getElementById('addressInput').value.trim();
+        if (!address) { document.getElementById('addressInput').style.borderColor = 'var(--destructive)'; return; }
+        document.getElementById('addressInput').style.borderColor = '';
+        document.getElementById('step-input').style.display = 'none';
+        document.getElementById('step-loading').style.display = '';
+        document.getElementById('loadingAddr').textContent = address.length > 30 ? address.slice(0,16)+'…'+address.slice(-12) : address;
+        try {
+          const res = await fetch(`/api/workflow/${SLUG}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:{address}}) });
+          if (!res.ok) throw new Error(`API returned ${res.status}`);
+          const data = await res.json();
+          const result = data.output ?? data;
+          if (result.error) throw new Error(result.error);
+          lastScreeningResult = result;
+          showScreeningResults(result);
+        } catch(e) {
+          if (e instanceof TypeError) {
+            document.getElementById('step-loading').style.display = 'none';
+            document.getElementById('step-sandbox').style.display = '';
+          } else {
+            document.getElementById('step-loading').style.display = 'none';
+            document.getElementById('step-results').style.display = '';
+            document.getElementById('step-results').innerHTML = `<div class="rounded-lg bg-destructive/10 p-3"><p class="text-sm font-semibold text-destructive">Screening Failed</p><p class="text-xs text-muted-foreground">${e.message}</p></div><button onclick="resetConnectModal()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all mt-3">Try Again</button>`;
+          }
+        }
+      }
+
+      function showScreeningResults(r) {
+        document.getElementById('step-loading').style.display = 'none';
+        document.getElementById('step-results').style.display = '';
+        const riskAngles = { Low:-70, Medium:-20, High:25, Severe:65 };
+        const riskBgClass = { Low:'bg-success/10 text-success', Medium:'bg-warning/10 text-warning', High:'bg-warning/10 text-warning', Severe:'bg-destructive/10 text-destructive' };
+        const risk = r.risk || 'Unknown';
+        document.getElementById('gaugeNeedle').setAttribute('transform', `rotate(${riskAngles[risk]??0},100,100)`);
+        document.getElementById('riskBadge').innerHTML = `<span class="inline-flex h-6 items-center rounded-full border border-transparent px-3 py-0.5 text-sm font-semibold ${riskBgClass[risk]||'bg-muted text-foreground'}">${risk} Risk</span>`;
+        document.getElementById('riskReason').textContent = r.riskReason || 'No additional risk information';
+        document.getElementById('resultAddr').textContent = r.address;
+        document.getElementById('resultType').textContent = r.addressType === 'PRIVATE_WALLET' ? 'Private Wallet' : (r.addressType || '—');
+        document.getElementById('clusterRow').style.display = r.cluster?.name ? '' : 'none';
+        document.getElementById('resultCluster').textContent = r.cluster?.name || '—';
+        document.getElementById('categoryRow').style.display = r.cluster?.category ? '' : 'none';
+        document.getElementById('resultCategory').textContent = r.cluster?.category || '';
+
+        const idSection = document.getElementById('idSection');
+        if (r.identifications?.length > 0) {
+          idSection.style.display = '';
+          idSection.innerHTML = `<p class="text-sm font-medium mb-2">Identifications</p>` + r.identifications.map(id => `<div class="rounded-lg bg-destructive/10 p-2 mb-1"><span class="text-xs font-semibold text-destructive">${id.category||''}</span>${id.name?` <span class="text-xs text-foreground ml-2">${id.name}</span>`:''}</div>`).join('');
+        } else idSection.style.display = 'none';
+
+        const expSection = document.getElementById('exposureSection');
+        const expBars = document.getElementById('exposureBars');
+        if (r.exposures?.length > 0) {
+          expSection.style.display = '';
+          const top = r.exposures.slice(0,6);
+          const max = Math.max(...top.map(e=>e.value));
+          expBars.innerHTML = top.map(e => {
+            const pct = max>0?(e.value/max*100):0;
+            const label = e.category.charAt(0).toUpperCase()+e.category.slice(1);
+            const val = e.value>=1e6?`$${(e.value/1e6).toFixed(1)}M`:e.value>=1e3?`$${(e.value/1e3).toFixed(1)}K`:`$${e.value.toFixed(2)}`;
+            const col = /scam|stolen|sanction|ransomware|darknet/.test(e.category)?'background:var(--destructive)':/gambling|no kyc/.test(e.category)?'background:var(--warning)':'background:var(--primary)';
+            return `<div class="flex items-center gap-2 text-xs"><span class="text-muted-foreground" style="min-width:120px;text-align:right;">${label}</span><div class="flex-1 bg-muted rounded-full" style="height:8px;overflow:hidden;"><div class="exposure-bar" style="width:${pct}%;height:100%;border-radius:4px;${col};"></div></div><span class="font-medium" style="min-width:60px;">${val}</span><span class="inline-flex h-4 items-center rounded-full border border-transparent px-1.5 text-xs font-medium ${e.exposureType==='direct'?'bg-primary/10 text-primary':'bg-muted text-muted-foreground'}">${e.exposureType}</span></div>`;
+          }).join('');
+        } else expSection.style.display = 'none';
+
+        const dec = document.getElementById('decisionBox');
+        const pbtn = document.getElementById('proceedBtn');
+        if (risk === 'Low') {
+          dec.innerHTML = `<div class="rounded-lg bg-success/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p class="text-sm font-semibold text-success">Wallet Approved for Payment</p><p class="text-xs text-muted-foreground">Address passed compliance screening. Crypto payment accepted.</p></div></div>`;
+          pbtn.style.display = ''; pbtn.textContent = 'Continue to Pay';
+        } else if (risk === 'Medium') {
+          dec.innerHTML = `<div class="rounded-lg bg-warning/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-warning flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><p class="text-sm font-semibold text-warning">Enhanced Monitoring</p><p class="text-xs text-muted-foreground">Moderate risk detected. Payment allowed but subject to additional KYT scrutiny.</p></div></div>`;
+          pbtn.style.display = ''; pbtn.textContent = 'Proceed with Caution';
+        } else {
+          dec.innerHTML = `<div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-destructive flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><p class="text-sm font-semibold text-destructive">Payment Denied</p><p class="text-xs text-muted-foreground">This wallet is flagged with ${risk.toLowerCase()} risk. Crypto payment cannot be accepted. Please use another payment method.</p></div></div>`;
+          pbtn.style.display = 'none';
+        }
+      }
+
+      function connectWallet() {
+        const addr = lastScreeningResult?.address || document.getElementById('addressInput').value.trim();
+        if (!addr) return;
+        connectedAddress = addr;
+        closeAllModals();
+        resetConnectModal();
+        // Show connected state in checkout
+        document.getElementById('cryptoConnectSection').style.display = 'none';
+        document.getElementById('cryptoPaySection').style.display = '';
+        document.getElementById('cryptoWalletAddr').textContent = addr.slice(0,6) + '…' + addr.slice(-4);
+      }
+
+      // =====================================================
+      // CRYPTO PAYMENT — KYT MONITORING
+      // =====================================================
+      async function submitCryptoPayment() {
+        document.getElementById('cryptoPaySection').style.display = 'none';
+        document.getElementById('cryptoKYTSection').style.display = '';
+        const steps = ['kyt-s1','kyt-s2','kyt-s3','kyt-s4'];
+
+        // Decide outcome — use screening data if available
+        const risk = lastScreeningResult?.risk || 'Low';
+        const isAlert = risk === 'High' || risk === 'Severe' || Math.random() < 0.2;
+
+        // Step 1: Payment detected
+        await animateStep('kyt-s1', 'running', 700);
+        await animateStep('kyt-s1', 'success', 0);
+        document.getElementById('kyt-s1').querySelector('.step-icon').textContent = '✓';
+
+        // Step 2: Register with KYT
+        await animateStep('kyt-s2', 'running', 1000);
+        await animateStep('kyt-s2', 'success', 0);
+        document.getElementById('kyt-s2').querySelector('.step-icon').textContent = '✓';
+
+        // Step 3: Source of funds analysis
+        await animateStep('kyt-s3', 'running', 1500);
+        await animateStep('kyt-s3', 'success', 0);
+        document.getElementById('kyt-s3').querySelector('.step-icon').textContent = '✓';
+
+        // Step 4: Decision
+        await animateStep('kyt-s4', 'running', 600);
+        if (isAlert) {
+          await animateStep('kyt-s4', 'alert', 0);
+          document.getElementById('kyt-s4').querySelector('.step-icon').textContent = '!';
+        } else {
+          await animateStep('kyt-s4', 'success', 0);
+          document.getElementById('kyt-s4').querySelector('.step-icon').textContent = '✓';
+        }
+
+        // Update progress bar
+        document.getElementById('prog-payment').classList.remove('active');
+        document.getElementById('prog-payment').classList.add('done');
+        document.getElementById('prog-payment').querySelector('.step-num').textContent = '✓';
+        document.getElementById('prog-line3').classList.add('done');
+        document.getElementById('prog-confirm').classList.add('active');
+
+        // Show result
+        const resultEl = document.getElementById('cryptoResultSection');
+        resultEl.style.display = '';
+        const total = getTotal();
+        const amt = (total / cryptoPrices[selectedCoin]);
+        const amtStr = amt < 1 ? amt.toFixed(4) : amt.toFixed(4);
+
+        // Build source of funds section from screening exposure data
+        let sourceOfFundsHTML = '';
+        if (lastScreeningResult?.exposures?.length > 0) {
+          const top = lastScreeningResult.exposures.slice(0, 5);
+          const max = Math.max(...top.map(e => e.value));
+          sourceOfFundsHTML = `
+            <div class="rounded-lg border border-border p-3 space-y-2">
+              <div class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="14" height="14" class="accent-text"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+                <span class="text-xs font-semibold">KYT Source of Funds Analysis</span>
+              </div>
+              <p class="text-xs text-muted-foreground">Chainalysis KYT traced the origin of the payment funds through the blockchain:</p>
+              <div class="space-y-1">
+                ${top.map(e => {
+                  const pct = max > 0 ? (e.value / max * 100) : 0;
+                  const label = e.category.charAt(0).toUpperCase() + e.category.slice(1);
+                  const val = e.value >= 1e6 ? '$'+(e.value/1e6).toFixed(1)+'M' : e.value >= 1e3 ? '$'+(e.value/1e3).toFixed(1)+'K' : '$'+e.value.toFixed(2);
+                  const col = /scam|stolen|sanction|ransomware|darknet/.test(e.category) ? 'background:var(--destructive)' : /gambling|no kyc/.test(e.category) ? 'background:var(--warning)' : 'background:var(--success)';
+                  return `<div class="flex items-center gap-2 text-xs"><span class="text-muted-foreground" style="min-width:100px;text-align:right;">${label}</span><div class="flex-1 bg-muted rounded-full" style="height:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;border-radius:3px;${col};"></div></div><span class="font-medium" style="min-width:50px;">${val}</span></div>`;
+                }).join('')}
+              </div>
+            </div>`;
+        }
+
+        if (isAlert) {
+          resultEl.innerHTML = `
+            <div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-destructive flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <div>
+                <p class="text-sm font-semibold text-destructive">⚠ KYT Alert — Order Held for Review</p>
+                <p class="text-xs text-muted-foreground mt-1">Your payment of <strong>${cryptoSymbols[selectedCoin]} ${amtStr} ${selectedCoin}</strong> ($${total.toFixed(2)}) was received but KYT detected high-risk exposure in the source of funds. The order has been placed on hold and escalated to the compliance team.</p>
+                <div class="mt-2 flex gap-2">
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-destructive/10 text-destructive">Alert ID: KYT-${Math.random().toString(36).slice(2,8).toUpperCase()}</span>
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-warning/10 text-warning">Order Held</span>
+                </div>
+              </div>
+            </div>
+            ${sourceOfFundsHTML}
+            <button onclick="resetCheckout(); showPage('shop');" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Return to Shop</button>`;
+        } else {
+          resultEl.innerHTML = `
+            <div class="rounded-lg bg-success/10 p-3 flex items-start gap-2">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div>
+                <p class="text-sm font-semibold text-success">Payment Cleared — Order Confirmed!</p>
+                <p class="text-xs text-muted-foreground mt-1">Your payment of <strong>${cryptoSymbols[selectedCoin]} ${amtStr} ${selectedCoin}</strong> ($${total.toFixed(2)}) has been received and cleared by KYT. Source of funds analysis found no high-risk exposure. Order #BC-${Math.floor(10000+Math.random()*90000)} is confirmed and will ship within 2 business days.</p>
+                <div class="mt-2 flex gap-2">
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success">No Alerts</span>
+                  <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success">Order Confirmed</span>
+                </div>
+              </div>
+            </div>
+            ${sourceOfFundsHTML}
+            <button onclick="resetCheckout(); showPage('shop');" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Continue Shopping</button>`;
+        }
+      }
+
+      // =====================================================
+      // HELPERS
+      // =====================================================
+      function animateStep(id, state, delay) {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            const el = document.getElementById(id);
+            el.className = `kyt-step ${state} workflow-step`;
+            if (state === 'running') el.classList.add('active');
+            resolve();
+          }, delay);
+        });
+      }
+
+      // =====================================================
+      // INIT
+      // =====================================================
+      renderProductGrid();
+      updateCartBadge();
+    </script>
+  </body>
+</html>
