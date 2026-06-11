@@ -532,6 +532,7 @@
         card.className = `demo-card ${isActive ? 'active-demo' : 'coming-soon'}`;
         card.style.opacity = '0';
         card.dataset.index = i;
+        card.dataset.products = JSON.stringify(d.products);
 
         if (isActive && d.url) {
           card.onclick = () => window.open(buildPageUrl(d.url), '_blank');
@@ -646,4 +647,3 @@
     </script>
   </body>
 </html>
-        card.dataset.products = JSON.stringify(d.products);
