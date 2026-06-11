@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoinVault — Crypto ATM</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      * { font-family: 'Inter', system-ui, sans-serif; }
+      body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+
+      /* ---- ATM Bezel ---- */
+      .atm-bezel {
+        width: 100%; max-width: 480px; min-height: 680px;
+        border-radius: 24px; overflow: hidden;
+        background: #0a0a0a;
+        box-shadow: 0 0 0 3px #333, 0 0 0 6px #1a1a1a, 0 30px 80px rgba(0,0,0,0.5);
+        display: flex; flex-direction: column;
+        position: relative;
+      }
+
+      /* ---- Status bar ---- */
+      .atm-status {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 16px; background: #111;
+        font-size: 11px; font-weight: 600; color: #888;
+        border-bottom: 1px solid #222;
+      }
+      .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; animation: statusPulse 2s ease infinite; }
+      @keyframes statusPulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+      /* ---- ATM Header ---- */
+      .atm-header {
+        padding: 16px 20px; text-align: center;
+        background: linear-gradient(180deg, #141414 0%, #0a0a0a 100%);
+        border-bottom: 1px solid #1a1a1a;
+      }
+      .atm-logo {
+        display: inline-flex; align-items: center; gap: 8px;
+      }
+      .atm-logo-icon {
+        width: 32px; height: 32px; border-radius: 8px;
+        background: linear-gradient(135deg, #eab308, #ca8a04);
+        display: flex; align-items: center; justify-content: center;
+      }
+      .atm-logo-text { font-size: 18px; font-weight: 800; color: white; letter-spacing: -0.5px; }
+
+      /* ---- Screen area ---- */
+      .atm-screen {
+        flex: 1; padding: 20px; display: flex; flex-direction: column;
+        overflow-y: auto;
+      }
+
+      /* ---- Screen views ---- */
+      .screen-view { display: none; flex-direction: column; flex: 1; }
+      .screen-view.active { display: flex; }
+
+      /* ---- ATM buttons ---- */
+      .atm-btn {
+        width: 100%; padding: 16px; border-radius: 14px;
+        border: 1px solid #2a2a2a; background: #141414;
+        color: white; font-size: 15px; font-weight: 600;
+        cursor: pointer; transition: all 0.15s ease;
+        display: flex; align-items: center; gap: 12px;
+        text-align: left;
+      }
+      .atm-btn:hover { background: #1c1c1c; border-color: #eab308; box-shadow: 0 0 20px rgba(234,179,8,0.08); }
+      .atm-btn:active { transform: scale(0.98); }
+      .atm-btn-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      }
+      .atm-btn-primary {
+        background: linear-gradient(135deg, #eab308, #ca8a04);
+        border-color: #eab308; color: #000; font-weight: 700;
+      }
+      .atm-btn-primary:hover { box-shadow: 0 0 30px rgba(234,179,8,0.2); border-color: #fbbf24; }
+
+      /* ---- Denomination buttons ---- */
+      .denom-btn {
+        padding: 14px 8px; border-radius: 12px;
+        border: 2px solid #2a2a2a; background: #111;
+        color: white; font-size: 16px; font-weight: 800;
+        font-family: 'JetBrains Mono', monospace;
+        cursor: pointer; transition: all 0.15s ease;
+        text-align: center; flex: 1;
+      }
+      .denom-btn:hover { border-color: #22c55e; background: rgba(34,197,94,0.08); }
+      .denom-btn:active { transform: scale(0.95); }
+      .denom-btn .denom-sub { font-size: 10px; font-weight: 500; color: #888; margin-top: 2px; font-family: 'Inter', sans-serif; }
+
+      /* ---- Amount display ---- */
+      .amount-display {
+        padding: 16px; border-radius: 14px;
+        background: #111; border: 1px solid #2a2a2a;
+        text-align: center;
+      }
+      .amount-value {
+        font-size: 36px; font-weight: 900; color: white;
+        font-family: 'JetBrains Mono', monospace; letter-spacing: -1px;
+      }
+
+      /* ---- Balance row ---- */
+      .balance-row {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px; border-radius: 12px;
+        background: #111; border: 1px solid #1a1a1a;
+        transition: background 0.15s;
+      }
+      .balance-row:hover { background: #161616; }
+      .coin-icon {
+        width: 36px; height: 36px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-weight: 700; color: white; flex-shrink: 0;
+      }
+
+      /* ---- Bill insert animation ---- */
+      .bill-flash {
+        position: absolute; inset: 0; pointer-events: none;
+        background: rgba(34,197,94,0.06);
+        animation: billFlash 0.4s ease;
+        border-radius: 24px;
+      }
+      @keyframes billFlash { 0% { opacity:1; } 100% { opacity:0; } }
+
+      /* ---- Workflow steps ---- */
+      .workflow-step { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 10px; transition: all 0.3s; }
+      .workflow-step.active { background: rgba(234,179,8,0.08); }
+      .step-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+      .step-connector { width: 2px; height: 12px; margin-left: 21px; border-radius: 1px; }
+      .exposure-bar { height: 6px; border-radius: 3px; min-width: 4px; transition: width 0.6s ease; }
+
+      /* ---- KYT steps ---- */
+      .kyt-step { transition: all 0.4s ease; }
+      .kyt-step.pending .step-icon { background: #222; color: #666; }
+      .kyt-step.running .step-icon { background: rgba(234,179,8,0.15); color: #eab308; }
+      .kyt-step.success .step-icon { background: rgba(34,197,94,0.15); color: #22c55e; }
+      .kyt-step.alert .step-icon { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+      /* ---- Risk gauge ---- */
+      .risk-gauge { width: 180px; height: 100px; position: relative; margin: 0 auto; }
+      .risk-gauge svg { width: 100%; height: 100%; }
+
+      /* ---- QR Code placeholder ---- */
+      .qr-placeholder {
+        width: 140px; height: 140px; margin: 0 auto; border-radius: 12px;
+        background: white; padding: 8px; position: relative;
+      }
+      .qr-grid {
+        width: 100%; height: 100%; display: grid;
+        grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(11, 1fr);
+        gap: 1px;
+      }
+      .qr-cell { border-radius: 1px; }
+
+      /* ---- ATM footer ---- */
+      .atm-footer {
+        padding: 10px 16px;
+        background: #111; border-top: 1px solid #1a1a1a;
+        text-align: center;
+      }
+
+      /* ---- Back button ---- */
+      .back-btn {
+        display: inline-flex; align-items: center; gap: 4px;
+        font-size: 13px; font-weight: 500; color: #888;
+        cursor: pointer; transition: color 0.15s; background: none; border: none;
+        padding: 0; margin-bottom: 12px;
+      }
+      .back-btn:hover { color: #eab308; }
+
+      /* ---- Keypad ---- */
+      .keypad {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+      }
+      .key-btn {
+        padding: 12px; border-radius: 10px; border: 1px solid #2a2a2a;
+        background: #141414; color: white; font-size: 18px; font-weight: 700;
+        font-family: 'JetBrains Mono', monospace;
+        cursor: pointer; transition: all 0.1s; text-align: center;
+      }
+      .key-btn:hover { background: #1c1c1c; border-color: #eab308; }
+      .key-btn:active { transform: scale(0.95); }
+      .key-btn.key-action { font-size: 12px; font-family: 'Inter', sans-serif; font-weight: 600; }
+
+      /* ---- Misc ---- */
+      .mono { font-family: 'JetBrains Mono', monospace; }
+      .text-gold { color: #eab308; }
+      .text-dim { color: #666; }
+      .text-white { color: white; }
+      .text-green { color: #22c55e; }
+      .text-red { color: #ef4444; }
+      .divider { height: 1px; background: #1a1a1a; margin: 12px 0; }
+      .spinner { animation: spin 1s linear infinite; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body class="bg-background text-foreground">
+
+    <div class="atm-bezel" id="atmBezel">
+
+      <!-- Status bar -->
+      <div class="atm-status">
+        <span class="mono" id="atmClock">12:00 PM</span>
+        <div class="flex items-center gap-2">
+          <div class="status-dot"></div>
+          <span>Connected</span>
+        </div>
+        <span>EN</span>
+      </div>
+
+      <!-- Header -->
+      <div class="atm-header">
+        <div class="atm-logo">
+          <div class="atm-logo-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          </div>
+          <span class="atm-logo-text">CoinVault</span>
+        </div>
+      </div>
+
+      <!-- ============================================== -->
+      <!-- SCREEN: WELCOME                                -->
+      <!-- ============================================== -->
+      <div class="atm-screen">
+        <div class="screen-view active" id="screen-welcome">
+          <div style="text-align:center;margin-bottom:20px;margin-top:8px;">
+            <p style="font-size:13px;color:#888;font-weight:500;">Welcome to</p>
+            <h1 style="font-size:26px;font-weight:900;color:white;letter-spacing:-0.5px;margin:4px 0;">CoinVault ATM</h1>
+            <p style="font-size:12px;color:#555;margin-top:4px;">Buy · Sell · Withdraw Cryptocurrency</p>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;flex:1;">
+            <button class="atm-btn" onclick="goTo('balance')">
+              <div class="atm-btn-icon" style="background:rgba(99,102,241,0.12);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20"/><circle cx="16" cy="14" r="2"/></svg>
+              </div>
+              <div>
+                <div>View Balance</div>
+                <div style="font-size:11px;color:#888;font-weight:400;">Check your crypto holdings</div>
+              </div>
+            </button>
+
+            <button class="atm-btn" onclick="goTo('deposit')">
+              <div class="atm-btn-icon" style="background:rgba(34,197,94,0.12);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg>
+              </div>
+              <div>
+                <div>Deposit Cash</div>
+                <div style="font-size:11px;color:#888;font-weight:400;">Insert cash to buy Bitcoin</div>
+              </div>
+            </button>
+
+            <button class="atm-btn" onclick="goTo('withdraw')">
+              <div class="atm-btn-icon" style="background:rgba(234,179,8,0.12);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7 7 7-7"/></svg>
+              </div>
+              <div>
+                <div>Withdraw Crypto</div>
+                <div style="font-size:11px;color:#888;font-weight:400;">Send BTC to an external wallet</div>
+              </div>
+            </button>
+          </div>
+
+          <div style="text-align:center;margin-top:16px;">
+            <div style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:8px;background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.15);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span style="font-size:10px;font-weight:600;color:#eab308;">Secured by Chainalysis Compliance</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SCREEN: BALANCE                                -->
+        <!-- ============================================== -->
+        <div class="screen-view" id="screen-balance">
+          <button class="back-btn" onclick="goTo('welcome')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Main Menu
+          </button>
+
+          <div style="text-align:center;margin-bottom:16px;">
+            <p style="font-size:12px;color:#888;">Total Portfolio Value</p>
+            <p style="font-size:32px;font-weight:900;color:white;letter-spacing:-1px;" class="mono">$118,423.29</p>
+            <span style="font-size:11px;font-weight:600;color:#22c55e;">▲ +2.4% today</span>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:8px;flex:1;">
+            <div class="balance-row">
+              <div class="coin-icon" style="background:linear-gradient(135deg,#f7931a,#e8850e);">₿</div>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:600;color:white;">Bitcoin</div>
+                <div style="font-size:11px;color:#888;">BTC</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:14px;font-weight:700;color:white;" class="mono">1.5000</div>
+                <div style="font-size:11px;color:#888;" class="mono">$102,631.95</div>
+              </div>
+            </div>
+            <div class="balance-row">
+              <div class="coin-icon" style="background:linear-gradient(135deg,#627eea,#3b5998);">Ξ</div>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:600;color:white;">Ethereum</div>
+                <div style="font-size:11px;color:#888;">ETH</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:14px;font-weight:700;color:white;" class="mono">4.2851</div>
+                <div style="font-size:11px;color:#888;" class="mono">$12,203.84</div>
+              </div>
+            </div>
+            <div class="balance-row">
+              <div class="coin-icon" style="background:linear-gradient(135deg,#345d9d,#4a7fc4);">Ł</div>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:600;color:white;">Litecoin</div>
+                <div style="font-size:11px;color:#888;">LTC</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:14px;font-weight:700;color:white;" class="mono">12.5000</div>
+                <div style="font-size:11px;color:#888;" class="mono">$1,087.50</div>
+              </div>
+            </div>
+            <div class="balance-row">
+              <div class="coin-icon" style="background:linear-gradient(135deg,#26a17b,#1a7a5e);">$</div>
+              <div style="flex:1;">
+                <div style="font-size:14px;font-weight:600;color:white;">Tether</div>
+                <div style="font-size:11px;color:#888;">USDT</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:14px;font-weight:700;color:white;" class="mono">2,500.00</div>
+                <div style="font-size:11px;color:#888;" class="mono">$2,500.00</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+          <p style="font-size:11px;color:#555;text-align:center;">Daily withdrawal limit: $10,000 · Last login: Today 11:42 AM</p>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SCREEN: DEPOSIT CASH                           -->
+        <!-- ============================================== -->
+        <div class="screen-view" id="screen-deposit">
+          <button class="back-btn" onclick="goTo('welcome'); resetDeposit();">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Main Menu
+          </button>
+
+          <!-- Step 1: Insert cash -->
+          <div id="dep-step-insert">
+            <div style="text-align:center;margin-bottom:12px;">
+              <p style="font-size:13px;font-weight:600;color:#888;">INSERT CASH</p>
+              <p style="font-size:11px;color:#555;">Tap denominations below to insert bills</p>
+            </div>
+
+            <!-- Amount display -->
+            <div class="amount-display" style="margin-bottom:16px;">
+              <p style="font-size:11px;color:#888;margin-bottom:4px;">Cash Inserted</p>
+              <div class="amount-value text-green" id="cashAmount">$0</div>
+              <p style="font-size:12px;color:#888;margin-top:6px;" class="mono" id="btcEquiv">≈ 0.000000 BTC</p>
+            </div>
+
+            <!-- Denomination buttons -->
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <button class="denom-btn" onclick="insertBill(20)">$20<div class="denom-sub">Insert</div></button>
+              <button class="denom-btn" onclick="insertBill(50)">$50<div class="denom-sub">Insert</div></button>
+              <button class="denom-btn" onclick="insertBill(100)">$100<div class="denom-sub">Insert</div></button>
+              <button class="denom-btn" onclick="insertBill(200)">$200<div class="denom-sub">Insert</div></button>
+            </div>
+
+            <!-- Bill feed display -->
+            <div style="border-radius:10px;background:#111;border:1px solid #1a1a1a;padding:10px 14px;margin-bottom:16px;min-height:60px;" id="billFeed">
+              <p style="font-size:11px;color:#555;text-align:center;">No bills inserted yet</p>
+            </div>
+
+            <!-- Fee info -->
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px;">
+              <span>Service fee (3.5%)</span><span class="mono" id="feeAmount">$0.00</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-bottom:4px;">
+              <span>Network fee</span><span class="mono">$1.50</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;color:white;margin-bottom:16px;">
+              <span>You receive</span><span class="mono text-green" id="receiveAmount">0.000000 BTC</span>
+            </div>
+
+            <button class="atm-btn atm-btn-primary" onclick="processDeposit()" id="depositBtn" style="justify-content:center;" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg>
+              Deposit & Convert to BTC
+            </button>
+          </div>
+
+          <!-- Step 2: Processing -->
+          <div id="dep-step-processing" style="display:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:20px 0;">
+              <div class="spinner" style="width:48px;height:48px;border:3px solid #222;border-top-color:#eab308;border-radius:50%;"></div>
+              <div style="text-align:center;">
+                <p style="font-size:15px;font-weight:700;color:white;" id="processingText">Processing deposit…</p>
+                <p style="font-size:12px;color:#888;margin-top:4px;" id="processingSubtext">Converting USD to BTC</p>
+              </div>
+              <div style="width:100%;border-radius:8px;background:#111;padding:10px 14px;" id="processingSteps">
+                <div class="kyt-step pending workflow-step" id="dep-s1"><div class="step-icon">1</div><div><div style="font-size:13px;font-weight:600;color:white;">Validating cash</div></div></div>
+                <div class="step-connector" style="background:#222;"></div>
+                <div class="kyt-step pending workflow-step" id="dep-s2"><div class="step-icon">2</div><div><div style="font-size:13px;font-weight:600;color:white;">Converting to BTC</div></div></div>
+                <div class="step-connector" style="background:#222;"></div>
+                <div class="kyt-step pending workflow-step" id="dep-s3"><div class="step-icon">3</div><div><div style="font-size:13px;font-weight:600;color:white;">Generating wallet QR</div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: QR confirmation -->
+          <div id="dep-step-confirm" style="display:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0;">
+              <div style="width:48px;height:48px;border-radius:50%;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div style="text-align:center;">
+                <p style="font-size:17px;font-weight:800;color:white;">Deposit Complete!</p>
+                <p style="font-size:13px;color:#888;margin-top:4px;" id="confirmAmountText"></p>
+              </div>
+
+              <!-- QR Code -->
+              <div style="text-align:center;">
+                <div class="qr-placeholder" id="qrCode"></div>
+                <p style="font-size:11px;color:#888;margin-top:8px;">Scan to access your wallet</p>
+              </div>
+
+              <!-- Receipt -->
+              <div style="width:100%;border-radius:10px;background:#111;border:1px solid #1a1a1a;padding:12px 14px;">
+                <p style="font-size:11px;font-weight:600;color:#888;margin-bottom:8px;">RECEIPT</p>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>Cash deposited</span><span class="mono text-white" id="receiptCash"></span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>Fees</span><span class="mono text-white" id="receiptFees"></span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>BTC received</span><span class="mono text-green" id="receiptBTC"></span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;"><span>Tx ID</span><span class="mono text-gold" id="receiptTxId"></span></div>
+              </div>
+
+              <button class="atm-btn atm-btn-primary" onclick="goTo('welcome'); resetDeposit();" style="justify-content:center;">
+                Done — Return to Menu
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- SCREEN: WITHDRAW                               -->
+        <!-- ============================================== -->
+        <div class="screen-view" id="screen-withdraw">
+          <button class="back-btn" onclick="goTo('welcome'); resetWithdraw();">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Main Menu
+          </button>
+
+          <!-- Step 1: Enter amount + address -->
+          <div id="wd-step-input">
+            <div style="text-align:center;margin-bottom:12px;">
+              <p style="font-size:13px;font-weight:600;color:#888;">WITHDRAW BTC</p>
+              <p style="font-size:11px;color:#555;">Send Bitcoin to an external wallet</p>
+            </div>
+
+            <!-- Amount -->
+            <div class="amount-display" style="margin-bottom:12px;">
+              <p style="font-size:11px;color:#888;margin-bottom:4px;">Send Amount</p>
+              <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;">
+                <span class="amount-value" style="font-size:28px;" id="wdAmountDisplay">0.0000</span>
+                <span style="font-size:14px;font-weight:700;color:#888;">BTC</span>
+              </div>
+              <p style="font-size:12px;color:#888;margin-top:4px;" class="mono" id="wdUsdEquiv">≈ $0.00</p>
+            </div>
+
+            <!-- Quick amounts -->
+            <div style="display:flex;gap:6px;margin-bottom:12px;">
+              <button class="denom-btn" onclick="setWdAmount(0.01)" style="font-size:12px;">0.01<div class="denom-sub">BTC</div></button>
+              <button class="denom-btn" onclick="setWdAmount(0.05)" style="font-size:12px;">0.05<div class="denom-sub">BTC</div></button>
+              <button class="denom-btn" onclick="setWdAmount(0.1)" style="font-size:12px;">0.10<div class="denom-sub">BTC</div></button>
+              <button class="denom-btn" onclick="setWdAmount(0.5)" style="font-size:12px;">0.50<div class="denom-sub">BTC</div></button>
+            </div>
+
+            <!-- Destination address -->
+            <div style="margin-bottom:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <label style="font-size:12px;font-weight:600;color:#888;">Destination Address</label>
+                <button style="font-size:11px;font-weight:600;color:#eab308;background:none;border:none;cursor:pointer;display:flex;align-items:center;gap:4px;" onclick="document.getElementById('wdAddress').focus()">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                  Scan QR
+                </button>
+              </div>
+              <input id="wdAddress" type="text" placeholder="Enter BTC address (bc1... or 1...)"
+                style="width:100%;padding:12px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#111;color:white;font-size:13px;font-family:'JetBrains Mono',monospace;outline:none;"
+                oninput="validateWithdrawForm()" />
+            </div>
+
+            <!-- Compliance notice -->
+            <div style="border-radius:10px;padding:10px 12px;background:rgba(234,179,8,0.04);border:1px solid rgba(234,179,8,0.12);margin-bottom:16px;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                <span style="font-size:11px;font-weight:600;color:#eab308;">Compliance Check Required</span>
+              </div>
+              <p style="font-size:10px;color:#888;line-height:1.5;">The destination address will be screened via <strong style="color:#ccc;">Chainalysis Address Screening</strong> before funds are released. Addresses associated with sanctioned entities, darknet markets, or ransomware will be blocked.</p>
+            </div>
+
+            <button class="atm-btn atm-btn-primary" onclick="screenWithdraw()" id="wdSubmitBtn" style="justify-content:center;" disabled>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Verify & Send
+            </button>
+          </div>
+
+          <!-- Step 2: Screening -->
+          <div id="wd-step-screening" style="display:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:16px 0;">
+              <div class="spinner" style="width:48px;height:48px;border:3px solid #222;border-top-color:#eab308;border-radius:50%;"></div>
+              <div style="text-align:center;">
+                <p style="font-size:15px;font-weight:700;color:white;">Screening Address…</p>
+                <p style="font-size:11px;color:#888;margin-top:4px;word-break:break-all;" class="mono" id="screeningAddr"></p>
+              </div>
+              <div style="width:100%;">
+                <div class="workflow-step active"><div class="step-icon" style="background:rgba(34,197,94,0.15);color:#22c55e;">✓</div><div><div style="font-size:13px;font-weight:600;color:white;">Address submitted</div></div></div>
+                <div class="step-connector" style="background:rgba(34,197,94,0.15);"></div>
+                <div class="workflow-step active"><div class="step-icon" style="background:rgba(234,179,8,0.15);color:#eab308;"><div class="spinner" style="width:12px;height:12px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;"></div></div><div><div style="font-size:13px;font-weight:600;color:white;">Querying Chainalysis</div><div style="font-size:11px;color:#888;">Checking sanctions & risk exposure…</div></div></div>
+                <div class="step-connector" style="background:#222;"></div>
+                <div class="workflow-step"><div class="step-icon" style="background:#222;color:#666;">3</div><div><div style="font-size:13px;font-weight:600;color:#666;">Awaiting result…</div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Results -->
+          <div id="wd-step-results" style="display:none;">
+
+            <!-- Risk gauge -->
+            <div style="display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px;">
+              <div class="risk-gauge"><svg viewBox="0 0 200 110"><path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="#222" stroke-width="14" stroke-linecap="round"/><path d="M 20 100 A 80 80 0 0 1 60 32" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"/><path d="M 60 32 A 80 80 0 0 1 100 20" fill="none" stroke="#eab308" stroke-width="14"/><path d="M 100 20 A 80 80 0 0 1 140 32" fill="none" stroke="#f97316" stroke-width="14"/><path d="M 140 32 A 80 80 0 0 1 180 100" fill="none" stroke="#ef4444" stroke-width="14" stroke-linecap="round"/><line id="gaugeNeedle" x1="100" y1="100" x2="100" y2="30" stroke="white" stroke-width="2.5" stroke-linecap="round" transform="rotate(0,100,100)"/><circle cx="100" cy="100" r="5" fill="white"/></svg></div>
+              <div id="riskBadge" style="text-align:center;"></div>
+              <p style="font-size:11px;color:#888;text-align:center;" id="riskReason"></p>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Details -->
+            <div style="margin-bottom:8px;" id="resultDetails"></div>
+
+            <!-- Identifications -->
+            <div id="idSection" style="display:none;margin-bottom:8px;"></div>
+
+            <!-- Exposure -->
+            <div id="exposureSection" style="display:none;margin-bottom:8px;">
+              <p style="font-size:12px;font-weight:600;color:white;margin-bottom:6px;">Exposure Breakdown</p>
+              <div id="exposureBars" style="display:flex;flex-direction:column;gap:4px;"></div>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Decision -->
+            <div id="decisionBox" style="margin-bottom:12px;"></div>
+
+            <!-- Actions -->
+            <div style="display:flex;gap:8px;">
+              <button class="atm-btn" onclick="resetWithdraw(); goTo('withdraw');" style="flex:1;justify-content:center;font-size:13px;">Try Another</button>
+              <button class="atm-btn atm-btn-primary" id="sendBtn" onclick="confirmSend()" style="flex:1;justify-content:center;font-size:13px;">
+                Confirm Send
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Sending / KYT -->
+          <div id="wd-step-sending" style="display:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:16px;padding:16px 0;">
+              <div class="spinner" style="width:48px;height:48px;border:3px solid #222;border-top-color:#22c55e;border-radius:50;"></div>
+              <div style="text-align:center;">
+                <p style="font-size:15px;font-weight:700;color:white;">Broadcasting Transaction…</p>
+                <p style="font-size:11px;color:#888;margin-top:4px;">Sending BTC & monitoring via KYT</p>
+              </div>
+              <div style="width:100%;">
+                <div class="kyt-step pending workflow-step" id="send-s1"><div class="step-icon">1</div><div><div style="font-size:13px;font-weight:600;color:white;">Broadcast to network</div></div></div>
+                <div class="step-connector" style="background:#222;"></div>
+                <div class="kyt-step pending workflow-step" id="send-s2"><div class="step-icon">2</div><div><div style="font-size:13px;font-weight:600;color:white;">Register with Chainalysis KYT</div><div style="font-size:10px;color:#888;">POST /v2/users/{userId}/transfers</div></div></div>
+                <div class="step-connector" style="background:#222;"></div>
+                <div class="kyt-step pending workflow-step" id="send-s3"><div class="step-icon">3</div><div><div style="font-size:13px;font-weight:600;color:white;">Monitor destination exposure</div></div></div>
+                <div class="step-connector" style="background:#222;"></div>
+                <div class="kyt-step pending workflow-step" id="send-s4"><div class="step-icon">4</div><div><div style="font-size:13px;font-weight:600;color:white;">Compliance cleared</div></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5: Confirmation -->
+          <div id="wd-step-done" style="display:none;">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0;">
+              <div style="width:48px;height:48px;border-radius:50%;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <div style="text-align:center;">
+                <p style="font-size:17px;font-weight:800;color:white;">Withdrawal Sent!</p>
+                <p style="font-size:12px;color:#888;margin-top:4px;" id="wdDoneText"></p>
+              </div>
+              <div style="width:100%;border-radius:10px;background:#111;border:1px solid #1a1a1a;padding:12px 14px;">
+                <p style="font-size:11px;font-weight:600;color:#888;margin-bottom:8px;">RECEIPT</p>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>Amount</span><span class="mono text-white" id="wdReceiptAmt"></span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>Network fee</span><span class="mono text-white">0.00005 BTC</span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>To</span><span class="mono text-gold" id="wdReceiptAddr" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;"><span>Tx ID</span><span class="mono text-gold" id="wdReceiptTx"></span></div>
+              </div>
+              <div style="width:100%;border-radius:10px;padding:10px 12px;background:rgba(34,197,94,0.04);border:1px solid rgba(34,197,94,0.12);">
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span style="font-size:11px;font-weight:600;color:#22c55e;">KYT Monitoring Active</span>
+                </div>
+                <p style="font-size:10px;color:#888;margin-top:4px;line-height:1.5;">This transaction is being continuously monitored by Chainalysis KYT. The compliance team will be alerted if any post-send risk is detected.</p>
+              </div>
+              <button class="atm-btn atm-btn-primary" onclick="goTo('welcome'); resetWithdraw();" style="justify-content:center;width:100%;">
+                Done — Return to Menu
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="atm-footer">
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#eab308" width="11" height="11"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span style="font-size:10px;color:#555;font-weight:500;">Powered by Chainalysis</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script>
+      // =====================================================
+      // STATE
+      // =====================================================
+      const BTC_PRICE = 68421.30;
+      let cashInserted = 0;
+      let billCount = 0;
+      let wdAmount = 0;
+
+      // Clock
+      function updateClock() {
+        const now = new Date();
+        document.getElementById('atmClock').textContent = now.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true });
+      }
+      updateClock();
+      setInterval(updateClock, 30000);
+
+      // =====================================================
+      // NAVIGATION
+      // =====================================================
+      function goTo(screen) {
+        document.querySelectorAll('.screen-view').forEach(v => v.classList.remove('active'));
+        document.getElementById('screen-' + screen).classList.add('active');
+      }
+
+      // =====================================================
+      // DEPOSIT FLOW
+      // =====================================================
+      function insertBill(amount) {
+        cashInserted += amount;
+        billCount++;
+        // Flash effect
+        const flash = document.createElement('div');
+        flash.className = 'bill-flash';
+        document.getElementById('atmBezel').appendChild(flash);
+        setTimeout(() => flash.remove(), 400);
+        updateDepositDisplay();
+      }
+
+      function updateDepositDisplay() {
+        document.getElementById('cashAmount').textContent = '$' + cashInserted.toLocaleString();
+        const fee = cashInserted * 0.035;
+        const netUsd = cashInserted - fee - 1.50;
+        const btc = Math.max(0, netUsd / BTC_PRICE);
+        document.getElementById('btcEquiv').textContent = '≈ ' + btc.toFixed(6) + ' BTC';
+        document.getElementById('feeAmount').textContent = '$' + fee.toFixed(2);
+        document.getElementById('receiveAmount').textContent = btc.toFixed(6) + ' BTC';
+        document.getElementById('depositBtn').disabled = cashInserted === 0;
+        // Bill feed
+        const feed = document.getElementById('billFeed');
+        if (billCount > 0) {
+          feed.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;"><span style="font-size:12px;color:#22c55e;font-weight:600;">${billCount} bill${billCount>1?'s':''} inserted</span><span style="font-size:12px;color:white;font-weight:700;" class="mono">$${cashInserted.toLocaleString()}</span></div>
+            <div style="margin-top:6px;height:4px;border-radius:2px;background:#1a1a1a;overflow:hidden;"><div style="height:100%;border-radius:2px;background:linear-gradient(90deg,#22c55e,#16a34a);width:${Math.min(100, cashInserted/1000*100)}%;transition:width 0.3s;"></div></div>
+            <div style="display:flex;justify-content:space-between;margin-top:4px;"><span style="font-size:10px;color:#555;">$0</span><span style="font-size:10px;color:#555;">$1,000 daily max</span></div>`;
+        }
+      }
+
+      async function processDeposit() {
+        const fee = cashInserted * 0.035;
+        const netUsd = cashInserted - fee - 1.50;
+        const btc = Math.max(0, netUsd / BTC_PRICE);
+
+        document.getElementById('dep-step-insert').style.display = 'none';
+        document.getElementById('dep-step-processing').style.display = '';
+
+        // Step 1: Validate
+        await animateStep('dep-s1', 'running', 600);
+        await animateStep('dep-s1', 'success', 0);
+        document.getElementById('dep-s1').querySelector('.step-icon').textContent = '✓';
+
+        // Step 2: Convert
+        document.getElementById('processingText').textContent = 'Converting to BTC…';
+        document.getElementById('processingSubtext').textContent = '$' + cashInserted.toLocaleString() + ' → ' + btc.toFixed(6) + ' BTC';
+        await animateStep('dep-s2', 'running', 1000);
+        await animateStep('dep-s2', 'success', 0);
+        document.getElementById('dep-s2').querySelector('.step-icon').textContent = '✓';
+
+        // Step 3: QR
+        document.getElementById('processingText').textContent = 'Printing QR Code…';
+        document.getElementById('processingSubtext').textContent = 'Generating wallet access code';
+        await animateStep('dep-s3', 'running', 1200);
+        await animateStep('dep-s3', 'success', 0);
+        document.getElementById('dep-s3').querySelector('.step-icon').textContent = '✓';
+
+        await delay(400);
+
+        // Show confirmation
+        document.getElementById('dep-step-processing').style.display = 'none';
+        document.getElementById('dep-step-confirm').style.display = '';
+        document.getElementById('confirmAmountText').textContent = `$${cashInserted.toLocaleString()} converted to ${btc.toFixed(6)} BTC`;
+        document.getElementById('receiptCash').textContent = '$' + cashInserted.toLocaleString();
+        document.getElementById('receiptFees').textContent = '$' + (fee + 1.50).toFixed(2);
+        document.getElementById('receiptBTC').textContent = btc.toFixed(6) + ' BTC';
+        document.getElementById('receiptTxId').textContent = genTxId();
+        generateQR();
+      }
+
+      function resetDeposit() {
+        cashInserted = 0; billCount = 0;
+        updateDepositDisplay();
+        document.getElementById('dep-step-insert').style.display = '';
+        document.getElementById('dep-step-processing').style.display = 'none';
+        document.getElementById('dep-step-confirm').style.display = 'none';
+        document.getElementById('billFeed').innerHTML = '<p style="font-size:11px;color:#555;text-align:center;">No bills inserted yet</p>';
+        ['dep-s1','dep-s2','dep-s3'].forEach((id,i) => {
+          const s = document.getElementById(id);
+          s.className = 'kyt-step pending workflow-step';
+          s.querySelector('.step-icon').textContent = i+1;
+        });
+      }
+
+      function generateQR() {
+        const container = document.getElementById('qrCode');
+        let html = '<div class="qr-grid">';
+        // Simple deterministic pattern that looks like a QR code
+        const pattern = [
+          1,1,1,1,1,1,1,0,1,0,1,
+          1,0,0,0,0,0,1,0,0,1,0,
+          1,0,1,1,1,0,1,0,1,0,1,
+          1,0,1,1,1,0,1,0,0,1,1,
+          1,0,1,1,1,0,1,0,1,1,0,
+          1,0,0,0,0,0,1,0,0,0,1,
+          1,1,1,1,1,1,1,0,1,0,1,
+          0,0,0,0,0,0,0,0,1,1,0,
+          1,0,1,1,0,1,1,1,0,0,1,
+          0,1,0,0,1,0,0,1,1,0,1,
+          1,0,1,1,1,0,1,0,1,1,1,
+        ];
+        for (let i = 0; i < 121; i++) {
+          html += `<div class="qr-cell" style="background:${pattern[i]?'#000':'#fff'};"></div>`;
+        }
+        html += '</div>';
+        container.innerHTML = html;
+      }
+
+      // =====================================================
+      // WITHDRAW FLOW
+      // =====================================================
+      function setWdAmount(amt) {
+        wdAmount = amt;
+        document.getElementById('wdAmountDisplay').textContent = amt.toFixed(4);
+        document.getElementById('wdUsdEquiv').textContent = '≈ $' + (amt * BTC_PRICE).toLocaleString(undefined, {maximumFractionDigits:2});
+        validateWithdrawForm();
+      }
+
+      function validateWithdrawForm() {
+        const addr = document.getElementById('wdAddress').value.trim();
+        document.getElementById('wdSubmitBtn').disabled = !(wdAmount > 0 && addr.length > 10);
+      }
+
+      const SLUG = 'demochain-address-screen';
+
+      async function screenWithdraw() {
+        const address = document.getElementById('wdAddress').value.trim();
+        if (!address || wdAmount <= 0) return;
+
+        document.getElementById('wd-step-input').style.display = 'none';
+        document.getElementById('wd-step-screening').style.display = '';
+        document.getElementById('screeningAddr').textContent = address.length > 36 ? address.slice(0,18)+'…'+address.slice(-12) : address;
+
+        try {
+          const res = await fetch(`/api/workflow/${SLUG}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:{address}}) });
+          if (!res.ok) throw new Error(`API returned ${res.status}`);
+          const data = await res.json();
+          const result = data.output ?? data;
+          if (result.error) throw new Error(result.error);
+          showWithdrawResults(result);
+        } catch(e) {
+          if (e instanceof TypeError) {
+            // Sandbox
+            document.getElementById('wd-step-screening').style.display = 'none';
+            document.getElementById('wd-step-results').style.display = '';
+            document.getElementById('wd-step-results').innerHTML = `
+              <div style="border-radius:10px;padding:14px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.15);text-align:center;">
+                <p style="font-size:13px;font-weight:600;color:#3b82f6;">Can't run workflows from preview</p>
+                <p style="font-size:11px;color:#888;margin-top:4px;">Open this page in a new tab to use interactive features.</p>
+              </div>
+              <button class="atm-btn" onclick="resetWithdraw(); goTo('withdraw');" style="justify-content:center;margin-top:12px;font-size:13px;">Back</button>`;
+          } else {
+            document.getElementById('wd-step-screening').style.display = 'none';
+            document.getElementById('wd-step-results').style.display = '';
+            document.getElementById('wd-step-results').innerHTML = `
+              <div style="border-radius:10px;padding:14px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.15);">
+                <p style="font-size:13px;font-weight:600;color:#ef4444;">Screening Failed</p>
+                <p style="font-size:11px;color:#888;margin-top:4px;">${e.message}</p>
+              </div>
+              <button class="atm-btn" onclick="resetWithdraw(); goTo('withdraw');" style="justify-content:center;margin-top:12px;font-size:13px;">Try Again</button>`;
+          }
+        }
+      }
+
+      function showWithdrawResults(r) {
+        document.getElementById('wd-step-screening').style.display = 'none';
+        document.getElementById('wd-step-results').style.display = '';
+
+        const riskAngles = { Low:-70, Medium:-20, High:25, Severe:65 };
+        const risk = r.risk || 'Unknown';
+        document.getElementById('gaugeNeedle').setAttribute('transform', `rotate(${riskAngles[risk]??0},100,100)`);
+
+        const riskColors = { Low:'#22c55e', Medium:'#eab308', High:'#f97316', Severe:'#ef4444' };
+        const col = riskColors[risk] || '#888';
+        document.getElementById('riskBadge').innerHTML = `<span style="display:inline-flex;align-items:center;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700;background:${col}20;color:${col};">${risk} Risk</span>`;
+        document.getElementById('riskReason').textContent = r.riskReason || '';
+
+        // Details
+        document.getElementById('resultDetails').innerHTML = `
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>Address</span><span class="mono" style="color:white;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.address}</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>Type</span><span style="color:white;">${r.addressType === 'PRIVATE_WALLET' ? 'Private Wallet' : (r.addressType || '—')}</span></div>
+          ${r.cluster?.name ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>Cluster</span><span style="color:white;">${r.cluster.name}</span></div>` : ''}
+          ${r.cluster?.category ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#888;"><span>Category</span><span style="color:white;">${r.cluster.category}</span></div>` : ''}`;
+
+        // Identifications
+        const idSection = document.getElementById('idSection');
+        if (r.identifications?.length > 0) {
+          idSection.style.display = '';
+          idSection.innerHTML = `<p style="font-size:12px;font-weight:600;color:white;margin-bottom:4px;">Identifications</p>` +
+            r.identifications.map(id => `<div style="border-radius:8px;padding:6px 10px;background:rgba(239,68,68,0.08);margin-bottom:4px;"><span style="font-size:11px;font-weight:600;color:#ef4444;">${id.category||''}</span>${id.name?` <span style="font-size:11px;color:#ccc;margin-left:4px;">${id.name}</span>`:''}</div>`).join('');
+        } else idSection.style.display = 'none';
+
+        // Exposure
+        const expSection = document.getElementById('exposureSection');
+        const expBars = document.getElementById('exposureBars');
+        if (r.exposures?.length > 0) {
+          expSection.style.display = '';
+          const top = r.exposures.slice(0,5);
+          const max = Math.max(...top.map(e=>e.value));
+          expBars.innerHTML = top.map(e => {
+            const pct = max>0?(e.value/max*100):0;
+            const label = e.category.charAt(0).toUpperCase()+e.category.slice(1);
+            const val = e.value>=1e6?`$${(e.value/1e6).toFixed(1)}M`:e.value>=1e3?`$${(e.value/1e3).toFixed(1)}K`:`$${e.value.toFixed(2)}`;
+            const barCol = /scam|stolen|sanction|ransomware|darknet/.test(e.category)?'#ef4444':/gambling|no kyc/.test(e.category)?'#eab308':'#22c55e';
+            return `<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:10px;color:#888;min-width:90px;text-align:right;">${label}</span><div style="flex:1;height:6px;border-radius:3px;background:#1a1a1a;overflow:hidden;"><div class="exposure-bar" style="width:${pct}%;height:100%;border-radius:3px;background:${barCol};"></div></div><span style="font-size:10px;font-weight:600;color:#ccc;min-width:50px;" class="mono">${val}</span></div>`;
+          }).join('');
+        } else expSection.style.display = 'none';
+
+        // Decision
+        const dec = document.getElementById('decisionBox');
+        const sendBtn = document.getElementById('sendBtn');
+        if (risk === 'Low') {
+          dec.innerHTML = `<div style="border-radius:10px;padding:10px 12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.12);display:flex;align-items:start;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <div><p style="font-size:12px;font-weight:600;color:#22c55e;">Destination Approved</p><p style="font-size:10px;color:#888;margin-top:2px;">Address cleared for withdrawal. Funds will be sent and monitored by KYT.</p></div></div>`;
+          sendBtn.style.display = '';
+        } else if (risk === 'Medium') {
+          dec.innerHTML = `<div style="border-radius:10px;padding:10px 12px;background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.12);display:flex;align-items:start;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div><p style="font-size:12px;font-weight:600;color:#eab308;">Caution — Enhanced Monitoring</p><p style="font-size:10px;color:#888;margin-top:2px;">Moderate risk detected. Withdrawal allowed with enhanced KYT scrutiny.</p></div></div>`;
+          sendBtn.style.display = '';
+          sendBtn.textContent = 'Send with Caution';
+        } else {
+          dec.innerHTML = `<div style="border-radius:10px;padding:10px 12px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.12);display:flex;align-items:start;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <div><p style="font-size:12px;font-weight:600;color:#ef4444;">Withdrawal Blocked</p><p style="font-size:10px;color:#888;margin-top:2px;">Destination flagged with ${risk.toLowerCase()} risk. Transaction cannot proceed per compliance policy. Daily limit may also be restricted.</p></div></div>`;
+          sendBtn.style.display = 'none';
+        }
+      }
+
+      async function confirmSend() {
+        document.getElementById('wd-step-results').style.display = 'none';
+        document.getElementById('wd-step-sending').style.display = '';
+
+        await animateStep('send-s1', 'running', 700);
+        await animateStep('send-s1', 'success', 0);
+        document.getElementById('send-s1').querySelector('.step-icon').textContent = '✓';
+
+        await animateStep('send-s2', 'running', 900);
+        await animateStep('send-s2', 'success', 0);
+        document.getElementById('send-s2').querySelector('.step-icon').textContent = '✓';
+
+        await animateStep('send-s3', 'running', 1100);
+        await animateStep('send-s3', 'success', 0);
+        document.getElementById('send-s3').querySelector('.step-icon').textContent = '✓';
+
+        await animateStep('send-s4', 'running', 500);
+        await animateStep('send-s4', 'success', 0);
+        document.getElementById('send-s4').querySelector('.step-icon').textContent = '✓';
+
+        await delay(400);
+
+        const addr = document.getElementById('wdAddress').value.trim();
+        document.getElementById('wd-step-sending').style.display = 'none';
+        document.getElementById('wd-step-done').style.display = '';
+        document.getElementById('wdDoneText').textContent = `${wdAmount.toFixed(4)} BTC ($${(wdAmount*BTC_PRICE).toLocaleString(undefined,{maximumFractionDigits:2})}) sent successfully`;
+        document.getElementById('wdReceiptAmt').textContent = wdAmount.toFixed(4) + ' BTC';
+        document.getElementById('wdReceiptAddr').textContent = addr;
+        document.getElementById('wdReceiptTx').textContent = genTxId();
+      }
+
+      function resetWithdraw() {
+        wdAmount = 0;
+        document.getElementById('wdAmountDisplay').textContent = '0.0000';
+        document.getElementById('wdUsdEquiv').textContent = '≈ $0.00';
+        document.getElementById('wdAddress').value = '';
+        document.getElementById('wdSubmitBtn').disabled = true;
+        document.getElementById('sendBtn').textContent = 'Confirm Send';
+        document.getElementById('sendBtn').style.display = '';
+        ['wd-step-input','wd-step-screening','wd-step-results','wd-step-sending','wd-step-done'].forEach((id,i) => {
+          document.getElementById(id).style.display = i === 0 ? '' : 'none';
+        });
+        // Reset exposure/id sections
+        document.getElementById('idSection').style.display = 'none';
+        document.getElementById('exposureSection').style.display = 'none';
+        // Reset KYT send steps
+        ['send-s1','send-s2','send-s3','send-s4'].forEach((id,i) => {
+          const s = document.getElementById(id);
+          s.className = 'kyt-step pending workflow-step';
+          s.querySelector('.step-icon').textContent = i+1;
+        });
+      }
+
+      // =====================================================
+      // HELPERS
+      // =====================================================
+      function animateStep(id, state, delayMs) {
+        return new Promise(resolve => {
+          setTimeout(() => {
+            const el = document.getElementById(id);
+            el.className = `kyt-step ${state} workflow-step`;
+            if (state === 'running') el.classList.add('active');
+            resolve();
+          }, delayMs);
+        });
+      }
+
+      function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+      function genTxId() {
+        return Array.from({length:8}, () => Math.floor(Math.random()*16).toString(16)).join('').toUpperCase();
+      }
+    </script>
+  </body>
+</html>
