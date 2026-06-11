@@ -192,6 +192,38 @@
       }
 
       /* ---- Responsive grid ---- */
+      /* ---- Filter bar ---- */
+      .filter-bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 16px;
+      }
+      .filter-chip {
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        color: var(--muted-foreground);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+      .filter-chip:hover {
+        border-color: var(--primary);
+        color: var(--foreground);
+      }
+      .filter-chip.active {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-color: var(--primary);
+      }
+      .demo-card.filter-hidden {
+        display: none;
+      }
+
       .demo-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -269,6 +301,11 @@
         <span class="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Explore the Coves</span>
       </div>
 
+
+      <!-- Filter bar -->
+      <div class="filter-bar" style="opacity:0;" id="filterBar">
+        <button class="filter-chip active" data-filter="all" onclick="filterDemos('all', this)">All</button>
+      </div>
       <!-- Demo Grid -->
       <div class="demo-grid" id="demoGrid">
         <!--
@@ -561,11 +598,39 @@
       // Section label
       tl.to('.section-label', { opacity: 1, y: 0, duration: 0.5 }, '-=0.6');
 
+      // Filter bar
+      tl.fromTo('#filterBar', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4 }, '-=0.4');
+
       // Cards stagger
       tl.fromTo('.demo-card', { opacity: 0, y: 25 }, { opacity: d => demos[d].status === 'active' ? 1 : 0.65, y: 0, duration: 0.5, stagger: 0.08 }, '-=0.4');
 
       // How section
       tl.to('.how-section', { opacity: 1, y: 0, duration: 0.5 }, '-=0.2');
+
+      // Build filter chips from all unique products
+      const allProducts = [...new Set(demos.flatMap(d => d.products))].sort();
+      const filterBar = document.getElementById('filterBar');
+      allProducts.forEach(product => {
+        const chip = document.createElement('button');
+        chip.className = 'filter-chip';
+        chip.dataset.filter = product;
+        chip.textContent = product;
+        chip.onclick = function() { filterDemos(product, this); };
+        filterBar.appendChild(chip);
+      });
+
+      function filterDemos(product, chip) {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        document.querySelectorAll('.demo-card').forEach(card => {
+          if (product === 'all') {
+            card.classList.remove('filter-hidden');
+          } else {
+            const products = JSON.parse(card.dataset.products);
+            card.classList.toggle('filter-hidden', !products.includes(product));
+          }
+        });
+      }
 
       // Floating particles
       document.querySelectorAll('.hero-particle').forEach(p => {
@@ -581,3 +646,4 @@
     </script>
   </body>
 </html>
+        card.dataset.products = JSON.stringify(d.products);
