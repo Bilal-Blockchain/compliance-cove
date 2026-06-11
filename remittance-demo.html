@@ -83,7 +83,7 @@
             Send Money Now
           </button>
           <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:28px;">
-            <span style="font-size:28px;">🇺🇸</span><span style="font-size:28px;">🇬🇧</span><span style="font-size:28px;">🇳🇬</span><span style="font-size:28px;">🇮🇳</span><span style="font-size:28px;">🇵🇭</span><span style="font-size:28px;">🇲🇽</span><span style="font-size:28px;">🇧🇷</span>
+            <span style="font-size:28px;">🇺🇸</span><span style="font-size:28px;">🇳🇬</span><span style="font-size:28px;">🇮🇳</span><span style="font-size:28px;">🇵🇰</span><span style="font-size:28px;">🇻🇳</span><span style="font-size:28px;">🇪🇹</span><span style="font-size:28px;">🇵🇭</span><span style="font-size:28px;">🇲🇽</span><span style="font-size:28px;">🇧🇷</span><span style="font-size:28px;">🇬🇧</span>
           </div>
           <p class="text-muted-foreground" style="font-size:12px;margin-top:8px;">Available in 120+ countries</p>
           <div style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;padding:6px 14px;border-radius:8px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.15);">
@@ -160,7 +160,7 @@
             <!-- Compliance -->
             <div class="rounded-lg p-3 space-y-1" style="background:rgba(244,63,94,.04);border:1px solid rgba(244,63,94,.12);">
               <div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#f43f5e;">Chainalysis Compliance</span></div>
-              <p style="font-size:10px;color:var(--muted-foreground);line-height:1.5;">The recipient's address is screened via <strong>Address Screening</strong>. The transfer corridor is assessed for <strong>VASP risk</strong>. The transaction is monitored by <strong>KYT</strong> for sanctions and high-risk exposure.</p>
+              <p style="font-size:10px;color:var(--muted-foreground);line-height:1.5;">The recipient's address is screened via <strong>Address Screening</strong> for sanctions and risk exposure. The transaction is registered with <strong>KYT</strong> for source-of-funds monitoring. <strong>Travel Rule</strong> data is exchanged between originator and beneficiary.</p>
             </div>
 
             <button onclick="processTransfer()" class="w-full inline-flex items-center justify-center rounded-lg h-11 gap-2 text-sm font-semibold text-primary-foreground accent-bg" id="sendBtn">
@@ -177,13 +177,11 @@
             </div>
             <div class="kyt-step pending workflow-step" id="t-s1"><div class="step-icon">1</div><div><div class="text-sm font-medium">Screen recipient address</div><div class="text-xs text-muted-foreground">Chainalysis Address Screening API</div></div></div>
             <div class="step-connector bg-muted"></div>
-            <div class="kyt-step pending workflow-step" id="t-s2"><div class="step-icon">2</div><div><div class="text-sm font-medium">Assess transfer corridor risk</div><div class="text-xs text-muted-foreground">VASP Risking — US → destination country</div></div></div>
+            <div class="kyt-step pending workflow-step" id="t-s2"><div class="step-icon">2</div><div><div class="text-sm font-medium">Register transfer with KYT</div><div class="text-xs text-muted-foreground">POST /v2/users/{userId}/transfers — sent</div></div></div>
             <div class="step-connector bg-muted"></div>
-            <div class="kyt-step pending workflow-step" id="t-s3"><div class="step-icon">3</div><div><div class="text-sm font-medium">Register transfer with KYT</div><div class="text-xs text-muted-foreground">POST /v2/users/{userId}/transfers — sent</div></div></div>
+            <div class="kyt-step pending workflow-step" id="t-s3"><div class="step-icon">3</div><div><div class="text-sm font-medium">Travel Rule data exchange</div><div class="text-xs text-muted-foreground">Originator ↔ beneficiary information</div></div></div>
             <div class="step-connector bg-muted"></div>
-            <div class="kyt-step pending workflow-step" id="t-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Travel Rule data exchange</div><div class="text-xs text-muted-foreground">Originator ↔ beneficiary information</div></div></div>
-            <div class="step-connector bg-muted"></div>
-            <div class="kyt-step pending workflow-step" id="t-s5"><div class="step-icon">5</div><div><div class="text-sm font-medium">Execute transfer</div></div></div>
+            <div class="kyt-step pending workflow-step" id="t-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Execute transfer</div></div></div>
           </div>
 
           <!-- Result -->
@@ -201,6 +199,9 @@
       {code:'MX',flag:'🇲🇽',name:'Mexico',currency:'MXN',cname:'Mexican Peso',rate:17.2,risk:'Medium',riskColor:'#eab308',riskBg:'rgba(234,179,8,.1)'},
       {code:'GB',flag:'🇬🇧',name:'UK',currency:'GBP',cname:'British Pound',rate:0.79,risk:'Low',riskColor:'#22c55e',riskBg:'rgba(34,197,94,.1)'},
       {code:'BR',flag:'🇧🇷',name:'Brazil',currency:'BRL',cname:'Brazilian Real',rate:4.97,risk:'Medium-Low',riskColor:'#22c55e',riskBg:'rgba(34,197,94,.1)'},
+      {code:'PK',flag:'🇵🇰',name:'Pakistan',currency:'PKR',cname:'Pakistani Rupee',rate:278.5,risk:'Medium',riskColor:'#eab308',riskBg:'rgba(234,179,8,.1)'},
+      {code:'VN',flag:'🇻🇳',name:'Vietnam',currency:'VND',cname:'Vietnamese Dong',rate:25450,risk:'Low',riskColor:'#22c55e',riskBg:'rgba(34,197,94,.1)'},
+      {code:'ET',flag:'🇪🇹',name:'Ethiopia',currency:'ETB',cname:'Ethiopian Birr',rate:127.3,risk:'Medium',riskColor:'#eab308',riskBg:'rgba(234,179,8,.1)'},
     ];
     let selectedCountry=countries[0];
     const SLUG='demochain-address-screen';
@@ -246,24 +247,20 @@
       }catch(e){}
       await animateStep('t-s1','success',0);document.getElementById('t-s1').querySelector('.step-icon').textContent='✓';
 
-      // Step 2: Corridor risk
-      await animateStep('t-s2','running',800);
+      // Step 2: KYT
+      await animateStep('t-s2','running',900);
       await animateStep('t-s2','success',0);document.getElementById('t-s2').querySelector('.step-icon').textContent='✓';
 
-      // Step 3: KYT
-      await animateStep('t-s3','running',900);
+      // Step 3: Travel rule
+      await animateStep('t-s3','running',700);
       await animateStep('t-s3','success',0);document.getElementById('t-s3').querySelector('.step-icon').textContent='✓';
 
-      // Step 4: Travel rule
-      await animateStep('t-s4','running',700);
-      await animateStep('t-s4','success',0);document.getElementById('t-s4').querySelector('.step-icon').textContent='✓';
-
-      // Step 5: Execute
+      // Step 4: Execute
       const risk=screeningResult?.risk||'Low';
       const blocked=risk==='High'||risk==='Severe';
-      await animateStep('t-s5','running',500);
-      if(blocked){await animateStep('t-s5','alert',0);document.getElementById('t-s5').querySelector('.step-icon').textContent='✗';}
-      else{await animateStep('t-s5','success',0);document.getElementById('t-s5').querySelector('.step-icon').textContent='✓';}
+      await animateStep('t-s4','running',500);
+      if(blocked){await animateStep('t-s4','alert',0);document.getElementById('t-s4').querySelector('.step-icon').textContent='✗';}
+      else{await animateStep('t-s4','success',0);document.getElementById('t-s4').querySelector('.step-icon').textContent='✓';}
 
       await new Promise(r=>setTimeout(r,400));
       document.getElementById('send-processing').style.display='none';
@@ -281,10 +278,10 @@
         resultEl.innerHTML=`
           <div style="text-align:center;padding:8px 0;"><div style="width:48px;height:48px;border-radius:50%;background:rgba(34,197,94,.1);display:flex;align-items:center;justify-content:center;margin:0 auto;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><h3 class="text-lg font-bold" style="margin-top:8px;">Transfer Sent!</h3><p class="text-sm text-muted-foreground">$${amt.toLocaleString()} → ${recv.toLocaleString()} ${selectedCountry.currency}</p></div>
           <div class="route-visual"><div class="route-node"><div class="route-node-icon">🇺🇸</div><span class="text-xs font-semibold">You</span><span class="text-xs text-muted-foreground mono">$${amt.toLocaleString()}</span></div><div class="route-line active"></div><div class="route-node"><div class="route-node-icon" style="border-color:#6366f1;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#6366f1" width="20" height="20"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg></div><span class="text-xs font-semibold">Crypto Rails</span><span class="text-xs text-muted-foreground">USDC</span></div><div class="route-line active"></div><div class="route-node"><div class="route-node-icon">${selectedCountry.flag}</div><span class="text-xs font-semibold">Recipient</span><span class="text-xs text-muted-foreground mono">${recv.toLocaleString()} ${selectedCountry.currency}</span></div></div>
-          <div class="rounded-lg bg-muted p-3 text-sm space-y-1"><div class="flex justify-between"><span class="text-muted-foreground">Sent</span><span class="font-semibold">$${amt.toLocaleString()} USD</span></div><div class="flex justify-between"><span class="text-muted-foreground">Received</span><span class="font-semibold text-success">${recv.toLocaleString()} ${selectedCountry.currency}</span></div><div class="flex justify-between"><span class="text-muted-foreground">Corridor risk</span><span class="corridor-badge" style="background:${selectedCountry.riskBg};color:${selectedCountry.riskColor};">${selectedCountry.risk}</span></div><div class="flex justify-between"><span class="text-muted-foreground">Recipient</span><span class="font-medium mono">${addrShort}</span></div><div class="flex justify-between"><span class="text-muted-foreground">Tx ID</span><span class="font-medium accent mono">${Array.from({length:8},()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase()}</span></div></div>
+          <div class="rounded-lg bg-muted p-3 text-sm space-y-1"><div class="flex justify-between"><span class="text-muted-foreground">Sent</span><span class="font-semibold">$${amt.toLocaleString()} USD</span></div><div class="flex justify-between"><span class="text-muted-foreground">Received</span><span class="font-semibold text-success">${recv.toLocaleString()} ${selectedCountry.currency}</span></div><div class="flex justify-between"><span class="text-muted-foreground">Recipient</span><span class="font-medium mono">${addrShort}</span></div><div class="flex justify-between"><span class="text-muted-foreground">Tx ID</span><span class="font-medium accent mono">${Array.from({length:8},()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase()}</span></div></div>
           <div class="rounded-lg p-3 space-y-2" style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.12);">
             <div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#22c55e;">All Compliance Checks Passed</span></div>
-            <div class="text-xs text-muted-foreground space-y-1"><p>✓ Address Screening — recipient wallet cleared</p><p>✓ VASP Corridor Risk — US → ${selectedCountry.name} assessed as ${selectedCountry.risk}</p><p>✓ KYT — transfer registered and monitored</p><p>✓ Travel Rule — originator/beneficiary data exchanged</p></div>
+            <div class="text-xs text-muted-foreground space-y-1"><p>✓ Address Screening — recipient wallet cleared</p><p>✓ KYT — transfer registered and source of funds monitored</p><p>✓ Travel Rule — originator/beneficiary data exchanged</p></div>
           </div>
           <button onclick="resetSend()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground accent-bg">Send Another Transfer</button>`;
       }
@@ -296,7 +293,7 @@
       document.getElementById('send-result').style.display='none';
       document.getElementById('send-result').innerHTML='';
       document.getElementById('recipientAddr').value='';
-      ['t-s1','t-s2','t-s3','t-s4','t-s5'].forEach((id,i)=>{const s=document.getElementById(id);s.className='kyt-step pending workflow-step';s.querySelector('.step-icon').textContent=i+1;});
+      ['t-s1','t-s2','t-s3','t-s4'].forEach((id,i)=>{const s=document.getElementById(id);s.className='kyt-step pending workflow-step';s.querySelector('.step-icon').textContent=i+1;});
     }
 
     function animateStep(id,state,delay){return new Promise(r=>{setTimeout(()=>{const el=document.getElementById(id);el.className=`kyt-step ${state} workflow-step`;if(state==='running')el.classList.add('active');r();},delay);});}
