@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SwiftBridge — Send Money Anywhere</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      *{font-family:'Inter',system-ui,sans-serif;} .mono{font-family:'JetBrains Mono',monospace;}
+      .screen{display:none;} .screen.active{display:block;}
+      .accent{color:#f43f5e;} .accent-bg{background:linear-gradient(135deg,#dc2626,#f43f5e);}
+      .glow-btn{position:relative;overflow:hidden;}
+      .glow-btn::before{content:'';position:absolute;inset:-2px;background:linear-gradient(135deg,#dc2626,#f43f5e,#fb7185);border-radius:inherit;z-index:-1;opacity:.5;filter:blur(8px);transition:opacity .3s;}
+      .glow-btn:hover::before{opacity:1;}
+
+      /* Send card */
+      .send-card{border-radius:20px;border:1px solid var(--border);background:var(--card);padding:24px;max-width:480px;margin:0 auto;box-shadow:0 8px 30px rgba(0,0,0,.08);}
+
+      /* Country selector */
+      .country-btn{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--border);background:var(--background);cursor:pointer;transition:all .15s;color:inherit;}
+      .country-btn:hover{border-color:#f43f5e;background:var(--muted);}
+      .country-btn.selected{border-color:#f43f5e;background:rgba(244,63,94,.04);}
+      .country-flag{font-size:24px;line-height:1;}
+
+      /* Amount input */
+      .amount-input-wrap{border-radius:14px;border:1px solid var(--border);padding:14px;background:var(--muted);transition:border-color .15s;}
+      .amount-input-wrap:focus-within{border-color:#f43f5e;}
+      .amount-input{border:none;background:none;outline:none;font-size:28px;font-weight:800;width:100%;color:var(--foreground);font-family:'JetBrains Mono',monospace;}
+
+      /* Steps */
+      .workflow-step{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;transition:all .3s;}
+      .workflow-step.active{background:rgba(244,63,94,.06);}
+      .step-icon{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+      .step-connector{width:2px;height:12px;margin-left:21px;border-radius:1px;}
+      .kyt-step{transition:all .4s ease;}
+      .kyt-step.pending .step-icon{background:var(--muted);color:var(--muted-foreground);}
+      .kyt-step.running .step-icon{background:rgba(244,63,94,.1);color:#f43f5e;}
+      .kyt-step.success .step-icon{background:rgba(34,197,94,.1);color:var(--success);}
+      .kyt-step.alert .step-icon{background:rgba(239,68,68,.1);color:var(--destructive);}
+
+      /* Risk gauge */
+      .risk-gauge{width:180px;height:100px;position:relative;margin:0 auto;}
+      .risk-gauge svg{width:100%;height:100%;}
+      .exposure-bar{height:6px;border-radius:3px;min-width:4px;transition:width .6s ease;}
+
+      /* Pulse */
+      .pulse-dot{width:8px;height:8px;border-radius:50%;animation:pulse 2s ease infinite;}
+      @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+
+      /* Transfer route visual */
+      .route-visual{display:flex;align-items:center;justify-content:center;gap:0;padding:20px 0;}
+      .route-node{display:flex;flex-direction:column;align-items:center;gap:4px;}
+      .route-node-icon{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid var(--border);}
+      .route-line{flex:1;height:2px;background:var(--border);margin:0 -4px;position:relative;max-width:80px;min-width:40px;}
+      .route-line::after{content:'';position:absolute;top:-3px;right:-2px;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid var(--border);}
+      .route-line.active{background:linear-gradient(90deg,#dc2626,#f43f5e);} .route-line.active::after{border-left-color:#f43f5e;}
+
+      /* Corridor risk */
+      .corridor-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;}
+    </style>
+  </head>
+  <body class="bg-background text-foreground" style="min-height:100vh;">
+
+    <!-- ================================================================ -->
+    <!-- SCREEN: LANDING                                                   -->
+    <!-- ================================================================ -->
+    <div class="screen active" id="screen-landing">
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;overflow:hidden;">
+        <div style="position:absolute;width:400px;height:400px;border-radius:50%;background:rgba(220,38,38,.06);top:-120px;left:-100px;pointer-events:none;"></div>
+        <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(244,63,94,.05);bottom:-80px;right:-60px;pointer-events:none;"></div>
+        <div style="position:relative;z-index:1;max-width:480px;">
+          <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:20px;">
+            <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#f43f5e);display:flex;align-items:center;justify-content:center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <span style="font-size:26px;font-weight:900;letter-spacing:-.5px;">SwiftBridge</span>
+          </div>
+          <h1 style="font-size:40px;font-weight:900;letter-spacing:-1.5px;line-height:1.1;margin:0;">Send Money<br/><span class="accent">Anywhere, Instantly</span></h1>
+          <p class="text-muted-foreground" style="font-size:15px;margin-top:14px;line-height:1.6;">Cross-border payments powered by crypto rails. Fast, affordable, and fully compliant with international regulations.</p>
+          <button onclick="showScreen('send')" class="glow-btn inline-flex items-center justify-center rounded-lg gap-2 px-6 text-sm font-semibold text-primary-foreground transition-all" style="height:44px;background:linear-gradient(135deg,#dc2626,#f43f5e);position:relative;z-index:1;margin-top:24px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Send Money Now
+          </button>
+          <div style="display:flex;align-items:center;justify-content:center;gap:16px;margin-top:28px;">
+            <span style="font-size:28px;">🇺🇸</span><span style="font-size:28px;">🇬🇧</span><span style="font-size:28px;">🇳🇬</span><span style="font-size:28px;">🇮🇳</span><span style="font-size:28px;">🇵🇭</span><span style="font-size:28px;">🇲🇽</span><span style="font-size:28px;">🇧🇷</span>
+          </div>
+          <p class="text-muted-foreground" style="font-size:12px;margin-top:8px;">Available in 120+ countries</p>
+          <div style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;padding:6px 14px;border-radius:8px;background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.15);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#f43f5e" width="12" height="12"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            <span style="font-size:10px;font-weight:600;color:#f43f5e;">Fully compliant — powered by Chainalysis</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- SCREEN: SEND                                                      -->
+    <!-- ================================================================ -->
+    <div class="screen" id="screen-send">
+      <nav class="border-b border-border" style="background:var(--background);">
+        <div class="max-w-5xl mx-auto px-4 flex items-center gap-2" style="height:56px;">
+          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#dc2626,#f43f5e);display:flex;align-items:center;justify-content:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
+          </div>
+          <span class="text-base font-bold tracking-tight">SwiftBridge</span>
+        </div>
+      </nav>
+      <div class="max-w-5xl mx-auto px-4 py-6">
+        <div class="send-card">
+
+          <!-- Step 1: Amount + destination -->
+          <div id="send-form" class="space-y-5">
+            <div style="text-align:center;"><h2 class="text-lg font-bold">Send Money</h2><p class="text-sm text-muted-foreground">Choose destination and amount</p></div>
+
+            <!-- From -->
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">You send</label>
+              <div class="amount-input-wrap">
+                <div class="flex items-center gap-3">
+                  <span style="font-size:24px;">🇺🇸</span>
+                  <div class="flex-1"><input type="text" class="amount-input" value="500" id="sendAmount" oninput="updateConversion()"/><p class="text-xs text-muted-foreground" style="margin-top:2px;">USD — United States Dollar</p></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arrow -->
+            <div style="text-align:center;"><div style="width:36px;height:36px;border-radius:50%;background:var(--muted);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg></div></div>
+
+            <!-- To -->
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">They receive</label>
+              <div class="amount-input-wrap">
+                <div class="flex items-center gap-3">
+                  <span style="font-size:24px;" id="destFlag">🇳🇬</span>
+                  <div class="flex-1"><input type="text" class="amount-input" id="receiveAmount" value="785,000" readonly style="color:var(--success);"/><p class="text-xs text-muted-foreground" style="margin-top:2px;" id="destCurrency">NGN — Nigerian Naira</p></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Country selector -->
+            <div class="space-y-2">
+              <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Destination country</label>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;" id="countryGrid"></div>
+            </div>
+
+            <!-- Fee breakdown -->
+            <div class="rounded-lg bg-muted p-3 space-y-1 text-sm">
+              <div class="flex justify-between"><span class="text-muted-foreground">Exchange rate</span><span class="font-medium mono" id="feeRate">1 USD = 1,570 NGN</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">Transfer fee</span><span class="font-medium">$2.99</span></div>
+              <div class="flex justify-between"><span class="text-muted-foreground">Delivery</span><span class="font-medium text-success">~2 minutes via crypto rails</span></div>
+            </div>
+
+            <!-- Recipient wallet -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium">Recipient's wallet address</label>
+              <input id="recipientAddr" type="text" placeholder="Enter the recipient's crypto wallet address" class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus:ring-2 mono"/>
+            </div>
+
+            <!-- Compliance -->
+            <div class="rounded-lg p-3 space-y-1" style="background:rgba(244,63,94,.04);border:1px solid rgba(244,63,94,.12);">
+              <div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#f43f5e;">Chainalysis Compliance</span></div>
+              <p style="font-size:10px;color:var(--muted-foreground);line-height:1.5;">The recipient's address is screened via <strong>Address Screening</strong>. The transfer corridor is assessed for <strong>VASP risk</strong>. The transaction is monitored by <strong>KYT</strong> for sanctions and high-risk exposure.</p>
+            </div>
+
+            <button onclick="processTransfer()" class="w-full inline-flex items-center justify-center rounded-lg h-11 gap-2 text-sm font-semibold text-primary-foreground accent-bg" id="sendBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Send $500 to Nigeria
+            </button>
+          </div>
+
+          <!-- Compliance processing -->
+          <div id="send-processing" style="display:none;" class="space-y-4">
+            <div style="text-align:center;padding:8px 0;">
+              <div class="animate-spin" style="animation-duration:1.5s;margin:0 auto;width:fit-content;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#f43f5e" width="36" height="36"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg></div>
+              <p class="text-sm font-semibold" style="margin-top:8px;">Processing compliance checks…</p>
+            </div>
+            <div class="kyt-step pending workflow-step" id="t-s1"><div class="step-icon">1</div><div><div class="text-sm font-medium">Screen recipient address</div><div class="text-xs text-muted-foreground">Chainalysis Address Screening API</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending workflow-step" id="t-s2"><div class="step-icon">2</div><div><div class="text-sm font-medium">Assess transfer corridor risk</div><div class="text-xs text-muted-foreground">VASP Risking — US → destination country</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending workflow-step" id="t-s3"><div class="step-icon">3</div><div><div class="text-sm font-medium">Register transfer with KYT</div><div class="text-xs text-muted-foreground">POST /v2/users/{userId}/transfers — sent</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending workflow-step" id="t-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Travel Rule data exchange</div><div class="text-xs text-muted-foreground">Originator ↔ beneficiary information</div></div></div>
+            <div class="step-connector bg-muted"></div>
+            <div class="kyt-step pending workflow-step" id="t-s5"><div class="step-icon">5</div><div><div class="text-sm font-medium">Execute transfer</div></div></div>
+          </div>
+
+          <!-- Result -->
+          <div id="send-result" style="display:none;" class="space-y-4"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+    // =======================================================
+    const countries=[
+      {code:'NG',flag:'🇳🇬',name:'Nigeria',currency:'NGN',cname:'Nigerian Naira',rate:1570,risk:'Medium',riskColor:'#eab308',riskBg:'rgba(234,179,8,.1)'},
+      {code:'IN',flag:'🇮🇳',name:'India',currency:'INR',cname:'Indian Rupee',rate:83.5,risk:'Low',riskColor:'#22c55e',riskBg:'rgba(34,197,94,.1)'},
+      {code:'PH',flag:'🇵🇭',name:'Philippines',currency:'PHP',cname:'Philippine Peso',rate:56.8,risk:'Low',riskColor:'#22c55e',riskBg:'rgba(34,197,94,.1)'},
+      {code:'MX',flag:'🇲🇽',name:'Mexico',currency:'MXN',cname:'Mexican Peso',rate:17.2,risk:'Medium',riskColor:'#eab308',riskBg:'rgba(234,179,8,.1)'},
+      {code:'GB',flag:'🇬🇧',name:'UK',currency:'GBP',cname:'British Pound',rate:0.79,risk:'Low',riskColor:'#22c55e',riskBg:'rgba(34,197,94,.1)'},
+      {code:'BR',flag:'🇧🇷',name:'Brazil',currency:'BRL',cname:'Brazilian Real',rate:4.97,risk:'Medium-Low',riskColor:'#22c55e',riskBg:'rgba(34,197,94,.1)'},
+    ];
+    let selectedCountry=countries[0];
+    const SLUG='demochain-address-screen';
+
+    function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+id).classList.add('active');window.scrollTo(0,0);if(id==='send')renderSendForm();}
+
+    function renderSendForm(){
+      document.getElementById('countryGrid').innerHTML=countries.map(c=>`<button class="country-btn ${c.code===selectedCountry.code?'selected':''}" onclick="selectCountry('${c.code}')"><span class="country-flag">${c.flag}</span><div style="text-align:left;flex:1;"><div class="text-sm font-semibold">${c.name}</div><div class="text-xs text-muted-foreground">${c.currency}</div></div></button>`).join('');
+      updateConversion();
+    }
+
+    function selectCountry(code){
+      selectedCountry=countries.find(c=>c.code===code);
+      renderSendForm();
+    }
+
+    function updateConversion(){
+      const amt=parseFloat(document.getElementById('sendAmount').value.replace(/,/g,''))||0;
+      const recv=amt*selectedCountry.rate;
+      document.getElementById('receiveAmount').value=recv.toLocaleString(undefined,{maximumFractionDigits:0});
+      document.getElementById('destFlag').textContent=selectedCountry.flag;
+      document.getElementById('destCurrency').textContent=selectedCountry.currency+' — '+selectedCountry.cname;
+      document.getElementById('feeRate').textContent='1 USD = '+selectedCountry.rate.toLocaleString()+' '+selectedCountry.currency;
+      document.getElementById('sendBtn').textContent='Send $'+amt.toLocaleString()+' to '+selectedCountry.name;
+    }
+
+    async function processTransfer(){
+      const addr=document.getElementById('recipientAddr').value.trim();
+      if(!addr){document.getElementById('recipientAddr').style.borderColor='var(--destructive)';return;}
+      document.getElementById('recipientAddr').style.borderColor='';
+      const amt=parseFloat(document.getElementById('sendAmount').value.replace(/,/g,''))||0;
+      const recv=amt*selectedCountry.rate;
+
+      document.getElementById('send-form').style.display='none';
+      document.getElementById('send-processing').style.display='';
+
+      // Step 1: Screen address
+      let screeningResult=null;
+      await animateStep('t-s1','running',600);
+      try{
+        const res=await fetch(`/api/workflow/${SLUG}/invoke/sync`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address:addr}})});
+        if(res.ok){const data=await res.json();screeningResult=data.output??data;}
+      }catch(e){}
+      await animateStep('t-s1','success',0);document.getElementById('t-s1').querySelector('.step-icon').textContent='✓';
+
+      // Step 2: Corridor risk
+      await animateStep('t-s2','running',800);
+      await animateStep('t-s2','success',0);document.getElementById('t-s2').querySelector('.step-icon').textContent='✓';
+
+      // Step 3: KYT
+      await animateStep('t-s3','running',900);
+      await animateStep('t-s3','success',0);document.getElementById('t-s3').querySelector('.step-icon').textContent='✓';
+
+      // Step 4: Travel rule
+      await animateStep('t-s4','running',700);
+      await animateStep('t-s4','success',0);document.getElementById('t-s4').querySelector('.step-icon').textContent='✓';
+
+      // Step 5: Execute
+      const risk=screeningResult?.risk||'Low';
+      const blocked=risk==='High'||risk==='Severe';
+      await animateStep('t-s5','running',500);
+      if(blocked){await animateStep('t-s5','alert',0);document.getElementById('t-s5').querySelector('.step-icon').textContent='✗';}
+      else{await animateStep('t-s5','success',0);document.getElementById('t-s5').querySelector('.step-icon').textContent='✓';}
+
+      await new Promise(r=>setTimeout(r,400));
+      document.getElementById('send-processing').style.display='none';
+
+      const addrShort=addr.length>20?addr.slice(0,8)+'…'+addr.slice(-6):addr;
+      const resultEl=document.getElementById('send-result');
+      resultEl.style.display='';
+
+      if(blocked){
+        resultEl.innerHTML=`
+          <div style="text-align:center;padding:8px 0;"><div style="width:48px;height:48px;border-radius:50%;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;margin:0 auto;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><h3 class="text-lg font-bold" style="margin-top:8px;">Transfer Blocked</h3><p class="text-sm text-muted-foreground">The recipient address <strong class="mono">${addrShort}</strong> is flagged with ${risk.toLowerCase()} risk. This transfer cannot proceed per international sanctions compliance.</p></div>
+          <div class="rounded-lg bg-destructive/10 p-3"><p class="text-xs text-muted-foreground">${screeningResult?.riskReason||'High-risk exposure detected by Chainalysis Address Screening.'}</p></div>
+          <button onclick="resetSend()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Transfer</button>`;
+      } else {
+        resultEl.innerHTML=`
+          <div style="text-align:center;padding:8px 0;"><div style="width:48px;height:48px;border-radius:50%;background:rgba(34,197,94,.1);display:flex;align-items:center;justify-content:center;margin:0 auto;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><h3 class="text-lg font-bold" style="margin-top:8px;">Transfer Sent!</h3><p class="text-sm text-muted-foreground">$${amt.toLocaleString()} → ${recv.toLocaleString()} ${selectedCountry.currency}</p></div>
+          <div class="route-visual"><div class="route-node"><div class="route-node-icon">🇺🇸</div><span class="text-xs font-semibold">You</span><span class="text-xs text-muted-foreground mono">$${amt.toLocaleString()}</span></div><div class="route-line active"></div><div class="route-node"><div class="route-node-icon" style="border-color:#6366f1;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#6366f1" width="20" height="20"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg></div><span class="text-xs font-semibold">Crypto Rails</span><span class="text-xs text-muted-foreground">USDC</span></div><div class="route-line active"></div><div class="route-node"><div class="route-node-icon">${selectedCountry.flag}</div><span class="text-xs font-semibold">Recipient</span><span class="text-xs text-muted-foreground mono">${recv.toLocaleString()} ${selectedCountry.currency}</span></div></div>
+          <div class="rounded-lg bg-muted p-3 text-sm space-y-1"><div class="flex justify-between"><span class="text-muted-foreground">Sent</span><span class="font-semibold">$${amt.toLocaleString()} USD</span></div><div class="flex justify-between"><span class="text-muted-foreground">Received</span><span class="font-semibold text-success">${recv.toLocaleString()} ${selectedCountry.currency}</span></div><div class="flex justify-between"><span class="text-muted-foreground">Corridor risk</span><span class="corridor-badge" style="background:${selectedCountry.riskBg};color:${selectedCountry.riskColor};">${selectedCountry.risk}</span></div><div class="flex justify-between"><span class="text-muted-foreground">Recipient</span><span class="font-medium mono">${addrShort}</span></div><div class="flex justify-between"><span class="text-muted-foreground">Tx ID</span><span class="font-medium accent mono">${Array.from({length:8},()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase()}</span></div></div>
+          <div class="rounded-lg p-3 space-y-2" style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.12);">
+            <div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#22c55e;">All Compliance Checks Passed</span></div>
+            <div class="text-xs text-muted-foreground space-y-1"><p>✓ Address Screening — recipient wallet cleared</p><p>✓ VASP Corridor Risk — US → ${selectedCountry.name} assessed as ${selectedCountry.risk}</p><p>✓ KYT — transfer registered and monitored</p><p>✓ Travel Rule — originator/beneficiary data exchanged</p></div>
+          </div>
+          <button onclick="resetSend()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground accent-bg">Send Another Transfer</button>`;
+      }
+    }
+
+    function resetSend(){
+      document.getElementById('send-form').style.display='';
+      document.getElementById('send-processing').style.display='none';
+      document.getElementById('send-result').style.display='none';
+      document.getElementById('send-result').innerHTML='';
+      document.getElementById('recipientAddr').value='';
+      ['t-s1','t-s2','t-s3','t-s4','t-s5'].forEach((id,i)=>{const s=document.getElementById(id);s.className='kyt-step pending workflow-step';s.querySelector('.step-icon').textContent=i+1;});
+    }
+
+    function animateStep(id,state,delay){return new Promise(r=>{setTimeout(()=>{const el=document.getElementById(id);el.className=`kyt-step ${state} workflow-step`;if(state==='running')el.classList.add('active');r();},delay);});}
+    </script>
+  </body>
+</html>
