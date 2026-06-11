@@ -3,10 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light only" />
     <title>SwiftBridge — Send Money Anywhere</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
     <style>
+      /* Force light mode regardless of system preference */
+      :root { color-scheme: light; }
       *{font-family:'Inter',system-ui,sans-serif;} .mono{font-family:'JetBrains Mono',monospace;}
       .screen{display:none;} .screen.active{display:block;}
       .accent{color:#f43f5e;} .accent-bg{background:linear-gradient(135deg,#dc2626,#f43f5e);}
