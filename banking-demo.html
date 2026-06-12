@@ -10,6 +10,11 @@
     <style>
       :root { color-scheme: light; }
       * { font-family: 'Inter', system-ui, sans-serif; }
+      body { background: #ffffff !important; color: #1a1a2e !important; }
+
+      /* ---- Force light mode on all elements ---- */
+      .light-bg { background: #ffffff !important; color: #1a1a2e !important; }
+      .alt-bg { background: #f8f9fb !important; color: #1a1a2e !important; }
 
       /* ---- Hero ---- */
       .bank-hero {
@@ -28,12 +33,18 @@
       .hero-particle { position: absolute; border-radius: 50%; background: rgba(255,255,255,.04); pointer-events: none; }
 
       /* ---- Section ---- */
-      .journey-section { padding: 80px 0; position: relative; }
-      .journey-section:nth-child(even) { background: var(--muted); }
+      .journey-section { padding: 100px 0; position: relative; }
+      .journey-section.light-bg + .journey-section.alt-bg,
+      .journey-section.alt-bg + .journey-section.light-bg { border-top: none; }
+
+      /* ---- Stage header ---- */
+      .stage-header { margin-bottom: 40px; }
+      .stage-title { font-size: 36px; font-weight: 900; letter-spacing: -1px; color: #0f1729; margin: 0; }
+      .stage-desc { font-size: 16px; line-height: 1.8; color: #6b7280; margin-top: 12px; max-width: 580px; }
 
       /* ---- Stage card ---- */
       .stage-card {
-        border-radius: 20px; background: var(--card); border: 1px solid var(--border);
+        border-radius: 20px; background: #ffffff; border: 1px solid #e5e7eb;
         box-shadow: 0 4px 24px rgba(0,0,0,.04);
         overflow: hidden; transition: all .3s ease;
       }
@@ -41,8 +52,8 @@
 
       /* ---- Stage number ---- */
       .stage-num {
-        width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center;
-        justify-content: center; font-size: 20px; font-weight: 900; color: white; flex-shrink: 0;
+        width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center;
+        justify-content: center; font-size: 22px; font-weight: 900; color: white; flex-shrink: 0;
       }
 
       /* ---- Product chip ---- */
@@ -54,20 +65,24 @@
 
       /* ---- Capability cards ---- */
       .cap-card {
-        border-radius: 14px; background: var(--background); border: 1px solid var(--border);
-        padding: 16px; transition: all .2s;
+        border-radius: 16px; background: #ffffff; border: 1px solid #e5e7eb;
+        padding: 24px; transition: all .25s ease;
+        box-shadow: 0 1px 3px rgba(0,0,0,.04);
       }
-      .cap-card:hover { border-color: #1a6b6a; background: rgba(26,107,106,.02); }
+      .cap-card:hover { border-color: #1a6b6a; box-shadow: 0 8px 30px rgba(26,107,106,.08); transform: translateY(-2px); }
       .cap-icon {
-        width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center;
-        justify-content: center; margin-bottom: 10px; flex-shrink: 0;
+        width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center;
+        justify-content: center; margin-bottom: 14px; flex-shrink: 0;
       }
+      .cap-card h3, .cap-card .text-sm.font-bold { color: #0f1729 !important; }
+      .cap-card p, .cap-card .text-xs { color: #6b7280 !important; }
 
       /* ---- Journey timeline (horizontal) ---- */
+      .timeline-wrap { background: #ffffff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 50; }
       .timeline { display: flex; align-items: center; gap: 0; max-width: 800px; margin: 0 auto; }
       .tl-node {
         display: flex; flex-direction: column; align-items: center; gap: 6px;
-        cursor: pointer; transition: all .2s; flex-shrink: 0; padding: 8px;
+        cursor: pointer; transition: all .2s; flex-shrink: 0; padding: 12px 8px;
       }
       .tl-node:hover .tl-dot { transform: scale(1.2); }
       .tl-dot {
@@ -76,21 +91,12 @@
       }
       .tl-node.active .tl-dot { background: #1a6b6a; box-shadow: 0 0 0 4px rgba(26,107,106,.15); }
       .tl-line { flex: 1; height: 2px; background: linear-gradient(90deg, #1a6b6a, #2d9f8f); min-width: 20px; }
-      .tl-label { font-size: 10px; font-weight: 600; color: var(--muted-foreground); text-align: center; max-width: 80px; line-height: 1.3; }
+      .tl-label { font-size: 10px; font-weight: 600; color: #9ca3af; text-align: center; max-width: 80px; line-height: 1.3; }
       .tl-node.active .tl-label { color: #0f3057; }
-
-      /* ---- Stat card ---- */
-      .stat-card {
-        text-align: center; padding: 20px 16px; border-radius: 14px;
-        background: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.3);
-        backdrop-filter: blur(8px);
-      }
-      .stat-value { font-size: 28px; font-weight: 900; color: white; letter-spacing: -1px; }
-      .stat-label { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 2px; }
 
       /* ---- CTA section ---- */
       .cta-section {
-        padding: 80px 0; text-align: center;
+        padding: 100px 0; text-align: center;
         background: linear-gradient(165deg, #0a1628 0%, #0f3057 50%, #1a6b6a 100%);
         position: relative;
       }
@@ -99,10 +105,17 @@
       .reveal { opacity: 0; transform: translateY(30px); }
       .reveal.visible { opacity: 1; transform: translateY(0); transition: opacity .7s ease, transform .7s ease; }
 
+      /* ---- Check items in stage cards ---- */
+      .stage-card .text-xs, .stage-card span { color: #4b5563; }
+      .stage-card .text-base.font-bold, .stage-card h3 { color: #0f1729 !important; }
+      .stage-card .text-xs.text-muted-foreground { color: #6b7280 !important; }
+
       /* ---- Responsive ---- */
       @media (max-width: 768px) {
         .timeline { flex-wrap: wrap; justify-content: center; }
         .tl-line { display: none; }
+        .stage-title { font-size: 28px; }
+        .journey-section { padding: 60px 0; }
       }
     </style>
   </head>
@@ -145,13 +158,13 @@
         </a>
       </div>
 
-      <div class="hero-wave"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,35 C360,65 720,0 1080,35 C1260,52 1380,20 1440,35 L1440,70 L0,70 Z" fill="var(--background)"/></svg></div>
+      <div class="hero-wave"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,35 C360,65 720,0 1080,35 C1260,52 1380,20 1440,35 L1440,70 L0,70 Z" fill="#ffffff"/></svg></div>
     </div>
 
     <!-- ================================================================ -->
     <!-- JOURNEY TIMELINE (interactive nav)                                -->
     <!-- ================================================================ -->
-    <div id="journey" style="padding:48px 0 0;">
+    <div id="journey" class="timeline-wrap" style="padding:16px 0;">
       <div class="max-w-4xl mx-auto px-4">
         <div class="timeline reveal">
           <div class="tl-node active" onclick="scrollToStage(1)"><div class="tl-dot"></div><div class="tl-label">Training &<br/>Enablement</div></div>
@@ -170,16 +183,16 @@
     <!-- ================================================================ -->
     <!-- STAGE 1: Training & Enablement                                    -->
     <!-- ================================================================ -->
-    <div class="journey-section" id="stage-1">
+    <div class="journey-section light-bg" id="stage-1">
       <div class="max-w-4xl mx-auto px-4">
         <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
-          <div class="stage-num" style="background:linear-gradient(135deg,#0f3057,#1a6b6a);">1</div>
+          <div class="stage-num" style="box-shadow:0 4px 12px rgba(0,0,0,.15);background:linear-gradient(135deg,#0f3057,#1a6b6a);">1</div>
           <div style="flex:1;">
             <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
               <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">Training & Enablement</h2>
               <span class="product-chip">Pre-Crypto</span>
             </div>
-            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+            <p class="stage-desc">
               Before touching crypto, your teams need foundational knowledge. We provide education programs tailored to compliance officers, risk managers, and leadership — building confidence in blockchain fundamentals and regulatory requirements.
             </p>
           </div>
@@ -207,17 +220,17 @@
     <!-- ================================================================ -->
     <!-- STAGE 2: Know Your VASP                                           -->
     <!-- ================================================================ -->
-    <div class="journey-section" id="stage-2">
+    <div class="journey-section alt-bg" id="stage-2">
       <div class="max-w-4xl mx-auto px-4">
         <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
-          <div class="stage-num" style="background:linear-gradient(135deg,#1a6b6a,#2d9f8f);">2</div>
+          <div class="stage-num" style="box-shadow:0 4px 12px rgba(0,0,0,.15);background:linear-gradient(135deg,#1a6b6a,#2d9f8f);">2</div>
           <div style="flex:1;">
             <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
-              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">Know Your VASP</h2>
+              <h2 class="stage-title">Know Your VASP</h2>
               <span class="product-chip">VASP Risking</span>
               <span class="product-chip">Entity Monitoring</span>
             </div>
-            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+            <p class="stage-desc">
               Ready to bank crypto businesses? Before onboarding a VASP as a client, you need to understand who they are, who they transact with, where they're licensed, and how they compare to peers. Chainalysis provides the due diligence data to make informed decisions.
             </p>
           </div>
@@ -250,17 +263,17 @@
     <!-- ================================================================ -->
     <!-- STAGE 3: Know Your Asset                                          -->
     <!-- ================================================================ -->
-    <div class="journey-section" id="stage-3">
+    <div class="journey-section light-bg" id="stage-3">
       <div class="max-w-4xl mx-auto px-4">
         <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
-          <div class="stage-num" style="background:linear-gradient(135deg,#2d9f8f,#34d399);">3</div>
+          <div class="stage-num" style="box-shadow:0 4px 12px rgba(0,0,0,.15);background:linear-gradient(135deg,#2d9f8f,#34d399);">3</div>
           <div style="flex:1;">
             <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
-              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">Know Your Asset</h2>
+              <h2 class="stage-title">Know Your Asset</h2>
               <span class="product-chip">Data Solutions</span>
               <span class="product-chip">Market Intelligence</span>
             </div>
-            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+            <p class="stage-desc">
               When your institution starts holding, trading, or custody-ing crypto assets, you need to understand each token's health — its liquidity, whale concentration, smart contract risks, and market dynamics. Whether for your own balance sheet or for clients.
             </p>
           </div>
@@ -288,17 +301,17 @@
     <!-- ================================================================ -->
     <!-- STAGE 4: KYT + Reactor                                            -->
     <!-- ================================================================ -->
-    <div class="journey-section" id="stage-4">
+    <div class="journey-section alt-bg" id="stage-4">
       <div class="max-w-4xl mx-auto px-4">
         <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
-          <div class="stage-num" style="background:linear-gradient(135deg,#0f3057,#4f46e5);">4</div>
+          <div class="stage-num" style="box-shadow:0 4px 12px rgba(0,0,0,.15);background:linear-gradient(135deg,#0f3057,#4f46e5);">4</div>
           <div style="flex:1;">
             <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
-              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">KYT + Reactor</h2>
+              <h2 class="stage-title">KYT + Reactor</h2>
               <span class="product-chip">KYT</span>
               <span class="product-chip">Reactor</span>
             </div>
-            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+            <p class="stage-desc">
               When you open crypto services to retail customers or high-net-worth individuals — offering custody, trading, or payments — you need real-time transaction monitoring and deep investigation capabilities. This is the full compliance operating system.
             </p>
           </div>
@@ -349,16 +362,16 @@
     <!-- ================================================================ -->
     <!-- STAGE 5: Alterya — Fraud Prevention                               -->
     <!-- ================================================================ -->
-    <div class="journey-section" id="stage-5">
+    <div class="journey-section light-bg" id="stage-5">
       <div class="max-w-4xl mx-auto px-4">
         <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
-          <div class="stage-num" style="background:linear-gradient(135deg,#dc2626,#f43f5e);">5</div>
+          <div class="stage-num" style="box-shadow:0 4px 12px rgba(0,0,0,.15);background:linear-gradient(135deg,#dc2626,#f43f5e);">5</div>
           <div style="flex:1;">
             <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
-              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">Fraud Prevention with Alterya</h2>
+              <h2 class="stage-title">Fraud Prevention with Alterya</h2>
               <span class="product-chip" style="background:rgba(220,38,38,.06);color:#dc2626;border-color:rgba(220,38,38,.12);">Alterya</span>
             </div>
-            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+            <p class="stage-desc">
               Complementing your compliance stack, Alterya provides a real-time fraud and scam prevention layer. It detects when your customers are about to send funds to known scam addresses — helping you <strong>prevent the fraud before it happens</strong>, not just report it after.
             </p>
           </div>
