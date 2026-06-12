@@ -97,6 +97,25 @@
       .reveal-delay-3.visible { transition-delay:.3s; }
 
       @media(max-width:768px){.timeline{flex-wrap:wrap;justify-content:center;}.tl-line{display:none;}.cap-grid.cols-3,.cap-grid.cols-2{grid-template-columns:1fr;}.stats-bar{flex-direction:column;}.workflow-row{flex-direction:column;}.wf-arrow{transform:rotate(90deg);}}
+      /* ---- Step-through CTA glow ---- */
+      @keyframes ctaDismissGlow {
+        0%, 100% { box-shadow: 0 0 6px rgba(34,197,94,.2), 0 0 0 0 rgba(34,197,94,0); }
+        50% { box-shadow: 0 0 12px rgba(34,197,94,.35), 0 0 0 5px rgba(34,197,94,.1); }
+      }
+
+      @keyframes ctaGlow {
+        0%, 100% { box-shadow: 0 0 8px rgba(26,107,106,.3), 0 0 0 0 rgba(26,107,106,0); }
+        50% { box-shadow: 0 0 16px rgba(26,107,106,.5), 0 0 0 6px rgba(26,107,106,.12); }
+      }
+      .s4-cta {
+        animation: ctaGlow 2s ease-in-out infinite;
+        transition: transform .15s ease, box-shadow .15s ease;
+      }
+      .s4-cta:hover {
+        animation: none;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(15,48,87,.3);
+      }
     </style>
   </head>
   <body>
@@ -614,7 +633,7 @@
                   </div>
                   <div><label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Destination Address</label><div style="padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:white;font-size:12px;color:#0f1729;font-family:monospace;">bc1q7x9f4a2k8m3n5p6r7s8t9u0v1w2x3y4z5k3m2</div></div>
                 </div>
-                <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(2)">Submit Withdrawal →</button>
+                <button class="s4-cta" style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(2)">Submit Withdrawal →</button>
               </div>
             </div>
 
@@ -648,7 +667,7 @@
                   <p style="font-size:10px;color:#6b7280;margin-top:10px;line-height:1.5;">Destination address has indirect (2nd-hop) exposure to an ATM service with limited KYC enforcement. Alert generated for analyst review.</p>
                 </div>
               </div>
-              <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(3)">View Alert →</button>
+              <button class="s4-cta" style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(3)">View Alert →</button>
             </div>
 
             <!-- STEP 3: Alert Detail -->
@@ -681,7 +700,7 @@
                   </div>
                 </div>
               </div>
-              <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(4)">Investigate in Reactor →</button>
+              <button class="s4-cta" style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(4)">Investigate in Reactor →</button>
             </div>
 
             <!-- STEP 4: Reactor Trace -->
@@ -754,7 +773,7 @@
                   </div>
                 </div>
               </div>
-              <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(5)">Review Context →</button>
+              <button class="s4-cta" style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(5)">Review Context →</button>
             </div>
 
             <!-- STEP 5: Analyst Review -->
@@ -792,7 +811,7 @@
                   <!-- Disposition -->
                   <p style="font-size:10px;font-weight:700;color:#0f1729;margin-bottom:8px;">Disposition</p>
                   <div style="display:flex;gap:8px;">
-                    <button style="flex:1;padding:10px;border-radius:8px;background:rgba(34,197,94,.08);border:2px solid #22c55e;color:#22c55e;font-size:12px;font-weight:700;cursor:pointer;" onclick="showS4Step(6)">✓ Dismiss Alert</button>
+                    <button class="s4-cta" style="flex:1;padding:10px;border-radius:8px;background:rgba(34,197,94,.08);border:2px solid #22c55e;color:#22c55e;font-size:12px;font-weight:700;cursor:pointer;animation-name:ctaDismissGlow;" onclick="showS4Step(6)">✓ Dismiss Alert</button>
                     <button style="flex:1;padding:10px;border-radius:8px;background:white;border:1px solid #e5e7eb;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;">↑ Escalate to SAR</button>
                     <button style="flex:1;padding:10px;border-radius:8px;background:white;border:1px solid #e5e7eb;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;">⊘ Block Transfer</button>
                   </div>
