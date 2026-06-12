@@ -1209,39 +1209,53 @@
       updateCartBadge();
     </script>
   
-    <!-- Pre-seeded address picker -->
+  
+    <!-- Pre-seeded address picker (inline) -->
     <script>
-    (function() {
-      // Load addresses.js relative to current page
-      const s = document.createElement('script');
-      const params = new URLSearchParams(window.location.search);
-      const currentFile = params.get('filePath') || '';
-      const dir = currentFile.substring(0, currentFile.lastIndexOf('/') + 1);
-      if (window.location.pathname.startsWith('/page/')) {
-        s.src = window.location.pathname + '?filePath=' + encodeURIComponent(dir + 'addresses.js');
-      } else {
-        s.src = 'addresses.js';
-      }
-      s.onload = function() {
-        // Wait a moment for the DOM to be ready, then render picker
-        // We use MutationObserver to catch when the input becomes visible
-        const initPicker = () => {
-          const input = document.getElementById('addressInput');
-          if (input) renderAddressPicker('addressInput');
-        };
-        // Try immediately
-        initPicker();
-        // Also observe for dynamically shown screens
-        const observer = new MutationObserver(() => {
-          const input = document.getElementById('addressInput');
-          if (input && !input.parentNode.querySelector('[data-picker]')) {
-            renderAddressPicker('addressInput');
-          }
+    const DEMO_ADDRESSES=[
+      {id:'defi-user',label:'🟢 Typical DeFi User',address:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',risk:'Low',story:'Normal DeFi user — bridges, DEX swaps, exchange deposits. Clean profile.',category:'low'},
+      {id:'binance-hot',label:'🟢 Binance Hot Wallet',address:'0x28C6c06298d514Db089934071355E5743bf21d60',risk:'Low',story:'Major exchange hot wallet — identified as Binance.com.',category:'low'},
+      {id:'ftx-hot',label:'🟢 FTX Hot Wallet',address:'0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2',risk:'Low',story:'FTX.com wallet — still Low risk. Risk scores reflect on-chain data, not headlines.',category:'low'},
+      {id:'unnamed-svc',label:'🟡 Unnamed Service',address:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',risk:'Medium',story:'Categorized as unnamed service — $4M+ exposure. Medium because the service isn\'t identified.',category:'medium'},
+      {id:'bayc-theft',label:'🟡 Stolen BAYC NFT',address:'0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73',risk:'Medium',story:'0.14% direct stolen funds — connected to a Bored Ape Yacht Club theft.',category:'medium'},
+      {id:'justin-sun',label:'🟡 Justin Sun (Tron Founder)',address:'0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',risk:'Medium',story:'$46B+ volume, Medium from indirect sanctioned jurisdiction exposure.',category:'medium'},
+      {id:'wintermute',label:'🟡 Wintermute (Market Maker)',address:'0x0000000fe6a514a32abdcdfcc076c85243de899b',risk:'Medium',story:'Major market maker — Medium due to >2% stolen funds from their $160M hack.',category:'medium'},
+      {id:'lazarus',label:'🔴 Lazarus Group (OFAC)',address:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',risk:'Severe',story:'OFAC-sanctioned North Korean hackers — Ronin Bridge exploit ($625M).',category:'severe'},
+      {id:'tornado',label:'🔴 Tornado Cash (Mixer)',address:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',risk:'Severe',story:'OFAC-sanctioned mixing service — $10B+ total volume.',category:'severe'},
+      {id:'vitalik',label:'🔴 Vitalik Buterin',address:'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',risk:'Severe',story:'Surprise! Severe from dust attacks — shows why context matters.',category:'severe'},
+    ];
+    function renderAddressPicker(inputId){
+      const input=document.getElementById(inputId);if(!input||input.parentNode.querySelector('.addr-picker'))return;
+      const w=document.createElement('div');w.className='addr-picker';w.style.cssText='position:relative;margin-top:6px;';
+      const btn=document.createElement('button');btn.type='button';
+      btn.style.cssText='display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;';
+      btn.innerHTML='🎯 Try a pre-screened address <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+      btn.onmouseover=()=>{btn.style.borderColor='var(--primary)';btn.style.color='var(--foreground)';};
+      btn.onmouseout=()=>{btn.style.borderColor='var(--border)';btn.style.color='var(--muted-foreground)';};
+      const dd=document.createElement('div');
+      dd.style.cssText='display:none;position:absolute;left:0;right:0;bottom:100%;margin-bottom:4px;max-height:320px;overflow-y:auto;border-radius:12px;border:1px solid var(--border);background:var(--card);box-shadow:0 12px 40px rgba(0,0,0,.15);z-index:99;padding:6px;';
+      [{key:'low',label:'Low Risk',color:'#22c55e'},{key:'medium',label:'Medium Risk',color:'#eab308'},{key:'severe',label:'Severe Risk',color:'#ef4444'}].forEach(g=>{
+        const items=DEMO_ADDRESSES.filter(a=>a.category===g.key);if(!items.length)return;
+        const h=document.createElement('div');h.style.cssText='padding:6px 8px 2px;font-size:9px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:1px;';h.textContent=g.label;dd.appendChild(h);
+        items.forEach(a=>{
+          const r=document.createElement('div');r.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .1s;';
+          r.onmouseover=()=>{r.style.background='var(--muted)';};r.onmouseout=()=>{r.style.background='transparent';};
+          r.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--foreground);">'+a.label+'</div><div style="font-size:10px;color:var(--muted-foreground);margin-top:2px;line-height:1.4;">'+a.story+'</div><div style="font-size:9px;color:var(--muted-foreground);margin-top:3px;font-family:monospace;opacity:.7;">'+a.address.slice(0,10)+'…'+a.address.slice(-8)+'</div>';
+          r.onclick=()=>{input.value=a.address;input.dispatchEvent(new Event('input',{bubbles:true}));dd.style.display='none';input.style.borderColor=g.color;input.style.boxShadow='0 0 0 2px '+g.color+'30';setTimeout(()=>{input.style.borderColor='';input.style.boxShadow='';},1500);};
+          dd.appendChild(r);
         });
-        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
-      };
-      document.head.appendChild(s);
-    })();
+      });
+      btn.onclick=(e)=>{e.preventDefault();e.stopPropagation();dd.style.display=dd.style.display==='none'?'block':'none';};
+      document.addEventListener('click',(e)=>{if(!w.contains(e.target))dd.style.display='none';});
+      w.appendChild(dd);w.appendChild(btn);input.parentNode.appendChild(w);
+    }
+    // Auto-init: watch for the input to appear and attach picker
+    new MutationObserver(()=>{
+      const el=document.getElementById('addressInput');
+      if(el&&!el.parentNode.querySelector('.addr-picker'))renderAddressPicker('addressInput');
+    }).observe(document.body,{childList:true,subtree:true,attributes:true});
+    // Also try immediately
+    setTimeout(()=>renderAddressPicker('addressInput'),100);
     </script>
   </body>
 </html>
