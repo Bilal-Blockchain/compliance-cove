@@ -350,21 +350,7 @@
     </div>
 
 
-      <!-- ====================== ANALYTICS ====================== -->
-      <div style="margin-top:48px;" class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4" id="analyticsPanel">
-        <div class="px-4 flex items-center justify-between">
-          <div>
-            <h2 class="text-base font-semibold">📊 My Demo Usage</h2>
-            <p class="text-sm text-muted-foreground mt-1">Your local view history (stored in this browser)</p>
-          </div>
-          <button onclick="clearAnalytics()" class="text-xs text-muted-foreground hover:text-foreground transition-colors" style="padding:4px 8px;border-radius:6px;border:1px solid var(--border);">Clear</button>
-        </div>
-        <div class="px-4" id="analyticsContent">
-          <p class="text-sm text-muted-foreground">No demo views yet. Open a demo to start tracking.</p>
-        </div>
-      </div>
-
-    <!-- ====================== FOOTER ====================== -->
+          <!-- ====================== FOOTER ====================== -->
     <div class="cove-footer">
       <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
@@ -677,97 +663,6 @@
   
     
   
-    <!-- Compliance Cove Analytics (localStorage) -->
-    <script>
-    (function(){
-      var demo=document.title.split('—')[0].trim();
-      var loc=window.location;
-      var sessionId=(loc.pathname.match(/\/page\/([^/?]+)/)||[])[1]||'local';
-      try{
-        var views=JSON.parse(localStorage.getItem('cove-analytics')||'[]');
-        views.push({t:new Date().toISOString(),d:demo,s:sessionId,w:window.innerWidth+'x'+window.innerHeight});
-        // Keep last 200 events
-        if(views.length>200)views=views.slice(-200);
-        localStorage.setItem('cove-analytics',JSON.stringify(views));
-      }catch(e){}
-    })();
     
-      // Analytics dashboard
-      function renderAnalytics() {
-        try {
-          const views = JSON.parse(localStorage.getItem('cove-analytics') || '[]');
-          const panel = document.getElementById('analyticsContent');
-          if (!views.length) return;
-
-          // Group by demo
-          const byDemo = {};
-          views.forEach(v => {
-            const key = v.d || 'Unknown';
-            if (!byDemo[key]) byDemo[key] = { count: 0, last: v.t, sessions: new Set() };
-            byDemo[key].count++;
-            byDemo[key].sessions.add(v.s);
-            if (v.t > byDemo[key].last) byDemo[key].last = v.t;
-          });
-
-          // Sort by count desc
-          const sorted = Object.entries(byDemo).sort((a, b) => b[1].count - a[1].count);
-
-          // Recent views (last 5)
-          const recent = views.slice(-5).reverse();
-
-          let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">';
-
-          // Left: Usage by demo
-          html += '<div><p style="font-size:11px;font-weight:700;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">By Demo</p>';
-          html += '<div style="display:flex;flex-direction:column;gap:4px;">';
-          const maxCount = sorted[0] ? sorted[0][1].count : 1;
-          sorted.forEach(([name, data]) => {
-            const pct = Math.round((data.count / maxCount) * 100);
-            html += '<div style="display:flex;align-items:center;gap:8px;font-size:12px;">';
-            html += '<span style="flex:1;font-weight:600;color:var(--foreground);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;" title="' + name + '">' + name + '</span>';
-            html += '<div style="flex:1;height:6px;border-radius:3px;background:var(--muted);overflow:hidden;"><div style="width:' + pct + '%;height:100%;border-radius:3px;background:linear-gradient(90deg,#2d9f8f,#6366f1);"></div></div>';
-            html += '<span style="font-weight:700;color:var(--foreground);min-width:20px;text-align:right;">' + data.count + '</span>';
-            html += '</div>';
-          });
-          html += '</div></div>';
-
-          // Right: Recent views
-          html += '<div><p style="font-size:11px;font-weight:700;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Recent Views</p>';
-          html += '<div style="display:flex;flex-direction:column;gap:4px;">';
-          recent.forEach(v => {
-            const time = new Date(v.t);
-            const ago = Math.round((Date.now() - time.getTime()) / 60000);
-            const agoText = ago < 1 ? 'just now' : ago < 60 ? ago + 'm ago' : ago < 1440 ? Math.round(ago / 60) + 'h ago' : Math.round(ago / 1440) + 'd ago';
-            html += '<div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;background:var(--muted);font-size:11px;">';
-            html += '<span style="width:6px;height:6px;border-radius:50%;background:#2d9f8f;flex-shrink:0;"></span>';
-            html += '<span style="flex:1;font-weight:600;color:var(--foreground);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (v.d || 'Unknown') + '</span>';
-            html += '<span style="color:var(--muted-foreground);white-space:nowrap;">' + agoText + '</span>';
-            html += '</div>';
-          });
-          html += '</div></div>';
-
-          html += '</div>';
-
-          // Summary stats
-          const totalViews = views.length;
-          const uniqueDemos = Object.keys(byDemo).length;
-          const uniqueSessions = new Set(views.map(v => v.s)).size;
-          html += '<div style="display:flex;gap:12px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">';
-          html += '<div style="font-size:11px;color:var(--muted-foreground);"><span style="font-weight:700;color:var(--foreground);">' + totalViews + '</span> total views</div>';
-          html += '<div style="font-size:11px;color:var(--muted-foreground);"><span style="font-weight:700;color:var(--foreground);">' + uniqueDemos + '</span> demos used</div>';
-          html += '<div style="font-size:11px;color:var(--muted-foreground);"><span style="font-weight:700;color:var(--foreground);">' + uniqueSessions + '</span> sessions</div>';
-          html += '</div>';
-
-          panel.innerHTML = html;
-        } catch (e) {}
-      }
-      function clearAnalytics() {
-        localStorage.removeItem('cove-analytics');
-        renderAnalytics();
-        document.getElementById('analyticsContent').innerHTML = '<p class="text-sm text-muted-foreground">Cleared! Open a demo to start tracking.</p>';
-      }
-      renderAnalytics();
-
-    </script>
   </body>
 </html>
