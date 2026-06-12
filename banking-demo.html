@@ -163,11 +163,11 @@
     <div class="timeline-wrap" id="timelineWrap">
       <div class="max-w-5xl mx-auto px-4">
         <div class="timeline">
-          <div class="tl-node active" onclick="scrollTo('stage-1')"><div class="tl-dot"></div><div class="tl-label">Training & Enablement</div></div><div class="tl-line"></div>
-          <div class="tl-node" onclick="scrollTo('stage-2')"><div class="tl-dot"></div><div class="tl-label">Know Your VASP</div></div><div class="tl-line"></div>
-          <div class="tl-node" onclick="scrollTo('stage-3')"><div class="tl-dot"></div><div class="tl-label">Know Your Asset</div></div><div class="tl-line"></div>
-          <div class="tl-node" onclick="scrollTo('stage-4')"><div class="tl-dot"></div><div class="tl-label">KYT + Reactor</div></div><div class="tl-line"></div>
-          <div class="tl-node" onclick="scrollTo('stage-5')"><div class="tl-dot"></div><div class="tl-label">Fraud Prevention</div></div>
+          <div class="tl-node active" onclick="scrollToStage('stage-1')"><div class="tl-dot"></div><div class="tl-label">Training & Enablement</div></div><div class="tl-line"></div>
+          <div class="tl-node" onclick="scrollToStage('stage-2')"><div class="tl-dot"></div><div class="tl-label">Know Your VASP</div></div><div class="tl-line"></div>
+          <div class="tl-node" onclick="scrollToStage('stage-3')"><div class="tl-dot"></div><div class="tl-label">Know Your Asset</div></div><div class="tl-line"></div>
+          <div class="tl-node" onclick="scrollToStage('stage-4')"><div class="tl-dot"></div><div class="tl-label">KYT + Reactor</div></div><div class="tl-line"></div>
+          <div class="tl-node" onclick="scrollToStage('stage-5')"><div class="tl-dot"></div><div class="tl-label">Fraud Prevention</div></div>
         </div>
       </div>
     </div>
@@ -1076,20 +1076,47 @@
 
         <!-- Trusted by -->
         <div class="reveal" style="margin-top:40px;text-align:center;">
-          <p style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;">Trusted By Industry Leaders</p>
-          <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:24px 32px;opacity:.6;">
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">coinbase</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Square</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Binance</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">OKX</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Kraken</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Wells Fargo</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">PayPal</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Revolut</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Fidelity</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Gemini</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Crypto.com</span>
-            <span style="font-size:16px;font-weight:800;color:#0f1729;">Hitachi</span>
+          <p style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:24px;">Trusted By Leading Financial Institutions</p>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px 24px;max-width:680px;margin:0 auto;">
+            <!-- Row 1: Major banks -->
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/bnymellon.com" alt="BNY Mellon" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:13px;font-weight:800;color:#0f3057;letter-spacing:-.3px;\'>BNY Mellon</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/sc.com" alt="Standard Chartered" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:11px;font-weight:800;color:#0e7a3a;letter-spacing:-.2px;\'>Standard Chartered</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/barclays.com" alt="Barclays" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:14px;font-weight:800;color:#00aeef;letter-spacing:-.3px;\'>Barclays</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/hsbc.com" alt="HSBC" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:16px;font-weight:900;color:#db0011;letter-spacing:1px;\'>HSBC</span>'"/>
+            </div>
+            <!-- Row 2: Banks + Fintech -->
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/deutschebank.com" alt="Deutsche Bank" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:12px;font-weight:800;color:#0018a8;letter-spacing:-.2px;\'>Deutsche Bank</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/wellsfargo.com" alt="Wells Fargo" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:13px;font-weight:800;color:#d71e28;letter-spacing:-.2px;\'>Wells Fargo</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/paypal.com" alt="PayPal" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:15px;font-weight:800;color:#003087;letter-spacing:-.3px;\'>PayPal</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/revolut.com" alt="Revolut" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:14px;font-weight:800;color:#0f1729;letter-spacing:-.3px;\'>Revolut</span>'"/>
+            </div>
+            <!-- Row 3: Fintech + Crypto -->
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/fidelity.com" alt="Fidelity" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:14px;font-weight:800;color:#4b8b3b;letter-spacing:-.3px;\'>Fidelity</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/coinbase.com" alt="Coinbase" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:14px;font-weight:800;color:#1652f0;letter-spacing:-.3px;\'>coinbase</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/block.xyz" alt="Block" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:15px;font-weight:900;color:#0f1729;letter-spacing:-.3px;\'>Block</span>'"/>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:center;height:48px;border-radius:10px;background:#fafbfc;border:1px solid #f3f4f6;padding:0 12px;">
+              <img src="https://logo.clearbit.com/gemini.com" alt="Gemini" style="height:22px;object-fit:contain;filter:grayscale(30%);" onerror="this.outerHTML='<span style=\'font-size:14px;font-weight:800;color:#00dcfa;letter-spacing:-.3px;\'>Gemini</span>'"/>
+            </div>
           </div>
         </div>
       </div>
@@ -1150,7 +1177,7 @@
       }
 
       // Smooth scroll
-      function scrollTo(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+      function scrollToStage(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 
       // Update timeline on scroll
       window.addEventListener('scroll', () => {
