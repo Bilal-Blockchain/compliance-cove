@@ -529,11 +529,14 @@
       // URL BUILDER — constructs session-scoped page URLs
       // ===========================================================
       function buildPageUrl(filePath) {
-        const loc = window.location;
-        if (loc.pathname.startsWith('/page/')) {
-          const sessionBase = loc.pathname;
-          return `${loc.origin}${sessionBase}?filePath=${encodeURIComponent(filePath)}`;
-        }
+       const loc = window.location;
+       if (loc.pathname.startsWith('/page/')) {
+         const sessionBase = loc.pathname;
+          const params = new URLSearchParams(loc.search);
+          const currentFile = params.get('filePath') || '';
+          const dir = currentFile.substring(0, currentFile.lastIndexOf('/') + 1);
+          return `${loc.origin}${sessionBase}?filePath=${encodeURIComponent(dir + filePath)}`;
+       }
         return filePath;
       }
 
