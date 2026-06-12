@@ -217,13 +217,39 @@
         <!-- Sample VASP scorecard -->
         <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:12px;">
           <div class="sample-ui">
-            <div class="sample-ui-header"><div class="sample-ui-dot" style="background:#ef4444;"></div><div class="sample-ui-dot" style="background:#eab308;"></div><div class="sample-ui-dot" style="background:#22c55e;"></div><span style="font-size:11px;color:#9ca3af;margin-left:8px;">VASP Risk Scorecard — Sample</span></div>
-            <div class="sample-ui-body">
-              <div class="sample-row"><span style="font-size:12px;color:#6b7280;">Overall Risk Score</span><span style="font-size:14px;font-weight:800;color:#22c55e;">A — Low Risk</span></div>
-              <div class="sample-row"><span style="font-size:12px;color:#6b7280;">Jurisdictions</span><span style="font-size:12px;font-weight:600;color:#0f1729;">US, EU, Singapore</span></div>
-              <div class="sample-row"><span style="font-size:12px;color:#6b7280;">Licenses</span><span style="font-size:12px;font-weight:600;color:#0f1729;">FinCEN MSB, MAS PSA</span></div>
-              <div class="sample-row"><span style="font-size:12px;color:#6b7280;">High-Risk Exposure</span><span style="font-size:12px;font-weight:600;color:#22c55e;">0.3% — Low</span></div>
-              <div class="sample-row"><span style="font-size:12px;color:#6b7280;">Sanctioned Exposure</span><span style="font-size:12px;font-weight:600;color:#22c55e;">0.0%</span></div>
+            <div class="sample-ui-header"><div class="sample-ui-dot" style="background:#ef4444;"></div><div class="sample-ui-dot" style="background:#eab308;"></div><div class="sample-ui-dot" style="background:#22c55e;"></div><span style="font-size:11px;color:#9ca3af;margin-left:8px;">VASP Risking — Shakepay.com (Sample)</span></div>
+            <div style="display:flex;border-bottom:1px solid #e5e7eb;">
+              <span style="padding:8px 14px;font-size:11px;font-weight:600;color:#1a6b6a;border-bottom:2px solid #1a6b6a;">Activity</span>
+              <span style="padding:8px 14px;font-size:11px;font-weight:500;color:#9ca3af;">Counterparties</span>
+              <span style="padding:8px 14px;font-size:11px;font-weight:500;color:#9ca3af;">Exposure</span>
+              <span style="padding:8px 14px;font-size:11px;font-weight:500;color:#9ca3af;">Off-chain data</span>
+            </div>
+            <div class="sample-ui-body" style="padding:14px;">
+              <div style="display:flex;gap:20px;margin-bottom:12px;">
+                <div style="flex:1;"><p style="font-size:10px;color:#9ca3af;margin-bottom:2px;">Risk</p><span style="display:inline-block;padding:2px 8px;border-radius:4px;background:rgba(34,197,94,.1);color:#22c55e;font-size:12px;font-weight:700;">Low</span></div>
+                <div style="flex:1;"><p style="font-size:10px;color:#9ca3af;margin-bottom:2px;">Category</p><span style="font-size:12px;font-weight:600;color:#0f1729;">Exchange</span></div>
+                <div style="flex:1;"><p style="font-size:10px;color:#9ca3af;margin-bottom:2px;">Triggered by</p><span style="font-size:12px;color:#9ca3af;">—</span></div>
+              </div>
+              <p style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Exposure Categories</p>
+              <div style="display:flex;flex-direction:column;gap:3px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;"><span style="display:flex;align-items:center;gap:4px;color:#6b7280;"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;"></span>Sanctioned Entity</span><span style="color:#0f1729;font-weight:600;">$57,389 <span style="color:#9ca3af;font-weight:400;">0.0%</span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;"><span style="display:flex;align-items:center;gap:4px;color:#6b7280;"><span style="width:6px;height:6px;border-radius:50%;background:#f97316;"></span>No KYC Exchange</span><span style="color:#0f1729;font-weight:600;">$4,688 <span style="color:#9ca3af;font-weight:400;">0.0%</span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;"><span style="display:flex;align-items:center;gap:4px;color:#6b7280;"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;"></span>Scam</span><span style="color:#0f1729;font-weight:600;">$2,352 <span style="color:#9ca3af;font-weight:400;">0.0%</span></span></div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;"><span style="display:flex;align-items:center;gap:4px;color:#6b7280;"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;"></span>Drug Vendor</span><span style="color:#0f1729;font-weight:600;">$1,087 <span style="color:#9ca3af;font-weight:400;">0.0%</span></span></div>
+              </div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid #f3f4f6;">
+                <p style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">Off-chain</p>
+                <div style="display:flex;gap:12px;font-size:11px;color:#6b7280;">
+                  <span>🏢 Shakepay Inc. · Canada</span>
+                  <span>📜 CIRO Licensed</span>
+                </div>
+                <div style="display:flex;gap:6px;margin-top:6px;">
+                  <span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:500;background:#f3f4f6;color:#6b7280;">KYC ✓</span>
+                  <span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:500;background:#f3f4f6;color:#6b7280;">AML ✓</span>
+                  <span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:500;background:#f3f4f6;color:#6b7280;">Debit Card ✓</span>
+                  <span style="padding:1px 6px;border-radius:4px;font-size:10px;font-weight:500;background:#f3f4f6;color:#6b7280;">Crypto Rewards ✓</span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="cap-grid cols-2" style="margin-top:0;">
@@ -357,8 +383,8 @@
         </div>
 
         <div class="stats-bar reveal">
-          <div class="stat-item" style="background:linear-gradient(135deg,rgba(220,38,38,.04),rgba(244,63,94,.02));border-color:rgba(220,38,38,.08);"><div class="stat-value" style="color:#dc2626;">$4B+</div><div class="stat-label">Fraud Losses Prevented</div></div>
-          <div class="stat-item" style="background:linear-gradient(135deg,rgba(220,38,38,.04),rgba(244,63,94,.02));border-color:rgba(220,38,38,.08);"><div class="stat-value" style="color:#dc2626;">Real-Time</div><div class="stat-label">Intercept Speed</div></div>
+          <div class="stat-item" style="background:linear-gradient(135deg,rgba(220,38,38,.04),rgba(244,63,94,.02));border-color:rgba(220,38,38,.08);"><div class="stat-value" style="color:#dc2626;">$12B+</div><div class="stat-label">Loss to Scams Detected</div></div>
+          <div class="stat-item" style="background:linear-gradient(135deg,rgba(220,38,38,.04),rgba(244,63,94,.02));border-color:rgba(220,38,38,.08);"><div class="stat-value" style="color:#dc2626;">$300M</div><div class="stat-label">Loss to Scams Prevented</div></div>
           <div class="stat-item" style="background:linear-gradient(135deg,rgba(220,38,38,.04),rgba(244,63,94,.02));border-color:rgba(220,38,38,.08);"><div class="stat-value" style="color:#dc2626;">Pre-Send</div><div class="stat-label">Prevention Model</div></div>
         </div>
 
@@ -391,6 +417,25 @@
             <div class="cap-title">Complementary Intelligence</div>
             <div class="cap-desc">Fraud intel that supplements KYT — covering social engineering, phishing campaigns, and emerging scam patterns that traditional AML misses.</div>
             <div class="cap-tag" style="background:rgba(220,38,38,.06);color:#dc2626;">KYT + Alterya</div>
+          </div>
+        </div>
+
+        <!-- Trusted by -->
+        <div class="reveal" style="margin-top:40px;text-align:center;">
+          <p style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;">Trusted By Industry Leaders</p>
+          <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:24px 32px;opacity:.6;">
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">coinbase</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Square</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Binance</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">OKX</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Kraken</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Wells Fargo</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">PayPal</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Revolut</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Fidelity</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Gemini</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Crypto.com</span>
+            <span style="font-size:16px;font-weight:800;color:#0f1729;">Hitachi</span>
           </div>
         </div>
       </div>
