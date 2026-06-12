@@ -1273,5 +1273,29 @@
     // Also try immediately
     setTimeout(()=>renderAddressPicker('addressInput'),100);
     </script>
+  
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){
+      // Set your Google Apps Script URL here after deploying (see tracking/setup.md)
+      var TRACKING_URL = '';
+
+      if(!TRACKING_URL)return;
+      var demo=document.title.split('—')[0].trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/-$/,'');
+      var loc=window.location;
+      var sessionId=(loc.pathname.match(/\/page\/([^/?]+)/)||[])[1]||'local';
+      try{
+        navigator.sendBeacon(TRACKING_URL,JSON.stringify({
+          timestamp:new Date().toISOString(),
+          demo:demo,
+          pageUrl:loc.href,
+          sessionId:sessionId,
+          userAgent:navigator.userAgent.slice(0,120),
+          referrer:document.referrer.slice(0,200),
+          screen:window.innerWidth+'x'+window.innerHeight
+        }));
+      }catch(e){}
+    })();
+    </script>
   </body>
 </html>
