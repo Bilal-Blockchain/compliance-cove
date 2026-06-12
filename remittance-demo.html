@@ -10,7 +10,9 @@
     <style>
       /* Force light mode regardless of system preference */
       :root { color-scheme: light; }
-      *{font-family:'Inter',system-ui,sans-serif;} .mono{font-family:'JetBrains Mono',monospace;}
+      * { font-family: 'Inter', system-ui, sans-serif; }
+      .mono { font-family: 'JetBrains Mono', monospace; }
+      body { background: #ffffff !important; color: #111827 !important; }
       .screen{display:none;} .screen.active{display:block;}
       .accent{color:#f43f5e;} .accent-bg{background:linear-gradient(135deg,#dc2626,#f43f5e);}
       .glow-btn{position:relative;overflow:hidden;}
@@ -70,8 +72,75 @@
     <!-- ================================================================ -->
     <div class="screen active" id="screen-landing">
       <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;position:relative;overflow:hidden;">
-        <div style="position:absolute;width:400px;height:400px;border-radius:50%;background:rgba(220,38,38,.06);top:-120px;left:-100px;pointer-events:none;"></div>
-        <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:rgba(244,63,94,.05);bottom:-80px;right:-60px;pointer-events:none;"></div>
+        <!-- Animated globe background -->
+        <svg class="globe-bg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.45;">
+          <!-- Globe circle -->
+          <circle cx="400" cy="300" r="220" fill="none" stroke="rgba(220,38,38,.07)" stroke-width="1.5"/>
+          <ellipse cx="400" cy="300" rx="220" ry="80" fill="none" stroke="rgba(220,38,38,.05)" stroke-width="1"/>
+          <ellipse cx="400" cy="300" rx="220" ry="140" fill="none" stroke="rgba(220,38,38,.05)" stroke-width="1" transform="rotate(20,400,300)"/>
+          <ellipse cx="400" cy="300" rx="220" ry="180" fill="none" stroke="rgba(220,38,38,.04)" stroke-width="1" transform="rotate(-15,400,300)"/>
+          <!-- Latitude lines -->
+          <ellipse cx="400" cy="220" rx="200" ry="30" fill="none" stroke="rgba(220,38,38,.04)" stroke-width=".8"/>
+          <ellipse cx="400" cy="300" rx="220" ry="35" fill="none" stroke="rgba(220,38,38,.05)" stroke-width=".8"/>
+          <ellipse cx="400" cy="380" rx="200" ry="30" fill="none" stroke="rgba(220,38,38,.04)" stroke-width=".8"/>
+          <!-- Longitude lines -->
+          <ellipse cx="400" cy="300" rx="60" ry="220" fill="none" stroke="rgba(220,38,38,.04)" stroke-width=".8"/>
+          <ellipse cx="400" cy="300" rx="150" ry="220" fill="none" stroke="rgba(220,38,38,.04)" stroke-width=".8"/>
+
+          <!-- City dots (remittance corridors) -->
+          <!-- New York -->
+          <circle cx="260" cy="230" r="4" fill="rgba(220,38,38,.2)"><animate attributeName="r" values="3;5;3" dur="3s" repeatCount="indefinite"/></circle>
+          <circle cx="260" cy="230" r="8" fill="none" stroke="rgba(220,38,38,.1)" stroke-width="1"><animate attributeName="r" values="6;14;6" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" values=".3;0;.3" dur="3s" repeatCount="indefinite"/></circle>
+          <!-- London -->
+          <circle cx="380" cy="210" r="3.5" fill="rgba(220,38,38,.2)"><animate attributeName="r" values="2.5;4.5;2.5" dur="3.5s" repeatCount="indefinite"/></circle>
+          <!-- Lagos -->
+          <circle cx="370" cy="320" r="4" fill="rgba(220,38,38,.25)"><animate attributeName="r" values="3;5;3" dur="2.8s" repeatCount="indefinite"/></circle>
+          <circle cx="370" cy="320" r="8" fill="none" stroke="rgba(220,38,38,.1)" stroke-width="1"><animate attributeName="r" values="6;14;6" dur="2.8s" repeatCount="indefinite"/><animate attributeName="opacity" values=".3;0;.3" dur="2.8s" repeatCount="indefinite"/></circle>
+          <!-- Mumbai -->
+          <circle cx="500" cy="290" r="3.5" fill="rgba(220,38,38,.2)"><animate attributeName="r" values="2.5;4.5;2.5" dur="3.2s" repeatCount="indefinite"/></circle>
+          <!-- Manila -->
+          <circle cx="580" cy="310" r="3" fill="rgba(220,38,38,.18)"><animate attributeName="r" values="2;4;2" dur="3.4s" repeatCount="indefinite"/></circle>
+          <!-- Mexico City -->
+          <circle cx="220" cy="300" r="3" fill="rgba(220,38,38,.18)"><animate attributeName="r" values="2;4;2" dur="2.6s" repeatCount="indefinite"/></circle>
+          <!-- São Paulo -->
+          <circle cx="300" cy="380" r="3" fill="rgba(220,38,38,.15)"><animate attributeName="r" values="2;4;2" dur="3.6s" repeatCount="indefinite"/></circle>
+          <!-- Addis Ababa -->
+          <circle cx="430" cy="320" r="2.5" fill="rgba(220,38,38,.15)"><animate attributeName="r" values="2;3.5;2" dur="3.1s" repeatCount="indefinite"/></circle>
+          <!-- Hanoi -->
+          <circle cx="555" cy="285" r="2.5" fill="rgba(220,38,38,.15)"><animate attributeName="r" values="2;3.5;2" dur="2.9s" repeatCount="indefinite"/></circle>
+
+          <!-- Animated transfer arcs -->
+          <!-- NYC → Lagos -->
+          <path d="M260,230 Q320,160 370,320" fill="none" stroke="rgba(220,38,38,.08)" stroke-width="1.2" stroke-dasharray="4,4"/>
+          <circle r="3" fill="#f43f5e" opacity=".6"><animateMotion path="M260,230 Q320,160 370,320" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.7;.7;0" dur="4s" repeatCount="indefinite"/></circle>
+
+          <!-- NYC → Mumbai -->
+          <path d="M260,230 Q400,140 500,290" fill="none" stroke="rgba(220,38,38,.06)" stroke-width="1" stroke-dasharray="4,4"/>
+          <circle r="2.5" fill="#dc2626" opacity=".5"><animateMotion path="M260,230 Q400,140 500,290" dur="5s" repeatCount="indefinite" begin="1s"/><animate attributeName="opacity" values="0;.6;.6;0" dur="5s" repeatCount="indefinite" begin="1s"/></circle>
+
+          <!-- London → Manila -->
+          <path d="M380,210 Q500,170 580,310" fill="none" stroke="rgba(220,38,38,.06)" stroke-width="1" stroke-dasharray="4,4"/>
+          <circle r="2.5" fill="#f43f5e" opacity=".5"><animateMotion path="M380,210 Q500,170 580,310" dur="5.5s" repeatCount="indefinite" begin="2s"/><animate attributeName="opacity" values="0;.6;.6;0" dur="5.5s" repeatCount="indefinite" begin="2s"/></circle>
+
+          <!-- NYC → Mexico City -->
+          <path d="M260,230 Q230,260 220,300" fill="none" stroke="rgba(220,38,38,.06)" stroke-width="1" stroke-dasharray="3,3"/>
+          <circle r="2" fill="#dc2626" opacity=".5"><animateMotion path="M260,230 Q230,260 220,300" dur="3s" repeatCount="indefinite" begin="0.5s"/><animate attributeName="opacity" values="0;.6;.6;0" dur="3s" repeatCount="indefinite" begin="0.5s"/></circle>
+
+          <!-- NYC → São Paulo -->
+          <path d="M260,230 Q270,310 300,380" fill="none" stroke="rgba(220,38,38,.05)" stroke-width="1" stroke-dasharray="3,3"/>
+          <circle r="2" fill="#f43f5e" opacity=".4"><animateMotion path="M260,230 Q270,310 300,380" dur="4.5s" repeatCount="indefinite" begin="3s"/><animate attributeName="opacity" values="0;.5;.5;0" dur="4.5s" repeatCount="indefinite" begin="3s"/></circle>
+
+          <!-- London → Lagos -->
+          <path d="M380,210 Q385,265 370,320" fill="none" stroke="rgba(220,38,38,.06)" stroke-width="1" stroke-dasharray="3,3"/>
+          <circle r="2" fill="#dc2626" opacity=".5"><animateMotion path="M380,210 Q385,265 370,320" dur="3.5s" repeatCount="indefinite" begin="1.5s"/><animate attributeName="opacity" values="0;.5;.5;0" dur="3.5s" repeatCount="indefinite" begin="1.5s"/></circle>
+
+          <!-- Mumbai → Hanoi -->
+          <path d="M500,290 Q530,270 555,285" fill="none" stroke="rgba(220,38,38,.05)" stroke-width="1" stroke-dasharray="3,3"/>
+          <circle r="2" fill="#f43f5e" opacity=".4"><animateMotion path="M500,290 Q530,270 555,285" dur="3.2s" repeatCount="indefinite" begin="2.5s"/><animate attributeName="opacity" values="0;.5;.5;0" dur="3.2s" repeatCount="indefinite" begin="2.5s"/></circle>
+
+          <!-- Slow globe rotation hint -->
+          <animateTransform attributeName="transform" type="rotate" values="0,400,300;2,400,300;0,400,300;-2,400,300;0,400,300" dur="20s" repeatCount="indefinite"/>
+        </svg>
         <div style="position:relative;z-index:1;max-width:480px;">
           <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:20px;">
             <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#dc2626,#f43f5e);display:flex;align-items:center;justify-content:center;">
