@@ -1276,20 +1276,6 @@
   
     
   
-    <!-- Compliance Cove Analytics (localStorage) -->
-    <script>
-    (function(){
-      var demo=document.title.split('—')[0].trim();
-      var loc=window.location;
-      var sessionId=(loc.pathname.match(/\/page\/([^/?]+)/)||[])[1]||'local';
-      try{
-        var views=JSON.parse(localStorage.getItem('cove-analytics')||'[]');
-        views.push({t:new Date().toISOString(),d:demo,s:sessionId,w:window.innerWidth+'x'+window.innerHeight});
-        // Keep last 200 events
-        if(views.length>200)views=views.slice(-200);
-        localStorage.setItem('cove-analytics',JSON.stringify(views));
-      }catch(e){}
-    })();
-    </script>
+    
   </body>
 </html>
