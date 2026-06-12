@@ -526,7 +526,7 @@
           <div class="stage-num" style="background:linear-gradient(135deg,#0f3057,#4f46e5);">4</div>
           <div>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><h2 style="font-size:40px;font-weight:900;letter-spacing:-1px;color:#0f1729;margin:0;">KYT + Reactor</h2><span class="product-chip">KYT</span><span class="product-chip">Reactor</span></div>
-            <p style="font-size:16px;color:#6b7280;line-height:1.8;margin-top:10px;max-width:620px;">When you open crypto services to retail or HNW clients — offering custody, trading, or payments — you need real-time transaction monitoring and deep investigation capabilities. Here's how a typical banking workflow plays out.</p>
+            <p style="font-size:16px;color:#6b7280;line-height:1.8;margin-top:10px;max-width:620px;">When you open crypto services to retail or HNW clients, you need real-time transaction monitoring and deep investigation capabilities. Walk through a typical banking compliance workflow — from customer withdrawal to alert resolution.</p>
           </div>
         </div>
 
@@ -536,177 +536,314 @@
           <div class="stat-item"><div class="stat-value">1,000+</div><div class="stat-label">Attributed Services</div></div>
         </div>
 
-        <!-- Banking Workflow: 6-step narrative -->
-        <div class="reveal" style="margin-top:8px;margin-bottom:24px;">
-          <p style="font-size:11px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px;">Banking Workflow — Crypto Withdrawal</p>
-          <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
-            <!-- Step 1 -->
-            <div style="text-align:center;padding:12px 6px;border-radius:12px;background:#ffffff;border:1px solid #e5e7eb;">
-              <div style="width:36px;height:36px;border-radius:10px;background:rgba(99,102,241,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg></div>
-              <div style="font-size:10px;font-weight:700;color:#0f1729;">Customer Sends</div>
-              <div style="font-size:9px;color:#9ca3af;margin-top:2px;">2.5 BTC withdrawal</div>
+        <!-- Interactive Step-Through Demo -->
+        <div class="reveal" style="display:flex;gap:0;margin-top:8px;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;background:#ffffff;box-shadow:0 4px 20px rgba(0,0,0,.04);">
+
+          <!-- Left: Vertical timeline -->
+          <div style="width:240px;flex-shrink:0;border-right:1px solid #e5e7eb;background:#fafbfc;" id="s4Timeline">
+            <div style="padding:14px 16px;border-bottom:1px solid #e5e7eb;">
+              <p style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:1px;margin:0;">Banking Workflow</p>
             </div>
-            <!-- Arrow -->
-            <!-- Step 2 -->
-            <div style="text-align:center;padding:12px 6px;border-radius:12px;background:#ffffff;border:1px solid #e5e7eb;">
-              <div style="width:36px;height:36px;border-radius:10px;background:rgba(99,102,241,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-              <div style="font-size:10px;font-weight:700;color:#0f1729;">KYT Screens</div>
-              <div style="font-size:9px;color:#9ca3af;margin-top:2px;">Real-time check</div>
+
+            <div class="s4-step active" data-step="1" onclick="showS4Step(1)" style="padding:14px 16px;cursor:pointer;border-left:3px solid #6366f1;background:rgba(99,102,241,.04);transition:all .2s;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="s4-num" style="width:24px;height:24px;border-radius:7px;background:#6366f1;color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">1</div>
+                <div><div style="font-size:11px;font-weight:700;color:#0f1729;">Customer Sends</div><div style="font-size:9px;color:#9ca3af;">2.5 BTC withdrawal</div></div>
+              </div>
             </div>
-            <!-- Step 3 -->
-            <div style="text-align:center;padding:12px 6px;border-radius:12px;background:#ffffff;border:1px solid #e5e7eb;">
-              <div style="width:36px;height:36px;border-radius:10px;background:rgba(234,179,8,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
-              <div style="font-size:10px;font-weight:700;color:#eab308;">Alert Triggered</div>
-              <div style="font-size:9px;color:#9ca3af;margin-top:2px;">Indirect exposure</div>
+
+            <div class="s4-step" data-step="2" onclick="showS4Step(2)" style="padding:14px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .2s;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="s4-num" style="width:24px;height:24px;border-radius:7px;background:#e5e7eb;color:#6b7280;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">2</div>
+                <div><div style="font-size:11px;font-weight:700;color:#0f1729;">KYT Screens</div><div style="font-size:9px;color:#9ca3af;">Real-time check</div></div>
+              </div>
             </div>
-            <!-- Step 4 -->
-            <div style="text-align:center;padding:12px 6px;border-radius:12px;background:#ffffff;border:1px solid #e5e7eb;">
-              <div style="width:36px;height:36px;border-radius:10px;background:rgba(15,48,87,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0f3057" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
-              <div style="font-size:10px;font-weight:700;color:#0f1729;">Reactor Trace</div>
-              <div style="font-size:9px;color:#9ca3af;margin-top:2px;">Investigate exposure</div>
+
+            <div class="s4-step" data-step="3" onclick="showS4Step(3)" style="padding:14px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .2s;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="s4-num" style="width:24px;height:24px;border-radius:7px;background:#e5e7eb;color:#6b7280;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">3</div>
+                <div><div style="font-size:11px;font-weight:700;color:#0f1729;">Alert Triggered</div><div style="font-size:9px;color:#9ca3af;">Indirect exposure flagged</div></div>
+              </div>
             </div>
-            <!-- Step 5 -->
-            <div style="text-align:center;padding:12px 6px;border-radius:12px;background:#ffffff;border:1px solid #e5e7eb;">
-              <div style="width:36px;height:36px;border-radius:10px;background:rgba(26,107,106,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a6b6a" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
-              <div style="font-size:10px;font-weight:700;color:#0f1729;">Analyst Reviews</div>
-              <div style="font-size:9px;color:#9ca3af;margin-top:2px;">Assess risk context</div>
+
+            <div class="s4-step" data-step="4" onclick="showS4Step(4)" style="padding:14px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .2s;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="s4-num" style="width:24px;height:24px;border-radius:7px;background:#e5e7eb;color:#6b7280;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">4</div>
+                <div><div style="font-size:11px;font-weight:700;color:#0f1729;">Reactor Trace</div><div style="font-size:9px;color:#9ca3af;">Investigate exposure</div></div>
+              </div>
             </div>
-            <!-- Step 6 -->
-            <div style="text-align:center;padding:12px 6px;border-radius:12px;background:#ffffff;border:1px solid #e5e7eb;">
-              <div style="width:36px;height:36px;border-radius:10px;background:rgba(34,197,94,.08);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
-              <div style="font-size:10px;font-weight:700;color:#22c55e;">Resolved</div>
-              <div style="font-size:9px;color:#9ca3af;margin-top:2px;">Dismiss or escalate</div>
+
+            <div class="s4-step" data-step="5" onclick="showS4Step(5)" style="padding:14px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .2s;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="s4-num" style="width:24px;height:24px;border-radius:7px;background:#e5e7eb;color:#6b7280;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">5</div>
+                <div><div style="font-size:11px;font-weight:700;color:#0f1729;">Analyst Reviews</div><div style="font-size:9px;color:#9ca3af;">Assess risk context</div></div>
+              </div>
+            </div>
+
+            <div class="s4-step" data-step="6" onclick="showS4Step(6)" style="padding:14px 16px;cursor:pointer;border-left:3px solid transparent;transition:all .2s;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div class="s4-num" style="width:24px;height:24px;border-radius:7px;background:#e5e7eb;color:#6b7280;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;">6</div>
+                <div><div style="font-size:11px;font-weight:700;color:#0f1729;">Resolved</div><div style="font-size:9px;color:#9ca3af;">Dismiss or escalate</div></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Two sample UIs: KYT Alert + Reactor Trace -->
-        <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+          <!-- Right: Content panel -->
+          <div style="flex:1;min-height:420px;position:relative;" id="s4Panel">
 
-          <!-- Panel 1: KYT Alert Detail -->
-          <div class="sample-ui">
-            <div class="sample-ui-header"><div class="sample-ui-dot" style="background:#ef4444;"></div><div class="sample-ui-dot" style="background:#eab308;"></div><div class="sample-ui-dot" style="background:#22c55e;"></div><span style="font-size:11px;color:#9ca3af;margin-left:8px;">KYT — Alert Detail</span></div>
-            <div class="sample-ui-body" style="padding:14px;">
-              <!-- Alert header -->
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                <div style="display:flex;align-items:center;gap:8px;">
+            <!-- STEP 1: Customer Withdrawal -->
+            <div class="s4-content active" id="s4c1" style="padding:24px;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+                <span style="font-size:10px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px;">Step 1</span>
+                <span style="font-size:10px;color:#9ca3af;">·</span>
+                <span style="font-size:10px;color:#9ca3af;">Your Bank's Crypto Portal</span>
+              </div>
+              <h3 style="font-size:20px;font-weight:800;color:#0f1729;margin:0 0 6px;">Customer Initiates Withdrawal</h3>
+              <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:20px;">A retail banking customer requests a 2.5 BTC withdrawal from their custody account to an external wallet address.</p>
+
+              <div style="border:1px solid #e5e7eb;border-radius:14px;padding:20px;background:#fafbfc;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                  <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#0f3057,#1a6b6a);display:flex;align-items:center;justify-content:center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 3L2 11h20L12 3z"/></svg></div>
+                  <span style="font-size:14px;font-weight:700;color:#0f1729;">Withdraw Crypto</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <div><label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Asset</label><div style="padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:white;font-size:13px;font-weight:600;color:#0f1729;display:flex;align-items:center;gap:6px;"><span style="width:20px;height:20px;border-radius:50%;background:#f7931a;display:flex;align-items:center;justify-content:center;"><svg width="10" height="10" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg></span>Bitcoin (BTC)</div></div>
+                  <div style="display:flex;gap:12px;">
+                    <div style="flex:1;"><label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Amount</label><div style="padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:white;font-size:13px;font-weight:600;color:#0f1729;">2.5 BTC <span style="color:#9ca3af;font-weight:400;">≈ $248,750</span></div></div>
+                    <div style="flex:1;"><label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Network Fee</label><div style="padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:white;font-size:13px;color:#6b7280;">0.00012 BTC (~$12)</div></div>
+                  </div>
+                  <div><label style="font-size:11px;font-weight:600;color:#6b7280;display:block;margin-bottom:4px;">Destination Address</label><div style="padding:10px 12px;border-radius:8px;border:1px solid #e5e7eb;background:white;font-size:12px;color:#0f1729;font-family:monospace;">bc1q7x9f4a2k8m3n5p6r7s8t9u0v1w2x3y4z5k3m2</div></div>
+                </div>
+                <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(2)">Submit Withdrawal →</button>
+              </div>
+            </div>
+
+            <!-- STEP 2: KYT Screening -->
+            <div class="s4-content" id="s4c2" style="padding:24px;display:none;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+                <span style="font-size:10px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px;">Step 2</span>
+                <span style="font-size:10px;color:#9ca3af;">·</span>
+                <span style="font-size:10px;color:#9ca3af;">Chainalysis KYT</span>
+              </div>
+              <h3 style="font-size:20px;font-weight:800;color:#0f1729;margin:0 0 6px;">Real-Time Transaction Screening</h3>
+              <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:20px;">Before the transaction is broadcast, KYT automatically screens the destination address against its risk database. This happens in under 1 second.</p>
+
+              <div style="border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
+                <div style="padding:10px 14px;background:#fafbfc;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#6366f1;"></div>
+                  <span style="font-size:11px;font-weight:600;color:#0f1729;">KYT — Transfer Screening</span>
+                </div>
+                <div style="padding:16px;">
+                  <div style="display:flex;gap:12px;margin-bottom:16px;">
+                    <div style="flex:1;padding:10px;border-radius:8px;background:#f8f9fb;"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Transaction</p><span style="font-size:13px;font-weight:700;color:#0f1729;">2.5 BTC</span><p style="font-size:10px;color:#6b7280;">Outbound withdrawal</p></div>
+                    <div style="flex:1;padding:10px;border-radius:8px;background:#f8f9fb;"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Destination</p><span style="font-size:11px;font-weight:600;color:#0f1729;font-family:monospace;">bc1q7x9...k3m2</span><p style="font-size:10px;color:#6b7280;">External wallet</p></div>
+                    <div style="flex:1;padding:10px;border-radius:8px;background:#f8f9fb;"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Latency</p><span style="font-size:13px;font-weight:700;color:#6366f1;">0.3s</span><p style="font-size:10px;color:#6b7280;">Screening time</p></div>
+                  </div>
+                  <!-- Screening steps -->
+                  <div style="display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(34,197,94,.04);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span style="font-size:11px;color:#0f1729;font-weight:600;">Sanctions screening</span><span style="font-size:10px;color:#22c55e;margin-left:auto;font-weight:600;">Clear</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(34,197,94,.04);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span style="font-size:11px;color:#0f1729;font-weight:600;">Direct exposure check</span><span style="font-size:10px;color:#22c55e;margin-left:auto;font-weight:600;">Clear</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.15);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:11px;color:#0f1729;font-weight:600;">Indirect exposure check</span><span style="font-size:10px;color:#eab308;margin-left:auto;font-weight:600;">⚠ Flagged</span></div>
+                  </div>
+                  <p style="font-size:10px;color:#6b7280;margin-top:10px;line-height:1.5;">Destination address has indirect (2nd-hop) exposure to an ATM service with limited KYC enforcement. Alert generated for analyst review.</p>
+                </div>
+              </div>
+              <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(3)">View Alert →</button>
+            </div>
+
+            <!-- STEP 3: Alert Detail -->
+            <div class="s4-content" id="s4c3" style="padding:24px;display:none;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+                <span style="font-size:10px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px;">Step 3</span>
+                <span style="font-size:10px;color:#9ca3af;">·</span>
+                <span style="font-size:10px;color:#9ca3af;">Chainalysis KYT</span>
+              </div>
+              <h3 style="font-size:20px;font-weight:800;color:#0f1729;margin:0 0 6px;">Alert Generated</h3>
+              <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:20px;">KYT automatically creates an alert with full context. The compliance team can review the exposure breakdown before deciding next steps.</p>
+
+              <div style="border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
+                <div style="padding:10px 14px;background:#fafbfc;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;">
+                  <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:#eab308;"></div><span style="font-size:11px;font-weight:600;color:#0f1729;">Alert #KYT-4821</span></div>
                   <span style="padding:3px 8px;border-radius:6px;font-size:10px;font-weight:700;background:rgba(234,179,8,.1);color:#eab308;">⚠ MEDIUM</span>
-                  <span style="font-size:12px;font-weight:700;color:#0f1729;">Alert #KYT-4821</span>
                 </div>
-                <span style="font-size:9px;color:#9ca3af;">Jun 12, 2026 · 2:14 PM</span>
+                <div style="padding:16px;">
+                  <div style="display:flex;gap:12px;margin-bottom:14px;">
+                    <div style="flex:1;padding:10px;border-radius:8px;background:#f8f9fb;"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Transfer</p><span style="font-size:14px;font-weight:800;color:#0f1729;">2.5 BTC</span><p style="font-size:10px;color:#6b7280;">≈ $248,750 USD</p></div>
+                    <div style="flex:1;padding:10px;border-radius:8px;background:#f8f9fb;"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Direction</p><span style="font-size:14px;font-weight:800;color:#0f1729;">Withdrawal</span><p style="font-size:10px;color:#6b7280;">Outbound to external</p></div>
+                    <div style="flex:1;padding:10px;border-radius:8px;background:#f8f9fb;"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Rule</p><span style="font-size:11px;font-weight:700;color:#eab308;">Indirect Exposure</span><p style="font-size:10px;color:#6b7280;">ATM · 2nd hop</p></div>
+                  </div>
+                  <!-- Exposure breakdown -->
+                  <p style="font-size:9px;color:#9ca3af;font-weight:600;margin-bottom:6px;">INDIRECT EXPOSURE BREAKDOWN</p>
+                  <div style="display:flex;flex-direction:column;gap:5px;">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:11px;"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span><span style="flex:1;color:#6b7280;">Exchange</span><div style="width:140px;height:6px;border-radius:3px;background:#e5e7eb;overflow:hidden;"><div style="width:88%;height:100%;border-radius:3px;background:#22c55e;"></div></div><span style="color:#0f1729;font-weight:600;min-width:40px;text-align:right;">88.2%</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:11px;"><span style="width:8px;height:8px;border-radius:50%;background:#6366f1;flex-shrink:0;"></span><span style="flex:1;color:#6b7280;">DeFi Protocol</span><div style="width:140px;height:6px;border-radius:3px;background:#e5e7eb;overflow:hidden;"><div style="width:8%;height:100%;border-radius:3px;background:#6366f1;"></div></div><span style="color:#0f1729;font-weight:600;min-width:40px;text-align:right;">7.6%</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:11px;"><span style="width:8px;height:8px;border-radius:50%;background:#eab308;flex-shrink:0;"></span><span style="flex:1;color:#6b7280;">ATM</span><div style="width:140px;height:6px;border-radius:3px;background:#e5e7eb;overflow:hidden;"><div style="width:4%;height:100%;border-radius:3px;background:#eab308;"></div></div><span style="color:#eab308;font-weight:600;min-width:40px;text-align:right;">4.2%</span></div>
+                  </div>
+                </div>
               </div>
-              <!-- Alert details -->
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
-                <div style="padding:8px;border-radius:8px;background:#f8f9fb;">
-                  <p style="font-size:9px;color:#9ca3af;font-weight:600;margin-bottom:2px;">Transfer</p>
-                  <span style="font-size:12px;font-weight:700;color:#0f1729;">2.5 BTC</span>
-                  <p style="font-size:9px;color:#6b7280;margin-top:1px;">≈ $248,750 USD</p>
+              <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(4)">Investigate in Reactor →</button>
+            </div>
+
+            <!-- STEP 4: Reactor Trace -->
+            <div class="s4-content" id="s4c4" style="padding:24px;display:none;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+                <span style="font-size:10px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px;">Step 4</span>
+                <span style="font-size:10px;color:#9ca3af;">·</span>
+                <span style="font-size:10px;color:#9ca3af;">Chainalysis Reactor</span>
+              </div>
+              <h3 style="font-size:20px;font-weight:800;color:#0f1729;margin:0 0 6px;">Trace the Indirect Exposure</h3>
+              <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:20px;">The analyst opens Reactor to visually trace where the indirect ATM exposure comes from. The graph reveals the full fund flow path.</p>
+
+              <div style="border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
+                <div style="padding:10px 14px;background:#fafbfc;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#0f3057;"></div>
+                  <span style="font-size:11px;font-weight:600;color:#0f1729;">Reactor — Fund Flow Graph</span>
                 </div>
-                <div style="padding:8px;border-radius:8px;background:#f8f9fb;">
-                  <p style="font-size:9px;color:#9ca3af;font-weight:600;margin-bottom:2px;">Direction</p>
-                  <span style="font-size:12px;font-weight:700;color:#0f1729;">Withdrawal</span>
-                  <p style="font-size:9px;color:#6b7280;margin-top:1px;">Outbound to external</p>
+                <div style="padding:20px;background:linear-gradient(135deg,#fafbfc,#f5f6f8);">
+                  <!-- Horizontal graph layout -->
+                  <div style="display:flex;align-items:center;gap:0;justify-content:center;">
+                    <!-- Node 1: Bank -->
+                    <div style="text-align:center;flex-shrink:0;">
+                      <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#0f3057,#1a6b6a);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;box-shadow:0 4px 12px rgba(15,48,87,.2);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 3L2 11h20L12 3z"/></svg></div>
+                      <div style="font-size:10px;font-weight:700;color:#0f1729;">Your Bank</div>
+                      <div style="font-size:8px;color:#9ca3af;">Customer wallet</div>
+                      <div style="margin-top:3px;padding:1px 6px;border-radius:3px;background:rgba(34,197,94,.1);display:inline-block;"><span style="font-size:8px;font-weight:600;color:#22c55e;">Low Risk</span></div>
+                    </div>
+                    <!-- Arrow 1 -->
+                    <div style="display:flex;flex-direction:column;align-items:center;padding:0 6px;flex-shrink:0;">
+                      <div style="font-size:8px;color:#6b7280;padding:2px 6px;background:white;border-radius:4px;border:1px solid #e5e7eb;margin-bottom:2px;white-space:nowrap;">2.5 BTC</div>
+                      <div style="width:50px;height:2px;background:linear-gradient(90deg,#1a6b6a,#6366f1);position:relative;"><div style="position:absolute;right:-3px;top:-3px;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #6366f1;"></div></div>
+                    </div>
+                    <!-- Node 2: Destination -->
+                    <div style="text-align:center;flex-shrink:0;">
+                      <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;box-shadow:0 4px 12px rgba(99,102,241,.2);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg></div>
+                      <div style="font-size:10px;font-weight:700;color:#0f1729;">Destination</div>
+                      <div style="font-size:8px;color:#9ca3af;font-family:monospace;">bc1q7x9...k3m2</div>
+                      <div style="margin-top:3px;padding:1px 6px;border-radius:3px;background:rgba(234,179,8,.1);display:inline-block;"><span style="font-size:8px;font-weight:600;color:#eab308;">Medium</span></div>
+                    </div>
+                    <!-- Arrow 2 -->
+                    <div style="display:flex;flex-direction:column;align-items:center;padding:0 6px;flex-shrink:0;">
+                      <div style="font-size:8px;color:#9ca3af;padding:2px 6px;background:white;border-radius:4px;border:1px solid #e5e7eb;margin-bottom:2px;white-space:nowrap;">historical</div>
+                      <div style="width:50px;height:2px;border-top:2px dashed #d1d5db;position:relative;"><div style="position:absolute;right:-3px;top:-4px;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #d1d5db;"></div></div>
+                    </div>
+                    <!-- Node 3: Exchange -->
+                    <div style="text-align:center;flex-shrink:0;">
+                      <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;box-shadow:0 4px 12px rgba(34,197,94,.2);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+                      <div style="font-size:10px;font-weight:700;color:#0f1729;">Major Exchange</div>
+                      <div style="font-size:8px;color:#9ca3af;">Intermediary · hop 1</div>
+                      <div style="margin-top:3px;padding:1px 6px;border-radius:3px;background:rgba(34,197,94,.1);display:inline-block;"><span style="font-size:8px;font-weight:600;color:#22c55e;">Low Risk</span></div>
+                    </div>
+                    <!-- Arrow 3 -->
+                    <div style="display:flex;flex-direction:column;align-items:center;padding:0 6px;flex-shrink:0;">
+                      <div style="font-size:8px;color:#9ca3af;padding:2px 6px;background:white;border-radius:4px;border:1px solid #e5e7eb;margin-bottom:2px;white-space:nowrap;">hop 2</div>
+                      <div style="width:50px;height:2px;border-top:2px dashed #eab308;position:relative;"><div style="position:absolute;right:-3px;top:-4px;width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid #eab308;"></div></div>
+                    </div>
+                    <!-- Node 4: ATM -->
+                    <div style="text-align:center;flex-shrink:0;">
+                      <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#eab308,#ca8a04);display:flex;align-items:center;justify-content:center;margin:0 auto 6px;box-shadow:0 4px 12px rgba(234,179,8,.2);border:2px solid #eab308;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="14" x2="6.01" y2="14"/><line x1="10" y1="14" x2="14" y2="14"/></svg></div>
+                      <div style="font-size:10px;font-weight:700;color:#eab308;">ATM Service</div>
+                      <div style="font-size:8px;color:#9ca3af;">Limited KYC · 4.2%</div>
+                      <div style="margin-top:3px;padding:1px 6px;border-radius:3px;background:rgba(234,179,8,.1);display:inline-block;"><span style="font-size:8px;font-weight:600;color:#eab308;">Medium</span></div>
+                    </div>
+                  </div>
+                  <!-- Legend -->
+                  <div style="display:flex;justify-content:center;gap:16px;margin-top:16px;padding-top:12px;border-top:1px solid #e5e7eb;">
+                    <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#6b7280;"><div style="width:16px;height:2px;background:#6366f1;"></div>Direct transfer</div>
+                    <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#6b7280;"><div style="width:16px;height:2px;border-top:2px dashed #d1d5db;"></div>Historical flow</div>
+                    <div style="display:flex;align-items:center;gap:4px;font-size:9px;color:#6b7280;"><div style="width:16px;height:2px;border-top:2px dashed #eab308;"></div>Flagged exposure</div>
+                  </div>
                 </div>
               </div>
-              <!-- Rule triggered -->
-              <div style="padding:10px;border-radius:8px;border:1px solid rgba(234,179,8,.2);background:rgba(234,179,8,.04);margin-bottom:12px;">
-                <p style="font-size:9px;color:#eab308;font-weight:700;margin-bottom:4px;">RULE TRIGGERED</p>
-                <p style="font-size:11px;font-weight:600;color:#0f1729;">Indirect Exposure — Sanctioned Entity</p>
-                <p style="font-size:10px;color:#6b7280;margin-top:2px;">Destination address has 2nd-hop exposure to OFAC-sanctioned entity via intermediary exchange (0.08% of total volume).</p>
+              <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:linear-gradient(135deg,#0f3057,#1a6b6a);color:white;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(5)">Review Context →</button>
+            </div>
+
+            <!-- STEP 5: Analyst Review -->
+            <div class="s4-content" id="s4c5" style="padding:24px;display:none;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+                <span style="font-size:10px;font-weight:700;color:#6366f1;text-transform:uppercase;letter-spacing:1px;">Step 5</span>
+                <span style="font-size:10px;color:#9ca3af;">·</span>
+                <span style="font-size:10px;color:#9ca3af;">Compliance Review</span>
               </div>
-              <!-- Exposure bar -->
-              <p style="font-size:9px;color:#9ca3af;font-weight:600;margin-bottom:4px;">INDIRECT EXPOSURE BREAKDOWN</p>
-              <div style="display:flex;flex-direction:column;gap:4px;">
-                <div style="display:flex;align-items:center;gap:6px;font-size:10px;">
-                  <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span>
-                  <span style="flex:1;color:#6b7280;">Exchange</span>
-                  <div style="width:80px;height:4px;border-radius:2px;background:#e5e7eb;"><div style="width:92%;height:100%;border-radius:2px;background:#22c55e;"></div></div>
-                  <span style="color:#0f1729;font-weight:600;">92.4%</span>
+              <h3 style="font-size:20px;font-weight:800;color:#0f1729;margin:0 0 6px;">Analyst Reviews the Evidence</h3>
+              <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:20px;">With the full picture from KYT and Reactor, the compliance analyst assesses the risk and makes a disposition decision.</p>
+
+              <div style="border:1px solid #e5e7eb;border-radius:14px;overflow:hidden;">
+                <div style="padding:10px 14px;background:#fafbfc;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;">
+                  <div style="width:8px;height:8px;border-radius:50%;background:#1a6b6a;"></div>
+                  <span style="font-size:11px;font-weight:600;color:#0f1729;">Case Review — Alert #KYT-4821</span>
                 </div>
-                <div style="display:flex;align-items:center;gap:6px;font-size:10px;">
-                  <span style="width:6px;height:6px;border-radius:50%;background:#6366f1;flex-shrink:0;"></span>
-                  <span style="flex:1;color:#6b7280;">DeFi Protocol</span>
-                  <div style="width:80px;height:4px;border-radius:2px;background:#e5e7eb;"><div style="width:7%;height:100%;border-radius:2px;background:#6366f1;"></div></div>
-                  <span style="color:#0f1729;font-weight:600;">7.5%</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:6px;font-size:10px;">
-                  <span style="width:6px;height:6px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span>
-                  <span style="flex:1;color:#6b7280;">Sanctioned Entity</span>
-                  <div style="width:80px;height:4px;border-radius:2px;background:#e5e7eb;"><div style="width:1%;height:100%;border-radius:2px;background:#ef4444;"></div></div>
-                  <span style="color:#ef4444;font-weight:600;">0.08%</span>
+                <div style="padding:16px;">
+                  <!-- Key findings -->
+                  <p style="font-size:10px;font-weight:700;color:#0f1729;margin-bottom:8px;">Key Findings</p>
+                  <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+                    <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:#f8f9fb;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" style="flex-shrink:0;margin-top:1px;"><polyline points="20 6 9 17 4 12"/></svg>
+                      <div><span style="font-size:11px;font-weight:600;color:#0f1729;">No direct sanctioned exposure</span><p style="font-size:10px;color:#6b7280;margin:2px 0 0;">Destination wallet has no direct connections to sanctioned entities or darknet markets.</p></div>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:#f8f9fb;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2.5" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+                      <div><span style="font-size:11px;font-weight:600;color:#0f1729;">Indirect ATM exposure (4.2%)</span><p style="font-size:10px;color:#6b7280;margin:2px 0 0;">2nd-hop connection through a major regulated exchange to an ATM service with limited KYC. This is a common pattern for retail users.</p></div>
+                    </div>
+                    <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;background:#f8f9fb;">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" style="flex-shrink:0;margin-top:1px;"><polyline points="20 6 9 17 4 12"/></svg>
+                      <div><span style="font-size:11px;font-weight:600;color:#0f1729;">Intermediary is well-known exchange</span><p style="font-size:10px;color:#6b7280;margin:2px 0 0;">The hop-1 intermediary is a large, regulated exchange with full KYC/AML programs in place.</p></div>
+                    </div>
+                  </div>
+                  <!-- Disposition -->
+                  <p style="font-size:10px;font-weight:700;color:#0f1729;margin-bottom:8px;">Disposition</p>
+                  <div style="display:flex;gap:8px;">
+                    <button style="flex:1;padding:10px;border-radius:8px;background:rgba(34,197,94,.08);border:2px solid #22c55e;color:#22c55e;font-size:12px;font-weight:700;cursor:pointer;" onclick="showS4Step(6)">✓ Dismiss Alert</button>
+                    <button style="flex:1;padding:10px;border-radius:8px;background:white;border:1px solid #e5e7eb;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;">↑ Escalate to SAR</button>
+                    <button style="flex:1;padding:10px;border-radius:8px;background:white;border:1px solid #e5e7eb;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;">⊘ Block Transfer</button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Panel 2: Reactor Trace -->
-          <div class="sample-ui">
-            <div class="sample-ui-header"><div class="sample-ui-dot" style="background:#ef4444;"></div><div class="sample-ui-dot" style="background:#eab308;"></div><div class="sample-ui-dot" style="background:#22c55e;"></div><span style="font-size:11px;color:#9ca3af;margin-left:8px;">Reactor — Fund Trace</span></div>
-            <div class="sample-ui-body" style="padding:14px;">
-              <!-- Graph visualization -->
-              <div style="position:relative;padding:16px 0;">
-                <!-- Node 1: Customer -->
-                <div style="display:flex;align-items:center;gap:0;margin-bottom:0;">
-                  <div style="display:flex;align-items:center;gap:8px;flex:1;">
-                    <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#0f3057,#1a6b6a);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M12 3L2 11h20L12 3z"/></svg></div>
-                    <div>
-                      <div style="font-size:11px;font-weight:700;color:#0f1729;">Your Bank</div>
-                      <div style="font-size:9px;color:#9ca3af;">Customer wallet</div>
-                      <div style="font-size:9px;color:#22c55e;font-weight:600;">● Low Risk</div>
-                    </div>
+            <!-- STEP 6: Resolved -->
+            <div class="s4-content" id="s4c6" style="padding:24px;display:none;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+                <span style="font-size:10px;font-weight:700;color:#22c55e;text-transform:uppercase;letter-spacing:1px;">Step 6</span>
+                <span style="font-size:10px;color:#9ca3af;">·</span>
+                <span style="font-size:10px;color:#9ca3af;">Complete</span>
+              </div>
+              <h3 style="font-size:20px;font-weight:800;color:#0f1729;margin:0 0 6px;">Alert Resolved</h3>
+              <p style="font-size:13px;color:#6b7280;line-height:1.6;margin-bottom:20px;">The alert is dismissed with full documentation. The transaction is approved and the audit trail is preserved.</p>
+
+              <div style="border:1px solid rgba(34,197,94,.2);border-radius:14px;overflow:hidden;background:rgba(34,197,94,.02);">
+                <div style="padding:10px 14px;background:rgba(34,197,94,.06);border-bottom:1px solid rgba(34,197,94,.15);display:flex;align-items:center;gap:6px;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                  <span style="font-size:11px;font-weight:700;color:#22c55e;">Alert #KYT-4821 — Dismissed</span>
+                </div>
+                <div style="padding:16px;">
+                  <div style="display:flex;gap:12px;margin-bottom:16px;">
+                    <div style="flex:1;padding:10px;border-radius:8px;background:white;border:1px solid rgba(34,197,94,.12);"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Status</p><span style="font-size:13px;font-weight:700;color:#22c55e;">Dismissed</span></div>
+                    <div style="flex:1;padding:10px;border-radius:8px;background:white;border:1px solid rgba(34,197,94,.12);"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Transfer</p><span style="font-size:13px;font-weight:700;color:#22c55e;">Approved ✓</span></div>
+                    <div style="flex:1;padding:10px;border-radius:8px;background:white;border:1px solid rgba(34,197,94,.12);"><p style="font-size:9px;color:#9ca3af;font-weight:600;">Reviewed By</p><span style="font-size:13px;font-weight:700;color:#0f1729;">M. Chen</span></div>
                   </div>
-                </div>
-                <!-- Arrow down -->
-                <div style="margin-left:22px;display:flex;flex-direction:column;align-items:center;padding:4px 0;">
-                  <div style="width:2px;height:16px;background:linear-gradient(180deg,#1a6b6a,#6366f1);"></div>
-                  <div style="font-size:8px;color:#6b7280;padding:2px 6px;background:#f8f9fb;border-radius:4px;border:1px solid #e5e7eb;">2.5 BTC</div>
-                  <div style="width:2px;height:16px;background:linear-gradient(180deg,#6366f1,#6366f1);"></div>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="#6366f1" stroke="none"><path d="M12 16l-6-6h12l-6 6z"/></svg>
-                </div>
-                <!-- Node 2: Destination -->
-                <div style="display:flex;align-items:center;gap:0;margin-bottom:0;">
-                  <div style="display:flex;align-items:center;gap:8px;flex:1;">
-                    <div style="width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#818cf8);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg></div>
-                    <div>
-                      <div style="font-size:11px;font-weight:700;color:#0f1729;">Destination Wallet</div>
-                      <div style="font-size:9px;color:#9ca3af;font-family:monospace;">bc1q7x9...k3m2</div>
-                      <div style="font-size:9px;color:#eab308;font-weight:600;">● Medium Risk</div>
-                    </div>
+                  <!-- Analyst notes -->
+                  <div style="padding:12px;border-radius:8px;background:white;border:1px solid #e5e7eb;">
+                    <p style="font-size:9px;color:#9ca3af;font-weight:600;margin-bottom:4px;">ANALYST NOTES</p>
+                    <p style="font-size:11px;color:#0f1729;line-height:1.6;margin:0;">"Indirect ATM exposure via major regulated exchange. ATM exposure is 4.2% at 2nd hop — well below our 10% threshold for indirect non-KYC services. No direct exposure to illicit categories. Transaction approved per Policy §4.3.2."</p>
                   </div>
-                  <!-- Indirect branch -->
-                  <div style="display:flex;align-items:center;gap:0;">
-                    <div style="width:30px;height:2px;background:#e5e7eb;"></div>
-                    <div style="display:flex;flex-direction:column;gap:4px;">
-                      <div style="display:flex;align-items:center;gap:6px;">
-                        <div style="width:28px;height:28px;border-radius:8px;background:rgba(234,179,8,.1);display:flex;align-items:center;justify-content:center;"><span style="font-size:8px;font-weight:800;color:#eab308;">EX</span></div>
-                        <div><div style="font-size:9px;font-weight:600;color:#0f1729;">Major Exchange</div><div style="font-size:8px;color:#9ca3af;">Intermediary · hop 1</div></div>
-                      </div>
-                    </div>
+                  <!-- Audit trail -->
+                  <p style="font-size:9px;color:#9ca3af;font-weight:600;margin-top:14px;margin-bottom:6px;">AUDIT TRAIL</p>
+                  <div style="display:flex;flex-direction:column;gap:4px;">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:#6b7280;"><span style="color:#9ca3af;min-width:56px;">2:14 PM</span><span>Alert generated by KYT — Indirect exposure rule triggered</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:#6b7280;"><span style="color:#9ca3af;min-width:56px;">2:15 PM</span><span>Assigned to M. Chen (Compliance Analyst II)</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:#6b7280;"><span style="color:#9ca3af;min-width:56px;">2:18 PM</span><span>Reactor investigation opened — fund flow traced</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:#6b7280;"><span style="color:#9ca3af;min-width:56px;">2:22 PM</span><span>Alert dismissed — de minimis indirect exposure</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:10px;color:#6b7280;"><span style="color:#9ca3af;min-width:56px;">2:22 PM</span><span style="color:#22c55e;font-weight:600;">Transaction approved and broadcast ✓</span></div>
                   </div>
-                </div>
-                <!-- Dotted line to sanctioned -->
-                <div style="margin-left:175px;display:flex;align-items:center;gap:6px;padding:6px 0;">
-                  <div style="width:2px;height:12px;border-left:2px dashed #ef4444;margin-left:12px;"></div>
-                </div>
-                <!-- Node 3: Sanctioned -->
-                <div style="display:flex;align-items:center;gap:8px;margin-left:155px;">
-                  <div style="width:32px;height:32px;border-radius:8px;background:rgba(239,68,68,.1);border:2px solid #ef4444;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg></div>
-                  <div><div style="font-size:9px;font-weight:700;color:#ef4444;">Sanctioned Entity</div><div style="font-size:8px;color:#9ca3af;">OFAC-listed · hop 2 · 0.08%</div></div>
                 </div>
               </div>
-              <!-- Analyst verdict -->
-              <div style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.15);">
-                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  <span style="font-size:10px;font-weight:700;color:#22c55e;">ALERT DISMISSED</span>
-                </div>
-                <p style="font-size:10px;color:#6b7280;line-height:1.5;margin:0;">Indirect exposure via major regulated exchange. Sanctioned exposure is de minimis (0.08%) and 2 hops removed. No direct relationship. Transaction approved.</p>
-              </div>
+              <button style="margin-top:16px;width:100%;padding:12px;border-radius:10px;background:#e5e7eb;color:#6b7280;font-size:13px;font-weight:700;border:none;cursor:pointer;" onclick="showS4Step(1)">↺ Restart Walkthrough</button>
             </div>
           </div>
         </div>
 
-        <div class="cap-grid cols-2">
+        <!-- Product cards below -->
+        <div class="cap-grid cols-2" style="margin-top:24px;">
           <div class="cap-card reveal" style="padding:0;overflow:hidden;">
             <div style="padding:24px 28px;border-bottom:1px solid #e5e7eb;">
               <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
@@ -950,6 +1087,35 @@
         entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
       }, { threshold: 0.1 });
       document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+      // Stage 4 interactive step-through
+      function showS4Step(n) {
+        // Update timeline
+        document.querySelectorAll('.s4-step').forEach(s => {
+          const sn = parseInt(s.dataset.step);
+          s.style.borderLeftColor = sn === n ? '#6366f1' : 'transparent';
+          s.style.background = sn === n ? 'rgba(99,102,241,.04)' : 'transparent';
+          const num = s.querySelector('.s4-num');
+          if (sn < n) {
+            num.style.background = '#22c55e'; num.style.color = 'white';
+          } else if (sn === n) {
+            num.style.background = '#6366f1'; num.style.color = 'white';
+          } else {
+            num.style.background = '#e5e7eb'; num.style.color = '#6b7280';
+          }
+        });
+        // Update content panels
+        document.querySelectorAll('.s4-content').forEach(c => {
+          c.style.display = 'none';
+          c.style.opacity = '0';
+        });
+        const panel = document.getElementById('s4c' + n);
+        panel.style.display = 'block';
+        requestAnimationFrame(() => {
+          panel.style.transition = 'opacity 0.3s ease';
+          panel.style.opacity = '1';
+        });
+      }
 
       // Smooth scroll
       function scrollTo(id) { document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'start' }); }
