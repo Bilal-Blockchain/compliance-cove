@@ -12,7 +12,7 @@ Each "cove" is a fully functional prototype demonstrating how Chainalysis produc
 | **Banking** | `banking-demo.html` | ✅ Live | VASP Risking, Entity Monitoring, KYT, Data Solutions, Alterya |
 | **Merchant Services** | `merchant-demo.html` | ✅ Live | KYT, Address Screening |
 | **Exchange Onboarding** | `exchange-demo.html` | ✅ Live | Address Screening, KYT, VASP Risking |
-| **NFT Platform** | `nft-demo.html` | ✅ Live | Address Screening |
+| **Digital Marketplace** | `nft-demo.html` | ✅ Live | Address Screening |
 | **Crypto ATM** | `atm-demo.html` | ✅ Live | KYT, Address Screening |
 | **Gaming / Creator Economy** | `gaming-demo.html` | ✅ Live | Address Screening, KYT |
 | **Remittance / Money Transfer** | `remittance-demo.html` | ✅ Live | KYT, Address Screening |
@@ -71,7 +71,7 @@ banking-demo.html         # Banking — Crypto Readiness Journey
 demochain.html            # DeFi Trading demo
 merchant-demo.html        # Merchant Services demo
 exchange-demo.html        # Exchange Onboarding demo
-nft-demo.html             # NFT Platform demo
+nft-demo.html             # Digital Marketplace demo
 atm-demo.html             # Crypto ATM demo
 gaming-demo.html          # Gaming / Creator Economy demo
 remittance-demo.html      # Remittance / Money Transfer demo
