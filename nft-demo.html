@@ -1128,6 +1128,16 @@
       {id:'tornado',label:'🔴 Tornado Cash (Mixer)',address:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',risk:'Severe',story:'OFAC-sanctioned mixing service — $10B+ total volume.',category:'severe'},
       {id:'vitalik',label:'🔴 Vitalik Buterin',address:'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',risk:'Severe',story:'Surprise! Severe from dust attacks — shows why context matters.',category:'severe'},
     ];
+    
+    // Reactor deep link helper
+    function openInReactor(address, network) {
+      const net = (network || 'ETH').toUpperCase();
+      window.open('https://reactor.chainalysis.com/graphs/reactor/' + net + '/' + address, '_blank');
+    }
+    function reactorLinkHtml(address, network) {
+      const net = (network || 'ETH').toUpperCase();
+      return '<a href="https://reactor.chainalysis.com/graphs/reactor/' + net + '/' + address + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;color:#a855f7;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.12);text-decoration:none;transition:all .15s;margin-left:4px;" onmouseover="this.style.background=\'rgba(168,85,247,.15)\';this.style.borderColor=\'#a855f7\';" onmouseout="this.style.background=\'rgba(168,85,247,.08)\';this.style.borderColor=\'rgba(168,85,247,.12)\';"><svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 30 30\' fill=\'#a855f7\' width=\'10\' height=\'10\'><path d=\'M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0Z\'/></svg>Open in Reactor →</a>';
+    }
     function renderAddressPicker(inputId){
       const input=document.getElementById(inputId);if(!input||input.parentNode.querySelector('.addr-picker'))return;
       const w=document.createElement('div');w.className='addr-picker';w.style.cssText='position:relative;margin-top:6px;';
