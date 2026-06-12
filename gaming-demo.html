@@ -246,7 +246,7 @@
             <div class="game-timer-bar" id="timerBar" style="width:100%;"></div>
             <div class="game-hud">
               <div><span style="font-size:11px;color:rgba(255,255,255,.5);">SCORE</span><br/><span style="font-size:18px;font-weight:800;color:white;" class="mono" id="gameScore">0</span></div>
-              <div style="text-align:center;"><span style="font-size:11px;color:rgba(255,255,255,.5);">TIME</span><br/><span style="font-size:18px;font-weight:800;color:white;" class="mono" id="gameTimer">15</span></div>
+              <div style="text-align:center;"><span style="font-size:11px;color:rgba(255,255,255,.5);">TIME</span><br/><span style="font-size:18px;font-weight:800;color:white;" class="mono" id="gameTimer">10</span></div>
               <div style="text-align:right;"><span style="font-size:11px;color:rgba(255,255,255,.5);">STREAK</span><br/><span style="font-size:18px;font-weight:800;color:#a855f7;" class="mono" id="gameStreak">0</span></div>
             </div>
           </div>
@@ -564,7 +564,7 @@
     // =======================================================
     // GAME: RISK BLITZ (starts here)
     // =======================================================
-    const GAME_DURATION = 15;
+    const GAME_DURATION = 10;
     const BAD_TYPES = [
       {label:'Darknet\nMarket',icon:'🕸️'},{label:'Sanctioned\nEntity',icon:'🚫'},
       {label:'Ransomware',icon:'💀'},{label:'Scam\nWallet',icon:'⚠️'},
@@ -597,11 +597,11 @@
       document.querySelectorAll('.game-bubble,.hit-flash,.game-combo').forEach(e=>e.remove());
       gameActive=true;
       // Spawn loop
-      let spawnRate=1100;
+      let spawnRate=600;
       function spawnLoop(){
         if(!gameActive)return;
         spawnBubble();
-        spawnRate=Math.max(500,spawnRate-30);
+        spawnRate=Math.max(250,spawnRate-25);
         gameInterval=setTimeout(spawnLoop,spawnRate);
       }
       spawnLoop();
@@ -645,7 +645,7 @@
       };
       area.appendChild(bubble);
       // Auto-remove after lifespan
-      const life=1800+Math.random()*700;
+      const life=900+Math.random()*400;
       setTimeout(()=>{if(bubble.parentNode){bubble.style.opacity='0';setTimeout(()=>bubble.remove(),200);}},life);
     }
 
