@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light only" />
+    <title>Chainalysis for Banking — The Crypto Readiness Journey</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme: light; }
+      * { font-family: 'Inter', system-ui, sans-serif; }
+
+      /* ---- Hero ---- */
+      .bank-hero {
+        min-height: 100vh; display: flex; align-items: center; justify-content: center;
+        position: relative; overflow: hidden; padding: 60px 20px;
+        background: linear-gradient(165deg, #0a1628 0%, #0f3057 35%, #1a6b6a 70%, #2d9f8f 100%);
+      }
+      .bank-hero::before {
+        content: ''; position: absolute; inset: 0;
+        background: radial-gradient(ellipse 70% 50% at 30% 70%, rgba(26,107,106,.3), transparent),
+                    radial-gradient(ellipse 50% 40% at 75% 25%, rgba(45,159,143,.2), transparent);
+        pointer-events: none;
+      }
+      .hero-wave { position: absolute; bottom: -1px; left: 0; width: 100%; line-height: 0; }
+      .hero-wave svg { display: block; width: 100%; height: 70px; }
+      .hero-particle { position: absolute; border-radius: 50%; background: rgba(255,255,255,.04); pointer-events: none; }
+
+      /* ---- Section ---- */
+      .journey-section { padding: 80px 0; position: relative; }
+      .journey-section:nth-child(even) { background: var(--muted); }
+
+      /* ---- Stage card ---- */
+      .stage-card {
+        border-radius: 20px; background: var(--card); border: 1px solid var(--border);
+        box-shadow: 0 4px 24px rgba(0,0,0,.04);
+        overflow: hidden; transition: all .3s ease;
+      }
+      .stage-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,.08); transform: translateY(-2px); }
+
+      /* ---- Stage number ---- */
+      .stage-num {
+        width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center;
+        justify-content: center; font-size: 20px; font-weight: 900; color: white; flex-shrink: 0;
+      }
+
+      /* ---- Product chip ---- */
+      .product-chip {
+        display: inline-flex; align-items: center; gap: 4px; padding: 4px 12px;
+        border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap;
+        background: rgba(15,48,87,.06); color: #0f3057; border: 1px solid rgba(15,48,87,.1);
+      }
+
+      /* ---- Capability cards ---- */
+      .cap-card {
+        border-radius: 14px; background: var(--background); border: 1px solid var(--border);
+        padding: 16px; transition: all .2s;
+      }
+      .cap-card:hover { border-color: #1a6b6a; background: rgba(26,107,106,.02); }
+      .cap-icon {
+        width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center;
+        justify-content: center; margin-bottom: 10px; flex-shrink: 0;
+      }
+
+      /* ---- Journey timeline (horizontal) ---- */
+      .timeline { display: flex; align-items: center; gap: 0; max-width: 800px; margin: 0 auto; }
+      .tl-node {
+        display: flex; flex-direction: column; align-items: center; gap: 6px;
+        cursor: pointer; transition: all .2s; flex-shrink: 0; padding: 8px;
+      }
+      .tl-node:hover .tl-dot { transform: scale(1.2); }
+      .tl-dot {
+        width: 14px; height: 14px; border-radius: 50%; border: 3px solid #1a6b6a;
+        background: white; transition: all .2s;
+      }
+      .tl-node.active .tl-dot { background: #1a6b6a; box-shadow: 0 0 0 4px rgba(26,107,106,.15); }
+      .tl-line { flex: 1; height: 2px; background: linear-gradient(90deg, #1a6b6a, #2d9f8f); min-width: 20px; }
+      .tl-label { font-size: 10px; font-weight: 600; color: var(--muted-foreground); text-align: center; max-width: 80px; line-height: 1.3; }
+      .tl-node.active .tl-label { color: #0f3057; }
+
+      /* ---- Stat card ---- */
+      .stat-card {
+        text-align: center; padding: 20px 16px; border-radius: 14px;
+        background: rgba(255,255,255,.8); border: 1px solid rgba(255,255,255,.3);
+        backdrop-filter: blur(8px);
+      }
+      .stat-value { font-size: 28px; font-weight: 900; color: white; letter-spacing: -1px; }
+      .stat-label { font-size: 11px; color: rgba(255,255,255,.6); margin-top: 2px; }
+
+      /* ---- CTA section ---- */
+      .cta-section {
+        padding: 80px 0; text-align: center;
+        background: linear-gradient(165deg, #0a1628 0%, #0f3057 50%, #1a6b6a 100%);
+        position: relative;
+      }
+
+      /* ---- Reveal animation ---- */
+      .reveal { opacity: 0; transform: translateY(30px); }
+      .reveal.visible { opacity: 1; transform: translateY(0); transition: opacity .7s ease, transform .7s ease; }
+
+      /* ---- Responsive ---- */
+      @media (max-width: 768px) {
+        .timeline { flex-wrap: wrap; justify-content: center; }
+        .tl-line { display: none; }
+      }
+    </style>
+  </head>
+  <body class="bg-background text-foreground">
+
+    <!-- ================================================================ -->
+    <!-- HERO                                                              -->
+    <!-- ================================================================ -->
+    <div class="bank-hero">
+      <div class="hero-particle" style="width:250px;height:250px;top:10%;left:5%;"></div>
+      <div class="hero-particle" style="width:180px;height:180px;top:50%;right:8%;"></div>
+      <div class="hero-particle" style="width:120px;height:120px;bottom:25%;left:35%;"></div>
+
+      <div style="position:relative;z-index:1;max-width:720px;text-align:center;">
+        <!-- Chainalysis + Banking -->
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="rgba(255,255,255,.7)" width="20" height="20"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span style="font-size:13px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;">Chainalysis for Financial Institutions</span>
+        </div>
+
+        <h1 style="font-size:48px;font-weight:900;color:white;letter-spacing:-2px;line-height:1.1;margin:0;">
+          The Crypto Readiness<br/>Journey
+        </h1>
+        <p style="font-size:17px;color:rgba(255,255,255,.6);margin-top:16px;line-height:1.7;max-width:560px;display:inline-block;">
+          Every financial institution is at a different stage of crypto adoption. We meet you where you are — from initial education to full-scale transaction monitoring and fraud prevention.
+        </p>
+
+        <!-- Stats -->
+        <div class="flex gap-4 justify-center" style="margin-top:32px;">
+          <div style="text-align:center;"><span style="font-size:24px;font-weight:800;color:white;">1,100+</span><br/><span style="font-size:11px;color:rgba(255,255,255,.5);">Bank & FI Customers</span></div>
+          <div style="width:1px;height:36px;background:rgba(255,255,255,.15);"></div>
+          <div style="text-align:center;"><span style="font-size:24px;font-weight:800;color:white;">70+</span><br/><span style="font-size:11px;color:rgba(255,255,255,.5);">Countries</span></div>
+          <div style="width:1px;height:36px;background:rgba(255,255,255,.15);"></div>
+          <div style="text-align:center;"><span style="font-size:24px;font-weight:800;color:white;">5</span><br/><span style="font-size:11px;color:rgba(255,255,255,.5);">Journey Stages</span></div>
+        </div>
+
+        <a href="#journey" style="display:inline-flex;align-items:center;gap:6px;margin-top:32px;padding:10px 24px;border-radius:10px;background:rgba(255,255,255,.12);color:white;font-size:14px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.15);transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
+          Explore the Journey
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12l7 7 7-7"/></svg>
+        </a>
+      </div>
+
+      <div class="hero-wave"><svg viewBox="0 0 1440 70" preserveAspectRatio="none"><path d="M0,35 C360,65 720,0 1080,35 C1260,52 1380,20 1440,35 L1440,70 L0,70 Z" fill="var(--background)"/></svg></div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- JOURNEY TIMELINE (interactive nav)                                -->
+    <!-- ================================================================ -->
+    <div id="journey" style="padding:48px 0 0;">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="timeline reveal">
+          <div class="tl-node active" onclick="scrollToStage(1)"><div class="tl-dot"></div><div class="tl-label">Training &<br/>Enablement</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-node" onclick="scrollToStage(2)"><div class="tl-dot"></div><div class="tl-label">Know Your<br/>VASP</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-node" onclick="scrollToStage(3)"><div class="tl-dot"></div><div class="tl-label">Know Your<br/>Asset</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-node" onclick="scrollToStage(4)"><div class="tl-dot"></div><div class="tl-label">KYT +<br/>Reactor</div></div>
+          <div class="tl-line"></div>
+          <div class="tl-node" onclick="scrollToStage(5)"><div class="tl-dot"></div><div class="tl-label">Fraud<br/>Prevention</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- STAGE 1: Training & Enablement                                    -->
+    <!-- ================================================================ -->
+    <div class="journey-section" id="stage-1">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
+          <div class="stage-num" style="background:linear-gradient(135deg,#0f3057,#1a6b6a);">1</div>
+          <div style="flex:1;">
+            <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
+              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">Training & Enablement</h2>
+              <span class="product-chip">Pre-Crypto</span>
+            </div>
+            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+              Before touching crypto, your teams need foundational knowledge. We provide education programs tailored to compliance officers, risk managers, and leadership — building confidence in blockchain fundamentals and regulatory requirements.
+            </p>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4" style="margin-top:24px;">
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(15,48,87,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f3057" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+            <p class="text-sm font-bold">Instructor-Led Training</p>
+            <p class="text-xs text-muted-foreground mt-1">Custom workshops and boot camps for your compliance, risk, and operations teams — covering blockchain fundamentals, crypto typologies, and regulatory frameworks.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(26,107,106,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a6b6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <p class="text-sm font-bold">Self-Paced Certifications</p>
+            <p class="text-xs text-muted-foreground mt-1">Chainalysis Certification programs — Cryptocurrency Fundamentals (CCF) and Chainalysis Reactor Certification (CRC). Validate team readiness with industry-recognized credentials.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(45,159,143,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d9f8f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+            <p class="text-sm font-bold">Webinars & Enablement</p>
+            <p class="text-xs text-muted-foreground mt-1">Regular webinars, in-person enablement sessions, and executive briefings — keeping leadership aligned on market trends, regulatory changes, and risk considerations.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- STAGE 2: Know Your VASP                                           -->
+    <!-- ================================================================ -->
+    <div class="journey-section" id="stage-2">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
+          <div class="stage-num" style="background:linear-gradient(135deg,#1a6b6a,#2d9f8f);">2</div>
+          <div style="flex:1;">
+            <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
+              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">Know Your VASP</h2>
+              <span class="product-chip">VASP Risking</span>
+              <span class="product-chip">Entity Monitoring</span>
+            </div>
+            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+              Ready to bank crypto businesses? Before onboarding a VASP as a client, you need to understand who they are, who they transact with, where they're licensed, and how they compare to peers. Chainalysis provides the due diligence data to make informed decisions.
+            </p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4" style="margin-top:24px;">
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(26,107,106,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a6b6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+            <p class="text-sm font-bold">Counterparty Exposure Analysis</p>
+            <p class="text-xs text-muted-foreground mt-1">Understand a VASP's on-chain counterparties — who they transact with, their exposure to high-risk entities, and the risk profile of their user base.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(15,48,87,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f3057" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+            <p class="text-sm font-bold">Licensing & Jurisdiction Review</p>
+            <p class="text-xs text-muted-foreground mt-1">Verify a VASP's regulatory registrations, countries of operation, and compliance posture — critical for your own regulatory obligations when banking them.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(45,159,143,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d9f8f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+            <p class="text-sm font-bold">Peer Benchmarking</p>
+            <p class="text-xs text-muted-foreground mt-1">Compare a VASP against peers in its vertical — see how its risk profile, volume, and compliance posture stack up against similar businesses you already bank.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(26,107,106,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a6b6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+            <p class="text-sm font-bold">Ongoing Entity Monitoring</p>
+            <p class="text-xs text-muted-foreground mt-1">Continuously monitor the VASPs you've onboarded — get alerted to material changes in risk exposure, regulatory status, or counterparty relationships.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- STAGE 3: Know Your Asset                                          -->
+    <!-- ================================================================ -->
+    <div class="journey-section" id="stage-3">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
+          <div class="stage-num" style="background:linear-gradient(135deg,#2d9f8f,#34d399);">3</div>
+          <div style="flex:1;">
+            <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
+              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">Know Your Asset</h2>
+              <span class="product-chip">Data Solutions</span>
+              <span class="product-chip">Market Intelligence</span>
+            </div>
+            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+              When your institution starts holding, trading, or custody-ing crypto assets, you need to understand each token's health — its liquidity, whale concentration, smart contract risks, and market dynamics. Whether for your own balance sheet or for clients.
+            </p>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4" style="margin-top:24px;">
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(45,159,143,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2d9f8f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
+            <p class="text-sm font-bold">Token Liquidity Analysis</p>
+            <p class="text-xs text-muted-foreground mt-1">Assess on-chain liquidity depth, trading volume distribution, and DEX vs CEX concentration for any token you're evaluating.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(15,48,87,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0f3057" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+            <p class="text-sm font-bold">Whale Concentration</p>
+            <p class="text-xs text-muted-foreground mt-1">Monitor top holder distribution, track large wallet movements, and understand concentration risk before adding an asset to your offerings.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(26,107,106,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1a6b6a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <p class="text-sm font-bold">Token Health Score</p>
+            <p class="text-xs text-muted-foreground mt-1">A comprehensive health assessment covering inflow/outflow trends, holder growth, smart contract audit status, and overall market confidence.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- STAGE 4: KYT + Reactor                                            -->
+    <!-- ================================================================ -->
+    <div class="journey-section" id="stage-4">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
+          <div class="stage-num" style="background:linear-gradient(135deg,#0f3057,#4f46e5);">4</div>
+          <div style="flex:1;">
+            <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
+              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">KYT + Reactor</h2>
+              <span class="product-chip">KYT</span>
+              <span class="product-chip">Reactor</span>
+            </div>
+            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+              When you open crypto services to retail customers or high-net-worth individuals — offering custody, trading, or payments — you need real-time transaction monitoring and deep investigation capabilities. This is the full compliance operating system.
+            </p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4" style="margin-top:24px;">
+          <div class="stage-card reveal">
+            <div style="padding:20px;border-bottom:1px solid var(--border);">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#4f46e5,#6366f1);display:flex;align-items:center;justify-content:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                </div>
+                <h3 class="text-base font-bold">KYT — Transaction Monitoring</h3>
+              </div>
+              <p class="text-xs text-muted-foreground" style="line-height:1.6;">Real-time monitoring of every crypto inflow and outflow on your platform. Automated risk scoring, rule-based alerting, and case management for compliance teams.</p>
+            </div>
+            <div style="padding:16px 20px;">
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Automated alert generation on high-risk transfers</span></div>
+                <div class="flex items-center gap-2 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Source-of-funds and destination analysis</span></div>
+                <div class="flex items-center gap-2 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Customizable risk rules and thresholds</span></div>
+                <div class="flex items-center gap-2 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Full case management with audit trails</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="stage-card reveal">
+            <div style="padding:20px;border-bottom:1px solid var(--border);">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <div style="width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#0f3057,#1a6b6a);display:flex;align-items:center;justify-content:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </div>
+                <h3 class="text-base font-bold">Reactor — Investigation</h3>
+              </div>
+              <p class="text-xs text-muted-foreground" style="line-height:1.6;">When KYT generates an alert, your compliance analysts use Reactor to investigate — tracing funds through the blockchain, identifying counterparties, and building comprehensive cases.</p>
+            </div>
+            <div style="padding:16px 20px;">
+              <div class="space-y-2">
+                <div class="flex items-center gap-2 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Visual graph-based fund tracing</span></div>
+                <div class="flex items-center gap-2 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Entity attribution across 1,000+ services</span></div>
+                <div class="flex items-center gap-2 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>Cross-chain tracing and cluster analysis</span></div>
+                <div class="flex items-center gap-2 text-xs"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span>In-house or outsourced alert review</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- STAGE 5: Alterya — Fraud Prevention                               -->
+    <!-- ================================================================ -->
+    <div class="journey-section" id="stage-5">
+      <div class="max-w-4xl mx-auto px-4">
+        <div class="reveal" style="display:flex;gap:24px;align-items:flex-start;">
+          <div class="stage-num" style="background:linear-gradient(135deg,#dc2626,#f43f5e);">5</div>
+          <div style="flex:1;">
+            <div class="flex items-center gap-2 flex-wrap" style="margin-bottom:4px;">
+              <h2 style="font-size:28px;font-weight:800;letter-spacing:-.5px;margin:0;">Fraud Prevention with Alterya</h2>
+              <span class="product-chip" style="background:rgba(220,38,38,.06);color:#dc2626;border-color:rgba(220,38,38,.12);">Alterya</span>
+            </div>
+            <p class="text-muted-foreground" style="font-size:15px;line-height:1.7;margin-top:8px;max-width:560px;">
+              Complementing your compliance stack, Alterya provides a real-time fraud and scam prevention layer. It detects when your customers are about to send funds to known scam addresses — helping you <strong>prevent the fraud before it happens</strong>, not just report it after.
+            </p>
+          </div>
+        </div>
+        <div class="grid grid-cols-3 gap-4" style="margin-top:24px;">
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(220,38,38,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+            <p class="text-sm font-bold">Real-Time Scam Detection</p>
+            <p class="text-xs text-muted-foreground mt-1">Intercept outbound transactions to reported scam, pig butchering, and fraud addresses before they're broadcast — protecting your customers in real time.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(220,38,38,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <p class="text-sm font-bold">Proactive Prevention</p>
+            <p class="text-xs text-muted-foreground mt-1">Unlike reactive compliance, Alterya stops funds from leaving — dramatically reducing customer losses and the bank's liability exposure to fraud-related complaints.</p>
+          </div>
+          <div class="cap-card reveal">
+            <div class="cap-icon" style="background:rgba(220,38,38,.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg></div>
+            <p class="text-sm font-bold">Complementary Dataset</p>
+            <p class="text-xs text-muted-foreground mt-1">Alterya's fraud intelligence supplements KYT's compliance data — covering social engineering scams, phishing campaigns, and emerging fraud patterns that traditional AML misses.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- CTA                                                               -->
+    <!-- ================================================================ -->
+    <div class="cta-section">
+      <div class="max-w-4xl mx-auto px-4" style="position:relative;z-index:1;">
+        <h2 style="font-size:32px;font-weight:900;color:white;letter-spacing:-1px;margin:0;" class="reveal">Where Is Your Institution Today?</h2>
+        <p style="font-size:15px;color:rgba(255,255,255,.6);margin-top:12px;max-width:480px;display:inline-block;line-height:1.7;" class="reveal">
+          Whether you're just exploring crypto or running a full-scale custody operation, Chainalysis meets you at your stage and scales with you as you grow.
+        </p>
+        <div class="flex gap-3 justify-center" style="margin-top:24px;">
+          <a href="#stage-1" style="padding:10px 24px;border-radius:10px;background:white;color:#0f3057;font-size:14px;font-weight:700;text-decoration:none;transition:all .2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">Start the Journey</a>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:24px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="rgba(255,255,255,.5)" width="14" height="14"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span style="font-size:11px;color:rgba(255,255,255,.4);font-weight:500;">Chainalysis — Compliance Cove · Internal Use Only</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== SCRIPTS ==================== -->
+    <script src="/assets/gsap.min.js"></script>
+    <script>
+      // Scroll reveal
+      const reveals = document.querySelectorAll('.reveal');
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+      }, { threshold: 0.15 });
+      reveals.forEach(el => observer.observe(el));
+
+      // Smooth scroll to stage
+      function scrollToStage(n) {
+        document.getElementById('stage-' + n).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      // Update timeline nodes on scroll
+      const stages = [1,2,3,4,5];
+      window.addEventListener('scroll', () => {
+        const nodes = document.querySelectorAll('.tl-node');
+        let active = 0;
+        stages.forEach((n, i) => {
+          const el = document.getElementById('stage-' + n);
+          if (el && el.getBoundingClientRect().top < window.innerHeight * 0.5) active = i;
+        });
+        nodes.forEach((node, i) => node.classList.toggle('active', i <= active));
+      });
+
+      // Floating particles
+      document.querySelectorAll('.hero-particle').forEach(p => {
+        const dx = Math.random() * 30 - 15;
+        const dy = Math.random() * 20 - 10;
+        const dur = 5 + Math.random() * 5;
+        function drift() {
+          p.style.transition = `transform ${dur}s ease-in-out`;
+          p.style.transform = `translate(${dx}px, ${dy}px)`;
+          setTimeout(() => { p.style.transform = 'translate(0,0)'; setTimeout(drift, dur * 1000); }, dur * 1000);
+        }
+        drift();
+      });
+    </script>
+  </body>
+</html>
