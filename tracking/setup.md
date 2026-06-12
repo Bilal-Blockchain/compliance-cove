@@ -1,37 +1,43 @@
-# Compliance Cove — Analytics Setup
+# Compliance Cove — Slack Analytics Setup
 
-## One-time setup (2 minutes)
+Every demo page view posts a message to a Slack channel. Takes 3 minutes to set up.
 
-The demos track page views by POSTing to a Google Apps Script web app, which appends rows to your Google Sheet.
+## Setup
 
-### Your tracking sheet
-📊 **[Compliance Cove — Demo Analytics](https://docs.google.com/spreadsheets/d/1PbxMHjbUJKKNZZdCLg8smlJvOsCLAl3xV8w55mlNc88)**
+### 1. Create a Slack App (one-time)
 
-### Deploy the tracking endpoint
+1. Go to [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → **From scratch**
+2. Name it `Compliance Cove Analytics`, pick the **Chainalysis** workspace
+3. In the left sidebar, click **Incoming Webhooks** → toggle **Activate** to On
+4. Click **Add New Webhook to Workspace**
+5. Select the channel you want notifications in (e.g. `#compliance-cove-analytics`)
+6. Click **Allow**
+7. Copy the **Webhook URL** — looks like `https://hooks.slack.com/services/T.../B.../xxx`
 
-1. Open the Google Sheet above
-2. Go to **Extensions → Apps Script**
-3. Delete any existing code and paste the contents of `apps-script.js` (in this folder)
-4. Click **Deploy → New deployment**
-5. Choose **Web app** as the type
-6. Set:
-   - **Execute as:** Me
-   - **Who has access:** Anyone
-7. Click **Deploy**
-8. Copy the **Web app URL** (looks like `https://script.google.com/macros/s/AKfyc.../exec`)
-9. Open `compliance-cove.html` and find `TRACKING_URL` near the top of the `<script>` section
-10. Paste your URL there
+### 2. Set the URL in the code
 
-That's it! Every demo page view will now log to your sheet automatically.
+Open `compliance-cove.html`, find this line near the bottom:
 
-### What gets tracked
+```js
+var SLACK_WEBHOOK = '';
+```
 
-| Field | Example |
-|---|---|
-| Timestamp | 2026-06-12T15:30:00Z |
-| Demo | banking-demo |
-| Page URL | https://chain.chainalysis.com/page/abc123?... |
-| Session ID | abc123 (from URL path) |
-| User Agent | Mozilla/5.0... |
-| Referrer | (previous page) |
-| Screen | landing → send → compliance |
+Paste your webhook URL between the quotes. That's it — every demo view will now post to Slack.
+
+## What gets posted
+
+Each demo page view sends a formatted Slack message:
+
+```
+📊 Compliance Cove — Demo View
+Demo: Banking
+Time: Jun 12, 2026 3:30 PM
+Session: abc123
+Screen: 1440×900
+```
+
+## Privacy
+
+- No PII is collected — just demo name, timestamp, session ID, and viewport size
+- Session ID is the Chain page viewer path segment (anonymous)
+- Messages go to your private Slack channel only
