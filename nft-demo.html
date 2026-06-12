@@ -1112,5 +1112,40 @@
       renderActivity();
       updateUIState();
     </script>
+  
+    <!-- Pre-seeded address picker -->
+    <script>
+    (function() {
+      // Load addresses.js relative to current page
+      const s = document.createElement('script');
+      const params = new URLSearchParams(window.location.search);
+      const currentFile = params.get('filePath') || '';
+      const dir = currentFile.substring(0, currentFile.lastIndexOf('/') + 1);
+      if (window.location.pathname.startsWith('/page/')) {
+        s.src = window.location.pathname + '?filePath=' + encodeURIComponent(dir + 'addresses.js');
+      } else {
+        s.src = 'addresses.js';
+      }
+      s.onload = function() {
+        // Wait a moment for the DOM to be ready, then render picker
+        // We use MutationObserver to catch when the input becomes visible
+        const initPicker = () => {
+          const input = document.getElementById('addressInput');
+          if (input) renderAddressPicker('addressInput');
+        };
+        // Try immediately
+        initPicker();
+        // Also observe for dynamically shown screens
+        const observer = new MutationObserver(() => {
+          const input = document.getElementById('addressInput');
+          if (input && !input.parentNode.querySelector('[data-picker]')) {
+            renderAddressPicker('addressInput');
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true, attributes: true });
+      };
+      document.head.appendChild(s);
+    })();
+    </script>
   </body>
 </html>
