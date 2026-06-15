@@ -378,6 +378,7 @@
       const demos = [
         {
           id: 'defi-trading',
+          defaultBrand: 'DemoChain',
           title: 'DeFi Trading',
           status: 'active',
           url: 'demochain.html',
@@ -389,6 +390,7 @@
         },
         {
           id: 'banking',
+          defaultBrand: '',
           title: 'Banking',
           status: 'active',
           url: 'banking-demo.html',
@@ -400,6 +402,7 @@
         },
         {
           id: 'merchant-services',
+          defaultBrand: 'Basecamp',
           title: 'Merchant Services',
           status: 'active',
           url: 'merchant-demo.html',
@@ -411,6 +414,7 @@
         },
         {
           id: 'exchange-onboarding',
+          defaultBrand: 'VaultX',
           title: 'Exchange Onboarding',
           status: 'active',
           url: 'exchange-demo.html',
@@ -422,6 +426,7 @@
         },
         {
           id: 'nft-platform',
+          defaultBrand: 'NovaMint',
           title: 'Digital Marketplace',
           status: 'active',
           url: 'nft-demo.html',
@@ -433,6 +438,7 @@
         },
         {
           id: 'crypto-atm',
+          defaultBrand: 'CoinVault',
           title: 'Crypto ATM',
           status: 'active',
           url: 'atm-demo.html',
@@ -444,6 +450,7 @@
         },
         {
           id: 'gaming',
+          defaultBrand: 'NexusArena',
           title: 'Gaming / Creator Economy',
           status: 'active',
           url: 'gaming-demo.html',
@@ -499,6 +506,7 @@
         },
         {
           id: 'remittance',
+          defaultBrand: 'SwiftBridge',
           title: 'Remittance / Money Transfer',
           status: 'active',
           url: 'remittance-demo.html',
@@ -550,7 +558,12 @@
         card.dataset.products = JSON.stringify(d.products);
 
         if (isActive && d.url) {
-          card.onclick = () => window.open(buildPageUrl(d.url), '_blank');
+          card.onclick = () => {
+            let url = buildPageUrl(d.url);
+            const customBrand = card.dataset.customBrand;
+            if (customBrand) url += (url.includes('?') ? '&' : '?') + 'brand=' + encodeURIComponent(customBrand);
+            window.open(url, '_blank');
+          };
         }
 
         const statusBadge = isActive
@@ -560,6 +573,10 @@
         const launchLabel = isActive
           ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;">Launch Demo <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>'
           : '<span style="font-size:12px;color:var(--muted-foreground);">In Development</span>';
+
+        const customizeBtn = (isActive && d.defaultBrand)
+          ? `<button onclick="event.stopPropagation();customizeDemo(${i})" style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--foreground)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted-foreground)'">⚙️ Customize</button>`
+          : '';
 
         card.innerHTML = `
           <div class="demo-card-banner" style="background:${d.bannerGradient};">
@@ -579,7 +596,7 @@
             </div>
           </div>
           <div class="demo-card-footer">
-            <span style="font-size:11px;color:var(--muted-foreground);">Products: ${d.products.length}</span>
+            <span style="font-size:11px;color:var(--muted-foreground);">${customizeBtn}</span>
             ${launchLabel}
           </div>
         `;
@@ -648,6 +665,25 @@
         });
       }
 
+      
+      // Customize demo branding
+      function customizeDemo(index) {
+        const d = demos[index];
+        const card = document.querySelector(`.demo-card[data-index="${index}"]`);
+        const current = card.dataset.customBrand || d.defaultBrand;
+        const name = prompt(`Customize "${d.title}" for your prospect:\n\nEnter company name (or leave blank for default "${d.defaultBrand}"):`, current);
+        if (name === null) return; // cancelled
+        if (name.trim() && name.trim() !== d.defaultBrand) {
+          card.dataset.customBrand = name.trim();
+          // Visual indicator that this demo is customized
+          const footer = card.querySelector('.demo-card-footer span');
+          if (footer) footer.innerHTML = `⚙️ <span style="color:var(--primary);font-weight:600;">${name.trim()}</span>`;
+        } else {
+          delete card.dataset.customBrand;
+          const footer = card.querySelector('.demo-card-footer span');
+          if (footer) footer.innerHTML = `<button onclick="event.stopPropagation();customizeDemo(${index})" style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--foreground)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted-foreground)'">⚙️ Customize</button>`;
+        }
+      }
       // Floating particles
       document.querySelectorAll('.hero-particle').forEach(p => {
         gsap.to(p, {
@@ -665,20 +701,6 @@
   
     
   
-    <!-- Compliance Cove Analytics — Slack -->
-    <script>
-    (function(){
-      var SLACK_WEBHOOK = '';
-      if(!SLACK_WEBHOOK)return;
-      var demo=document.title.split('—')[0].trim();
-      var loc=window.location;
-      var sid=(loc.pathname.match(/\/page\/([^/?]+)/)||[])[1]||'local';
-      var now=new Date();
-      var ts=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-      try{
-        fetch(SLACK_WEBHOOK,{method:'POST',mode:'no-cors',body:JSON.stringify({text:'📊 *Compliance Cove — Demo View*\n>*Demo:* '+demo+'\n>*Time:* '+ts+'\n>*Session:* `'+sid+'`\n>*Screen:* '+window.innerWidth+'×'+window.innerHeight})});
-      }catch(e){}
-    })();
-    </script>
+    
   </body>
 </html>
