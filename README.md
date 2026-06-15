@@ -55,6 +55,49 @@ Full gaming platform with wallet connect, compliance screening, a 10-second "Ris
 ### 💸 Remittance — SwiftBridge
 Cross-border payment app with animated globe background showing transfer corridors, country selection, real-time compliance screening, and travel rule enforcement.
 
+
+## Customizing Demos for Prospects
+
+### Quick: ⚙️ Button on the Hub
+Each demo card has a **⚙️ Customize** button. Click it, type a company name, and the demo opens with that branding. The name is passed via URL param (`?brand=Chase+Digital`) and swapped throughout the page on load.
+
+| Demo | Default Brand | Example Custom |
+|---|---|---|
+| DeFi Trading | DemoChain | Uniswap Pro |
+| Exchange | VaultX | Chase Digital |
+| Gaming | NexusArena | Epic Crypto |
+| Merchant | Basecamp | Shopify Crypto |
+| ATM | CoinVault | BitAccess |
+| Digital Marketplace | NovaMint | OpenSea |
+| Remittance | SwiftBridge | Western Union Digital |
+
+### Deep: Chain Prompts for Full Rebranding
+For a fully customized demo with logo changes, color schemes, and industry-specific content, use these Chain prompts:
+
+**Rebrand an existing demo:**
+```
+I have Compliance Cove in my workspace. Rebrand the Exchange demo
+for "Chase Digital" with brand color #0052FF. Update the logo text,
+accent colors, and company name throughout. Save as chase-exchange-demo.html
+and add it to the hub.
+```
+
+**Create a new industry demo:**
+```
+I have Compliance Cove in my workspace. Read the existing demos to
+understand the patterns. Create a new "Insurance" cove that shows
+how an insurance company would use Reactor and KYT to investigate
+crypto-related claims. Add it to the hub.
+```
+
+**Customize for a specific customer call:**
+```
+I have Compliance Cove in my workspace. I have a call with [Bank Name]
+tomorrow. Customize the Banking demo to reference their specific
+compliance challenges around stablecoin custody. Update Stage 3 to
+focus on USDC and USDT monitoring.
+```
+
 ## Adding a New Demo
 
 1. Create your demo HTML file (e.g., `insurance-demo.html`)
