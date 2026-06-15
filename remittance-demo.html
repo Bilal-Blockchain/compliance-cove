@@ -456,19 +456,27 @@
   
     
   
-    <!-- Compliance Cove Analytics — Slack -->
+    
+  
+    <!-- Brand customization (brand-swap) -->
     <script>
     (function(){
-      var SLACK_WEBHOOK = '';
-      if(!SLACK_WEBHOOK)return;
-      var demo=document.title.split('—')[0].trim();
-      var loc=window.location;
-      var sid=(loc.pathname.match(/\/page\/([^/?]+)/)||[])[1]||'local';
-      var now=new Date();
-      var ts=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' '+now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-      try{
-        fetch(SLACK_WEBHOOK,{method:'POST',mode:'no-cors',body:JSON.stringify({text:'📊 *Compliance Cove — Demo View*\n>*Demo:* '+demo+'\n>*Time:* '+ts+'\n>*Session:* `'+sid+'`\n>*Screen:* '+window.innerWidth+'×'+window.innerHeight})});
-      }catch(e){}
+      var p=new URLSearchParams(window.location.search);
+      var brand=p.get('brand');
+      if(!brand||brand==='SwiftBridge')return;
+      // Wait for DOM then replace all visible instances
+      function swap(){
+        var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+        while(walker.nextNode()){
+          if(walker.currentNode.textContent.includes('SwiftBridge')){
+            walker.currentNode.textContent=walker.currentNode.textContent.split('SwiftBridge').join(brand);
+          }
+        }
+        // Also update <title>
+        document.title=document.title.split('SwiftBridge').join(brand);
+      }
+      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',swap);
+      else swap();
     })();
     </script>
   </body>
