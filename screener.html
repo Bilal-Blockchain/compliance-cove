@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Address Screener" />
+    <title>Address Screener — Chainalysis</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        color-scheme: light;
+        --background:#ffffff;--foreground:#0f1729;--card:#ffffff;--card-foreground:#0f1729;
+        --muted:#f4f5f7;--muted-foreground:#6b7280;--border:#e5e7eb;--input:#e5e7eb;
+        --primary:#0f3057;--primary-foreground:#ffffff;--destructive:#ef4444;--success:#16a34a;--warning:#d97706;--info:#2563eb;
+        --ch-navy:#0c1e3a;--ch-blue:#0f3057;--ch-teal:#1a6b6a;--ch-mint:#2d9f8f;--ch-orange:#F7931A;
+      }
+      *{font-family:'Inter',system-ui,sans-serif;} body{background:#ffffff!important;color:#0f1729!important;}
+      .mono{font-family:'JetBrains Mono',monospace;}
+
+      /* Header */
+      .ch-header{background:linear-gradient(135deg,var(--ch-navy)0%,var(--ch-blue)50%,var(--ch-teal)100%);padding:28px 0 32px;position:relative;overflow:hidden;}
+      .ch-header::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 80% 30%,rgba(45,159,143,0.2),transparent);pointer-events:none;}
+      .ch-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);font-size:11px;font-weight:600;color:rgba(255,255,255,0.85);}
+
+      /* Cards */
+      .scr-card{border-radius:14px;background:#ffffff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:border-color .2s,box-shadow .2s;}
+      .scr-card:hover{border-color:#d1d5db;box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+
+      /* Input */
+      .scr-input-wrap{position:relative;}
+      .scr-input{width:100%;box-sizing:border-box;height:52px;border-radius:12px;border:1px solid var(--border);background:var(--muted);padding:0 130px 0 16px;font-size:14px;font-family:'JetBrains Mono',monospace;color:var(--foreground);outline:none;transition:all .2s;}
+      .scr-input::placeholder{color:var(--muted-foreground);font-family:'Inter',sans-serif;font-size:13px;}
+      .scr-input:focus{border-color:var(--ch-teal);box-shadow:0 0 0 3px rgba(26,107,106,0.1);background:#fff;}
+      .scr-submit{position:absolute;right:5px;top:5px;height:42px;padding:0 18px;border-radius:9px;border:none;cursor:pointer;background:linear-gradient(135deg,var(--ch-blue),var(--ch-teal));color:white;font-size:13px;font-weight:700;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+      .scr-submit:hover{box-shadow:0 4px 16px rgba(15,48,87,0.25);}
+      .scr-submit:disabled{opacity:0.5;cursor:not-allowed;box-shadow:none;}
+
+      /* Stats */
+      .stat-card{text-align:center;padding:16px 12px;border-radius:12px;background:var(--muted);}
+      .stat-value{font-size:22px;font-weight:800;letter-spacing:-0.5px;}
+      .stat-label{font-size:11px;color:var(--muted-foreground);margin-top:2px;font-weight:500;}
+
+      /* Risk gauge */
+      .risk-gauge{width:180px;height:100px;position:relative;margin:0 auto;}
+      .risk-gauge svg{width:100%;height:100%;}
+
+      /* Exposure */
+      .exp-row{display:flex;align-items:center;gap:6px;padding:4px 0;}
+      .exp-label{min-width:110px;text-align:right;font-size:11px;color:var(--muted-foreground);}
+      .exp-bar-bg{flex:1;height:7px;border-radius:4px;background:var(--muted);overflow:hidden;}
+      .exp-bar{height:100%;border-radius:4px;transition:width .8s cubic-bezier(0.16,1,0.3,1);}
+      .exp-value{min-width:65px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;}
+      .exp-type{font-size:9px;font-weight:600;padding:1px 5px;border-radius:4px;white-space:nowrap;}
+
+      /* Triggers */
+      .trigger-row{padding:10px 12px;border-radius:8px;border:1px solid var(--border);transition:all .15s;}
+      .trigger-row:hover{border-color:#d1d5db;background:var(--muted);}
+
+      /* Section heads */
+      .section-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+      .section-head-line{flex:1;height:1px;background:var(--border);}
+
+      /* History */
+      .history-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer;transition:all .15s;border:1px solid transparent;}
+      .history-item:hover{background:var(--muted);border-color:var(--border);}
+      .history-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+      /* Skeleton */
+      @keyframes shimmer{0%{background-position:-200% 0;}100%{background-position:200% 0;}}
+      .skeleton{background:linear-gradient(90deg,var(--muted)25%,#e8eaed 50%,var(--muted)75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:8px;}
+
+      @keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+      .fade-up{animation:fadeUp .35s ease both;}
+
+      /* Detail row */
+      .detail-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--muted);}
+      .detail-row:last-child{border-bottom:none;}
+
+      /* Footer */
+      .ch-footer{border-top:1px solid var(--border);padding:24px 0;margin-top:40px;}
+    
+      .cove-disclaimer {
+        display:flex;align-items:flex-start;gap:8px;
+        padding:10px 14px;margin:8px 0;border-radius:8px;
+        background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.15);
+        font-size:11px;line-height:1.5;color:#1a6b6a;
+      }
+      .cove-disclaimer svg{flex-shrink:0;margin-top:1px;color:#1a6b6a;}
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+
+    <!-- Header -->
+    <div class="ch-header">
+      <div class="max-w-5xl mx-auto px-4" style="position:relative;z-index:1;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#F7931A" width="28" height="28"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            <div>
+              <h1 class="text-xl font-bold" style="color:white;letter-spacing:-0.5px;">Address Screener</h1>
+              <p style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:1px;">Chainalysis Address Screening API</p>
+            </div>
+          </div>
+          <div class="ch-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="rgba(255,255,255,0.7)" width="13" height="13"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            Chainalysis
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="max-w-5xl mx-auto px-4" style="margin-top:-16px;">
+      <div class="space-y-5">
+        <!-- Search -->
+        <div class="scr-card" style="padding:20px;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+          <div style="margin-bottom:14px;">
+            <p class="text-sm" style="color:var(--foreground);line-height:1.7;">Screen any blockchain address against the <strong>Chainalysis Address Screening API</strong> to instantly assess risk. See the full risk level, entity identifications, on-chain exposure breakdown, and triggered compliance rules — the same data that powers screening for 1,100+ customers worldwide.</p>
+          </div>
+          <div class="scr-input-wrap">
+            <input id="addrInput" class="scr-input" type="text" placeholder="Paste any blockchain address…" autocomplete="off"/>
+            <button id="screenBtn" class="scr-submit" onclick="doScreen()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Screen
+            </button>
+          </div>
+          <div id="pickerMount" style="margin-top:6px;"></div>
+        </div>
+
+        <div id="results" style="display:none;"></div>
+
+        <div id="historySection" style="display:none;">
+          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Recent Screens</span><div class="section-head-line"></div></div>
+          <div id="historyList" class="space-y-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="ch-footer">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="var(--ch-teal)" width="16" height="16"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span class="text-xs font-medium" style="color:var(--muted-foreground);">Chainalysis Address Screening</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs" style="color:var(--muted-foreground);"><span>Risk Assessment</span><span style="opacity:0.3;">·</span><span>Exposure Analysis</span><span style="opacity:0.3;">·</span><span>Entity Identification</span></div>
+      </div>
+    </div>
+
+    <script>
+    const SLUG='demochain-address-screen';
+    const REACTOR_SLUG='arcswap-reactor-graph';
+    const screenHistory=[];
+    const riskColors={Low:'#16a34a',Medium:'#d97706',High:'#ea580c',Severe:'#dc2626'};
+    const riskBgLight={Low:'#f0fdf4',Medium:'#fefce8',High:'#fff7ed',Severe:'#fef2f2'};
+    const riskBorder={Low:'#bbf7d0',Medium:'#fde68a',High:'#fed7aa',Severe:'#fecaca'};
+    const riskAngles={Low:-70,Medium:-20,High:25,Severe:65};
+    const expColors={'sanctions':'#dc2626','sanctioned entity':'#dc2626','stolen funds':'#ea580c','ransomware':'#b91c1c','darknet marketplace':'#7c3aed','darknet market':'#7c3aed','scam':'#d97706','fraud shop':'#d97706','gambling':'#ca8a04','no kyc exchange':'#ca8a04','child abuse material':'#b91c1c','terrorist financing':'#b91c1c','mixer':'#7c3aed','unnamed service':'#6b7280'};
+
+    async function doScreen(){
+      const address=document.getElementById('addrInput').value.trim();
+      if(!address){document.getElementById('addrInput').style.borderColor='var(--destructive)';return;}
+      document.getElementById('addrInput').style.borderColor='';
+      const btn=document.getElementById('screenBtn');
+      btn.disabled=true;btn.innerHTML='<div class="animate-spin" style="width:14px;height:14px;border:2px solid white;border-top-color:transparent;border-radius:50%;"></div> Screening…';
+      const el=document.getElementById('results');el.style.display='';
+      el.innerHTML='<div class="grid md:grid-cols-3 gap-4"><div class="scr-card" style="padding:24px;grid-column:span 3;"><div class="skeleton" style="width:180px;height:100px;margin:0 auto;"></div></div><div class="scr-card" style="padding:20px;"><div class="skeleton" style="height:12px;width:60%;margin-bottom:10px;"></div><div class="skeleton" style="height:8px;width:100%;margin-bottom:6px;"></div><div class="skeleton" style="height:8px;width:80%;"></div></div><div class="scr-card" style="padding:20px;"><div class="skeleton" style="height:12px;width:50%;margin-bottom:10px;"></div><div class="skeleton" style="height:8px;width:100%;margin-bottom:6px;"></div><div class="skeleton" style="height:8px;width:90%;"></div></div><div class="scr-card" style="padding:20px;"><div class="skeleton" style="height:12px;width:55%;margin-bottom:10px;"></div><div class="skeleton" style="height:8px;width:100%;margin-bottom:6px;"></div><div class="skeleton" style="height:8px;width:70%;"></div></div></div>';
+      try{
+        const res=await fetch(`/api/workflow/${SLUG}/invoke/sync`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address}})});
+        if(!res.ok)throw new Error(`API ${res.status}`);
+        const data=await res.json();const r=data.output??data;
+        if(r.error)throw new Error(r.error);
+        addToHistory(r);renderDashboard(r);
+      }catch(e){
+        if(e instanceof TypeError){
+          el.innerHTML='<div class="scr-card fade-up" style="padding:32px;text-align:center;"><div style="width:48px;height:48px;border-radius:12px;background:rgba(37,99,235,0.08);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h3 class="text-sm font-semibold">Open in a new tab</h3><p class="text-xs text-muted-foreground mt-1">Workflow calls require the standalone page viewer.</p></div>';
+        }else{
+          el.innerHTML=`<div class="scr-card fade-up" style="padding:32px;text-align:center;"><h3 class="text-sm font-semibold" style="color:var(--destructive);">Screening Failed</h3><p class="text-xs text-muted-foreground mt-1">${e.message}</p></div>`;
+        }
+      }
+      btn.disabled=false;btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Screen';
+    }
+    document.getElementById('addrInput').addEventListener('keydown',e=>{if(e.key==='Enter')doScreen();});
+
+    const DISCLAIMER_HTML='<div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span></div>';
+    function renderDashboard(r){
+      const risk=r.risk||'Unknown';
+      const rc=riskColors[risk]||'#6b7280';
+      const rbg=riskBgLight[risk]||'#f4f5f7';
+      const rbd=riskBorder[risk]||'#e5e7eb';
+      const addr=r.address||'';
+      const totalExp=r.exposures?.reduce((s,e)=>s+e.value,0)||0;
+      const directExp=r.exposures?.filter(e=>e.exposureType==='direct').reduce((s,e)=>s+e.value,0)||0;
+      const indirectExp=totalExp-directExp;
+      const typeLabel=r.addressType==='PRIVATE_WALLET'?'Private Wallet':r.addressType==='LIQUIDITY_POOL'?'Liquidity Pool':(r.addressType||'—');
+      let h=DISCLAIMER_HTML;
+
+      // ===== ROW 1: Risk banner + stats =====
+      h+=`<div class="grid md:grid-cols-3 gap-4 fade-up">
+        <!-- Risk gauge -->
+        <div class="scr-card flex flex-col items-center justify-center" style="padding:24px;">
+          <div class="risk-gauge"><svg viewBox="0 0 180 100">
+            <path d="M 15 90 A 75 75 0 0 1 165 90" fill="none" stroke="#e5e7eb" stroke-width="12" stroke-linecap="round"/>
+            <path d="M 15 90 A 75 75 0 0 1 52 25" fill="none" stroke="#16a34a" stroke-width="12" stroke-linecap="round"/>
+            <path d="M 52 25 A 75 75 0 0 1 90 15" fill="none" stroke="#d97706" stroke-width="12"/>
+            <path d="M 90 15 A 75 75 0 0 1 128 25" fill="none" stroke="#ea580c" stroke-width="12"/>
+            <path d="M 128 25 A 75 75 0 0 1 165 90" fill="none" stroke="#dc2626" stroke-width="12" stroke-linecap="round"/>
+            <line x1="90" y1="90" x2="90" y2="22" stroke="${rc}" stroke-width="2.5" stroke-linecap="round" transform="rotate(${riskAngles[risk]??0},90,90)"/>
+            <circle cx="90" cy="90" r="5" fill="${rc}"/>
+          </svg></div>
+          <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 16px;border-radius:8px;background:${rbg};border:1px solid ${rbd};font-size:14px;font-weight:800;color:${rc};margin-top:4px;">${risk} Risk</span>
+        </div>
+        <!-- Stats -->
+        <div class="scr-card flex flex-col gap-3" style="padding:20px;">
+          <div class="grid grid-cols-2 gap-3">
+            <div class="stat-card"><div class="stat-value" style="color:${rc};">${risk}</div><div class="stat-label">Risk Level</div></div>
+            <div class="stat-card"><div class="stat-value">${r.triggers?.length||0}</div><div class="stat-label">Rules Triggered</div></div>
+            <div class="stat-card"><div class="stat-value">${r.identifications?.length||0}</div><div class="stat-label">Identifications</div></div>
+            <div class="stat-card"><div class="stat-value mono" style="font-size:16px;">${fmtUsd(totalExp)}</div><div class="stat-label">Total Exposure</div></div>
+          </div>
+        </div>
+        <!-- Address card -->
+        <div class="scr-card" style="padding:20px;">
+          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Address</span><div class="section-head-line"></div></div>
+          <div class="detail-row"><span class="text-xs text-muted-foreground">Full Address</span></div>
+          <p class="mono text-xs" style="word-break:break-all;line-height:1.6;margin:4px 0 8px;color:var(--foreground);">${addr}</p>
+          <div class="detail-row"><span class="text-xs text-muted-foreground">Type</span><span class="text-xs font-medium">${typeLabel}</span></div>
+          <div class="detail-row"><span class="text-xs text-muted-foreground">Status</span><span class="text-xs font-medium" style="color:var(--success);">${r.status||'—'}</span></div>
+          ${r.cluster?.name?`<div class="detail-row"><span class="text-xs text-muted-foreground">Cluster</span><span class="text-xs font-semibold">${r.cluster.name}</span></div>`:''}
+          ${r.cluster?.category?`<div class="detail-row"><span class="text-xs text-muted-foreground">Category</span><span class="text-xs font-medium" style="padding:2px 8px;border-radius:6px;background:var(--muted);">${r.cluster.category}</span></div>`:''}
+          <div style="margin-top:10px;">${reactorBtnHtml(addr)}</div>
+        </div>
+      </div>`;
+
+      // ===== ROW 2: Risk reason banner (if present) =====
+      if(r.riskReason){
+        h+=`<div class="scr-card fade-up" style="padding:14px 20px;display:flex;align-items:center;gap:10px;background:${rbg};border-color:${rbd};animation-delay:0.05s;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${rc}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <p class="text-sm" style="color:${rc};font-weight:500;flex:1;">${r.riskReason}</p>
+        </div>`;
+      }
+
+      // ===== ROW 3: Exposure + Triggers (2-col) or Identifications =====
+      const hasExposure=r.exposures?.length>0;
+      const hasTriggers=r.triggers?.length>0;
+      const hasIds=r.identifications?.length>0;
+
+      if(hasExposure||hasTriggers){
+        h+=`<div class="grid ${hasTriggers&&hasExposure?'md:grid-cols-5':'md:grid-cols-1'} gap-4 fade-up" style="animation-delay:0.1s;">`;
+
+        // Exposure (wider column)
+        if(hasExposure){
+          const maxVal=Math.max(...r.exposures.map(e=>e.value));
+          h+=`<div class="scr-card ${hasTriggers?'md:col-span-3':''}" style="padding:20px;">
+            <div class="section-head">
+              <span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Exposure Breakdown</span>
+              <div class="flex items-center gap-3 text-xs">
+                <span class="mono font-semibold">${fmtUsd(totalExp)}</span>
+                <span style="padding:1px 6px;border-radius:4px;background:rgba(15,48,87,0.06);color:var(--ch-blue);font-weight:600;">Direct ${fmtUsd(directExp)}</span>
+                <span style="padding:1px 6px;border-radius:4px;background:var(--muted);color:var(--muted-foreground);font-weight:600;">Indirect ${fmtUsd(indirectExp)}</span>
+              </div>
+              <div class="section-head-line"></div>
+            </div>
+            <div class="space-y-0">${r.exposures.slice(0,12).map(e=>{
+              const pct=maxVal>0?(e.value/maxVal*100):0;
+              const label=e.category.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
+              const barColor=expColors[e.category.toLowerCase()]||'var(--ch-teal)';
+              const isDirect=e.exposureType==='direct';
+              return `<div class="exp-row"><span class="exp-label">${label}</span><div class="exp-bar-bg"><div class="exp-bar" style="width:${pct}%;background:${barColor};"></div></div><span class="exp-value">${fmtUsd(e.value)}</span><span class="exp-type" style="background:${isDirect?'rgba(15,48,87,0.06)':'var(--muted)'};color:${isDirect?'var(--ch-blue)':'var(--muted-foreground)'};">${e.exposureType||'—'}</span></div>`;
+            }).join('')}</div>
+          </div>`;
+        }
+
+        // Triggered rules (narrower column)
+        if(hasTriggers){
+          h+=`<div class="scr-card md:col-span-2" style="padding:20px;">
+            <div class="section-head">
+              <span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Triggered Rules</span>
+              <span class="text-xs font-bold" style="color:${rc};padding:2px 8px;border-radius:6px;background:${rbg};border:1px solid ${rbd};">${r.triggers.length}</span>
+              <div class="section-head-line"></div>
+            </div>
+            <div class="space-y-2">${r.triggers.map(t=>{
+              const trc=riskColors[t.riskLevel]||'#6b7280';
+              const trbg=riskBgLight[t.riskLevel]||'#f4f5f7';
+              const trbd=riskBorder[t.riskLevel]||'#e5e7eb';
+              return `<div class="trigger-row">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span style="display:inline-flex;padding:2px 7px;border-radius:5px;background:${trbg};border:1px solid ${trbd};font-size:10px;font-weight:700;color:${trc};text-transform:uppercase;">${t.riskLevel||'—'}</span>
+                  <span class="text-xs font-semibold">${t.category.split(' ').map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' ')}</span>
+                  ${t.percentage>0?`<span class="mono text-xs text-muted-foreground">${t.percentage.toFixed(2)}%</span>`:''}
+                </div>
+                ${t.message?`<p class="text-xs text-muted-foreground" style="margin-top:5px;line-height:1.5;">${t.message}</p>`:''}
+              </div>`;
+            }).join('')}</div>
+          </div>`;
+        }
+        h+=`</div>`;
+      }
+
+      // ===== ROW 4: Identifications (full width) =====
+      if(hasIds){
+        h+=`<div class="fade-up" style="animation-delay:0.15s;">
+          <div class="scr-card" style="padding:20px;">
+            <div class="section-head">
+              <span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Identifications</span>
+              <span class="text-xs font-bold" style="color:${rc};padding:2px 8px;border-radius:6px;background:${rbg};border:1px solid ${rbd};">${r.identifications.length}</span>
+              <div class="section-head-line"></div>
+            </div>
+            <div class="grid ${r.identifications.length>1?'md:grid-cols-2':''} gap-3">${r.identifications.map(id=>`
+              <div style="padding:12px 14px;border-radius:10px;border:1px solid ${rbd};background:${rbg};">
+                <div class="flex items-center gap-2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${rc}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span class="text-xs font-bold" style="color:${rc};text-transform:uppercase;letter-spacing:0.5px;">${id.category||'Unknown'}</span>
+                  ${id.name?`<span class="text-xs font-semibold" style="margin-left:auto;">${id.name}</span>`:''}
+                </div>
+                ${id.description?`<p class="text-xs text-muted-foreground" style="margin-top:6px;line-height:1.55;">${id.description}</p>`:''}
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>`;
+      }
+
+      // No data state
+      if(!hasExposure&&!hasTriggers&&!hasIds){
+        h+=`<div class="scr-card fade-up" style="padding:24px;text-align:center;"><p class="text-sm text-muted-foreground">No exposure, identifications, or triggered rules for this address.</p></div>`;
+      }
+
+      document.getElementById('results').innerHTML=h;
+      setTimeout(()=>{document.querySelectorAll('.exp-bar').forEach(b=>{const w=b.style.width;b.style.width='0%';setTimeout(()=>{b.style.width=w;},50);});},100);
+    }
+
+    function fmtUsd(v){if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';if(v>=1e6)return'$'+(v/1e6).toFixed(1)+'M';if(v>=1e3)return'$'+(v/1e3).toFixed(1)+'K';if(v===0)return'$0';return'$'+v.toFixed(2);}
+
+    // Reactor — fixed: proper catch syntax
+    function reactorBtnHtml(address){
+      return `<button onclick="event.stopPropagation();openReactor('${address}')" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:600;color:var(--ch-blue);background:rgba(15,48,87,0.05);border:1px solid rgba(15,48,87,0.12);cursor:pointer;transition:all .2s;width:100%;justify-content:center;" onmouseover="this.style.background='rgba(15,48,87,0.1)';this.style.borderColor='var(--ch-blue)';" onmouseout="this.style.background='rgba(15,48,87,0.05)';this.style.borderColor='rgba(15,48,87,0.12)';">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="var(--ch-blue)" width="12" height="12"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+        Investigate in Reactor →
+      </button>`;
+    }
+    async function openReactor(address){
+      const btn=event.target.closest('button');
+      if(btn){btn.textContent='Creating graph…';btn.disabled=true;}
+      try{
+        const res=await fetch('/api/workflow/'+REACTOR_SLUG+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address:address,network:'ETH'}})});
+        if(!res.ok)throw new Error('fail');
+        const d=await res.json();const r=d.output||d;
+        if(r.graphUrl){window.open(r.graphUrl,'_blank');}
+        else{window.open('https://reactor.chainalysis.com','_blank');}
+      }catch(err){
+        window.open('https://reactor.chainalysis.com','_blank');
+      }
+      if(btn){btn.innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="var(--ch-blue)" width="12" height="12"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg> Investigate in Reactor →';btn.disabled=false;}
+    }
+
+    // History
+    function addToHistory(r){screenHistory.unshift({address:r.address,risk:r.risk,cluster:r.cluster?.name});if(screenHistory.length>8)screenHistory.pop();renderHistory();}
+    function renderHistory(){
+      const sec=document.getElementById('historySection'),list=document.getElementById('historyList');
+      if(!screenHistory.length){sec.style.display='none';return;}sec.style.display='';
+      list.innerHTML=screenHistory.map(h=>{const short=h.address.length>20?h.address.slice(0,8)+'…'+h.address.slice(-6):h.address;return`<div class="history-item" onclick="document.getElementById('addrInput').value='${h.address}';doScreen();"><div class="history-dot" style="background:${riskColors[h.risk]||'#6b7280'};"></div><span class="text-xs mono" style="flex:1;">${short}</span>${h.cluster?`<span class="text-xs text-muted-foreground">${h.cluster}</span>`:''}<span class="text-xs font-semibold" style="color:${riskColors[h.risk]||'#6b7280'};">${h.risk}</span></div>`;}).join('');
+    }
+
+    // Address picker
+    const DEMO_ADDRESSES=[
+      {id:'defi-user',label:'🟢 Typical DeFi User',address:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',risk:'Low',story:'Normal DeFi user — bridges, DEX swaps, exchange deposits. Clean profile.',category:'low'},
+      {id:'binance-hot',label:'🟢 Binance Hot Wallet',address:'0x28C6c06298d514Db089934071355E5743bf21d60',risk:'Low',story:'Major exchange hot wallet — identified as Binance.com.',category:'low'},
+      {id:'ftx-hot',label:'🟢 FTX Hot Wallet',address:'0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2',risk:'Low',story:'FTX.com wallet — still Low risk. Risk scores reflect on-chain data, not headlines.',category:'low'},
+      {id:'unnamed-svc',label:'🟡 Unnamed Service',address:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',risk:'Medium',story:'Categorized as unnamed service — $4M+ exposure.',category:'medium'},
+      {id:'bayc-theft',label:'🟡 Stolen BAYC NFT',address:'0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73',risk:'Medium',story:'0.14% direct stolen funds — connected to a Bored Ape Yacht Club theft.',category:'medium'},
+      {id:'justin-sun',label:'🟡 Justin Sun',address:'0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',risk:'Medium',story:'$46B+ volume, Medium from indirect sanctioned jurisdiction exposure.',category:'medium'},
+      {id:'wintermute',label:'🟡 Wintermute',address:'0x0000000fe6a514a32abdcdfcc076c85243de899b',risk:'Medium',story:'Major market maker — Medium due to >2% stolen funds from $160M hack.',category:'medium'},
+      {id:'lazarus',label:'🔴 Lazarus Group (OFAC)',address:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',risk:'Severe',story:'OFAC-sanctioned North Korean hackers — Ronin Bridge exploit ($625M).',category:'severe'},
+      {id:'tornado',label:'🔴 Tornado Cash',address:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',risk:'Severe',story:'OFAC-sanctioned mixing service — $10B+ total volume.',category:'severe'},
+      {id:'vitalik',label:'🔴 Vitalik Buterin',address:'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',risk:'Severe',story:'Severe from dust attacks — shows why context matters.',category:'severe'},
+    ];
+    function renderAddressPicker(inputId){
+      const input=document.getElementById(inputId);if(!input)return;
+      const mount=document.getElementById('pickerMount');if(!mount||mount.querySelector('.addr-picker'))return;
+      const w=document.createElement('div');w.className='addr-picker';w.style.cssText='position:relative;';
+      const btn=document.createElement('button');btn.type='button';
+      btn.style.cssText='display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:white;color:var(--muted-foreground);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;';
+      btn.innerHTML='🎯 Try a pre-screened address <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+      btn.onmouseover=()=>{btn.style.borderColor='var(--ch-teal)';btn.style.color='var(--foreground)';};
+      btn.onmouseout=()=>{btn.style.borderColor='var(--border)';btn.style.color='var(--muted-foreground)';};
+      const dd=document.createElement('div');
+      dd.style.cssText='display:none;position:absolute;left:0;right:0;top:100%;margin-top:6px;max-height:380px;overflow-y:auto;border-radius:14px;border:1px solid var(--border);background:white;box-shadow:0 12px 40px rgba(0,0,0,.12);z-index:99;padding:8px;';
+      [{key:'low',label:'Low Risk',color:'#16a34a'},{key:'medium',label:'Medium Risk',color:'#d97706'},{key:'severe',label:'Severe Risk',color:'#dc2626'}].forEach(g=>{
+        const items=DEMO_ADDRESSES.filter(a=>a.category===g.key);if(!items.length)return;
+        const h=document.createElement('div');h.style.cssText='padding:8px 10px 3px;font-size:9px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:1px;';h.textContent=g.label;dd.appendChild(h);
+        items.forEach(a=>{
+          const r=document.createElement('div');r.style.cssText='padding:8px 12px;border-radius:10px;cursor:pointer;transition:background .1s;';
+          r.onmouseover=()=>{r.style.background='var(--muted)';};r.onmouseout=()=>{r.style.background='transparent';};
+          r.innerHTML='<div style="font-size:12px;font-weight:600;">'+a.label+'</div><div style="font-size:10px;color:var(--muted-foreground);margin-top:3px;line-height:1.4;">'+a.story+'</div><div class="mono" style="font-size:9px;color:var(--muted-foreground);margin-top:3px;opacity:.6;">'+a.address.slice(0,12)+'…'+a.address.slice(-8)+'</div>';
+          r.onclick=()=>{input.value=a.address;dd.style.display='none';input.style.borderColor=g.color;input.style.boxShadow='0 0 0 3px '+g.color+'18';setTimeout(()=>{input.style.borderColor='';input.style.boxShadow='';},1500);};
+          dd.appendChild(r);
+        });
+      });
+      btn.onclick=(e)=>{e.preventDefault();e.stopPropagation();dd.style.display=dd.style.display==='none'?'block':'none';};
+      document.addEventListener('click',(e)=>{if(!w.contains(e.target))dd.style.display='none';});
+      w.appendChild(dd);w.appendChild(btn);mount.appendChild(w);
+    }
+    setTimeout(()=>renderAddressPicker('addrInput'),100);
+    </script>
+  
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';
+    var M=document.querySelector('meta[name="cove-demo"]');
+    var D=M?M.getAttribute('content'):(document.title.split('\u2014')[0].trim()||'unknown');
+    var P=new URLSearchParams(location.search);
+    var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
+    window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,
+    demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,
+    domain:d.domain||DM,address:d.address||'',filter:d.filter||'',
+    viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};
+    addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
+    </script>
+  </body>
+</html>

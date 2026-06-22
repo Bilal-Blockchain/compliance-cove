@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="KYT API Walkthrough" />
+    <title>KYT API Walkthrough — Chainalysis</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        color-scheme:light;
+        --background:#ffffff;--foreground:#0f1729;--card:#ffffff;--card-foreground:#0f1729;
+        --muted:#f4f5f7;--muted-foreground:#6b7280;--border:#e5e7eb;--input:#e5e7eb;
+        --primary:#0f3057;--primary-foreground:#ffffff;--destructive:#ef4444;--success:#16a34a;--warning:#d97706;
+        --ch-navy:#0c1e3a;--ch-blue:#0f3057;--ch-teal:#1a6b6a;--ch-mint:#2d9f8f;--ch-orange:#F7931A;
+      }
+      *{font-family:'Inter',system-ui,sans-serif;}
+      body{background:#ffffff!important;color:#0f1729!important;}
+      .mono{font-family:'JetBrains Mono',monospace;}
+
+      .ch-header{background:linear-gradient(135deg,var(--ch-navy)0%,var(--ch-blue)50%,var(--ch-teal)100%);padding:32px 0 36px;position:relative;overflow:hidden;}
+      .ch-header::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 80% 30%,rgba(45,159,143,0.2),transparent);pointer-events:none;}
+
+      .step-card{border-radius:14px;background:#ffffff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04);overflow:hidden;transition:box-shadow .2s;}
+      .step-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.07);}
+      .step-header{display:flex;align-items:flex-start;gap:14px;padding:20px 24px;}
+      .step-num{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:white;flex-shrink:0;}
+      .step-body{padding:0 24px 20px;}
+
+      .code-toggle{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:8px;border:1px solid var(--border);background:white;color:var(--ch-teal);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;}
+      .code-toggle:hover{border-color:var(--ch-teal);background:rgba(26,107,106,0.04);}
+
+      .code-block{display:none;margin-top:12px;border-radius:10px;background:#0f1729;padding:16px 20px;overflow-x:auto;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:#e2e8f0;position:relative;white-space:pre-wrap;word-break:break-word;}
+      .code-block.open{display:block;}
+      .code-response{display:none;margin-top:0;padding:14px 20px;background:#0b1120;border-top:1px solid rgba(99,102,241,0.15);border-radius:0 0 10px 10px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7;color:#e2e8f0;overflow-x:auto;white-space:pre-wrap;word-break:break-word;}
+      .code-response.open{display:block;}
+      .code-block.has-response{border-radius:10px 10px 0 0;}
+      .sim-btn{display:none;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid rgba(22,163,106,0.25);background:rgba(22,163,106,0.06);color:#16a34a;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;}
+      .sim-btn.visible{display:inline-flex;}
+      .sim-btn:hover{background:rgba(22,163,106,0.12);border-color:#16a34a;box-shadow:0 0 12px rgba(22,163,106,0.1);}
+      .sim-btn.fired{background:rgba(22,163,106,0.08);color:var(--muted-foreground);border-color:var(--border);cursor:default;}
+      .code-comment{color:#6b7280;}
+      .code-key{color:#7dd3fc;}
+      .code-string{color:#86efac;}
+      .code-method{color:#c4b5fd;}
+      .code-url{color:#fde68a;}
+
+      .callout{padding:12px 16px;border-radius:10px;display:flex;align-items:flex-start;gap:10px;margin-top:14px;}
+      .callout-prospect{background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.12);}
+      .callout-warning{background:rgba(217,119,6,0.06);border:1px solid rgba(217,119,6,0.12);}
+
+      .flow-diagram{display:flex;align-items:center;gap:0;flex-wrap:wrap;padding:16px 0;}
+      .flow-node{padding:8px 14px;border-radius:8px;font-size:11px;font-weight:600;white-space:nowrap;}
+      .flow-arrow{color:var(--muted-foreground);font-size:16px;padding:0 4px;}
+
+      .ch-footer{border-top:1px solid var(--border);padding:24px 0;margin-top:40px;}
+
+      .toc-link{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:500;color:var(--muted-foreground);cursor:pointer;transition:all .15s;text-decoration:none;}
+      .toc-link:hover{background:var(--muted);color:var(--foreground);}
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+
+    <!-- Header -->
+    <div class="ch-header">
+      <div class="max-w-5xl mx-auto px-4" style="position:relative;z-index:1;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#F7931A" width="28" height="28"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            <div>
+              <h1 class="text-xl font-bold" style="color:white;letter-spacing:-0.5px;">KYT — Know Your Transaction</h1>
+              <p style="font-size:12px;color:rgba(255,255,255,0.55);margin-top:1px;">API Integration Walkthrough</p>
+            </div>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:8px;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);font-size:11px;font-weight:600;color:rgba(255,255,255,0.85);">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="rgba(255,255,255,0.7)" width="13" height="13"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            Chainalysis
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4" style="margin-top:-16px;">
+
+      <!-- Intro -->
+      <div class="step-card" style="padding:24px;margin-bottom:24px;border-left:4px solid var(--ch-teal);">
+        <h2 class="text-base font-bold" style="color:var(--ch-navy);">What is KYT?</h2>
+        <p class="text-sm" style="color:var(--muted-foreground);line-height:1.7;margin-top:8px;">
+          <strong>Know Your Transaction (KYT)</strong> is Chainalysis's real-time transaction monitoring API. It lets crypto businesses screen every deposit, withdrawal, and transfer for compliance risk — automatically. When funds touch sanctioned entities, darknet markets, ransomware, or other high-risk categories, KYT generates an alert so your compliance team can act before it's too late.
+        </p>
+        <div class="flow-diagram">
+          <span class="flow-node" style="background:rgba(26,107,106,0.08);color:var(--ch-teal);">Customer Action</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node" style="background:rgba(15,48,87,0.06);color:var(--ch-blue);">Your Platform</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node" style="background:rgba(247,147,26,0.08);color:#b45309;">KYT API</span>
+          <span class="flow-arrow">→</span>
+          <span class="flow-node" style="background:rgba(22,163,106,0.08);color:var(--success);">✓ Clear</span>
+          <span style="color:var(--muted-foreground);padding:0 6px;">/</span>
+          <span class="flow-node" style="background:rgba(239,68,68,0.08);color:var(--destructive);">⚠ Alert</span>
+        </div>
+      </div>
+
+      <!-- Steps -->
+      <div class="space-y-5">
+
+        <!-- STEP 1 -->
+        <div class="step-card" id="step-1">
+          <div class="step-header">
+            <div class="step-num" style="background:linear-gradient(135deg,var(--ch-blue),var(--ch-teal));">1</div>
+            <div style="flex:1;">
+              <h3 class="text-base font-bold">Create a User</h3>
+              <p class="text-sm text-muted-foreground" style="margin-top:4px;line-height:1.6;">Every customer on your platform gets a unique KYT user ID. This is how Chainalysis ties transactions back to a specific person — enabling per-user risk scoring, alert routing, and compliance history.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div class="callout callout-prospect">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ch-teal)" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p class="text-xs" style="color:var(--ch-teal);"><strong>What this means for the customer:</strong> This happens behind the scenes during account creation. The customer never sees it — it's your platform registering them with Chainalysis for monitoring.</p>
+            </div>
+            <button class="code-toggle" onclick="toggleCode('code-1')" style="margin-top:12px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              View API Call
+            </button>
+            <div class="code-block has-response" id="code-1">
+<span class="code-comment">// Create a user when they sign up on your platform</span>
+<span class="code-method">POST</span> <span class="code-url">/api/kyt/v2/users</span>
+
+{
+  <span class="code-key">"userId"</span>: <span class="code-string">"customer-jane-doe-123"</span>
+}
+</div>
+<button class="sim-btn" id="sim-code-1" onclick="simulateCall('code-1')">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  Simulate API Call
+</button>
+<div class="code-response" id="resp-code-1">
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"userId"</span>: <span class="code-string">"customer-jane-doe-123"</span>,
+  <span class="code-key">"createdAt"</span>: <span class="code-string">"2026-06-16T10:30:00Z"</span>
+}
+            
+</div>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step-card" id="step-2">
+          <div class="step-header">
+            <div class="step-num" style="background:linear-gradient(135deg,var(--ch-blue),var(--ch-teal));">2</div>
+            <div style="flex:1;">
+              <h3 class="text-base font-bold">Register a Transaction</h3>
+              <p class="text-sm text-muted-foreground" style="margin-top:4px;line-height:1.6;">Every crypto transaction on your platform gets registered with KYT. The API endpoint and workflow differ depending on the direction — select one to see the full integration flow.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <!-- Toggle buttons -->
+            <div style="display:flex;gap:8px;margin-bottom:16px;">
+              <button id="tab-deposit" onclick="showTxTab('deposit')" style="flex:1;padding:12px 14px;border-radius:10px;background:rgba(22,163,106,0.08);border:2px solid #16a34a;cursor:pointer;transition:all .2s;text-align:left;">
+                <div style="display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg><span class="text-sm font-bold" style="color:#16a34a;">Deposit</span></div>
+                <p class="text-xs text-muted-foreground" style="margin-top:4px;">Customer sends crypto TO your platform</p>
+              </button>
+              <button id="tab-withdrawal" onclick="showTxTab('withdrawal')" style="flex:1;padding:12px 14px;border-radius:10px;background:var(--muted);border:2px solid transparent;cursor:pointer;transition:all .2s;text-align:left;">
+                <div style="display:flex;align-items:center;gap:6px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ea580c" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5"/><path d="M5 12l7 7 7-7"/></svg><span class="text-sm font-bold" style="color:#6b7280;">Withdrawal</span></div>
+                <p class="text-xs text-muted-foreground" style="margin-top:4px;">Customer withdraws crypto FROM your platform</p>
+              </button>
+            </div>
+
+            <!-- DEPOSIT content -->
+            <div id="tx-deposit">
+              <div class="callout callout-prospect">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ch-teal)" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p class="text-xs" style="color:var(--ch-teal);line-height:1.6;"><strong>How it works:</strong> When a customer deposits crypto, your platform registers the on-chain transaction with KYT as a <strong>received</strong> transfer. KYT then monitors the transaction in real-time, tracing where the funds came from and flagging any high-risk exposure.</p>
+              </div>
+              <div class="flow-diagram" style="padding:8px 0;">
+                <span class="flow-node" style="background:rgba(22,163,106,0.08);color:var(--success);">Customer deposits crypto</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-node" style="background:rgba(15,48,87,0.06);color:var(--ch-blue);">Your platform detects tx</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-node" style="background:rgba(247,147,26,0.08);color:#b45309;">Register with KYT</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-node" style="background:rgba(26,107,106,0.08);color:var(--ch-teal);">KYT monitors</span>
+              </div>
+              <button class="code-toggle" onclick="toggleCode('code-2-deposit')" style="margin-top:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                View API Call
+              </button>
+              <div class="code-block has-response" id="code-2-deposit">
+<span class="code-comment">// Register a deposit (received transfer)</span>
+<span class="code-method">POST</span> <span class="code-url">/api/kyt/v2/users/customer-jane-doe-123/transfers</span>
+
+{
+  <span class="code-key">"network"</span>:           <span class="code-string">"Ethereum"</span>,
+  <span class="code-key">"asset"</span>:             <span class="code-string">"ETH"</span>,
+  <span class="code-key">"direction"</span>:         <span class="code-string">"received"</span>,
+  <span class="code-key">"transferReference"</span>: <span class="code-string">"0xabc123...def456:0x742d35Cc..."</span>
+}
+</div>
+<button class="sim-btn" id="sim-code-2-deposit" onclick="simulateCall('code-2-deposit')">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  Simulate API Call
+</button>
+<div class="code-response" id="resp-code-2-deposit">
+<span class="code-comment">// Response — KYT begins monitoring immediately</span>
+{
+  <span class="code-key">"externalId"</span>: <span class="code-string">"transfer-ext-789"</span>,
+  <span class="code-key">"asset"</span>:      <span class="code-string">"ETH"</span>,
+  <span class="code-key">"updatedAt"</span>:  null  <span class="code-comment">// null = still processing</span>
+}
+              
+</div>
+            </div>
+
+            <!-- WITHDRAWAL content -->
+            <div id="tx-withdrawal" style="display:none;">
+              <div class="callout callout-warning">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <p class="text-xs" style="color:#92400e;line-height:1.6;"><strong>Two-step process:</strong> Withdrawals involve an <strong>additional</strong> endpoint. First, use <code style="padding:1px 5px;border-radius:4px;background:rgba(217,119,6,0.08);font-size:11px;">withdrawal-attempts</code> to pre-screen the destination address <em>before</em> broadcasting the transaction — blocking sanctioned wallets, darknet markets, or ransomware addresses. Then, once the withdrawal is approved and executed on-chain, register it as a <strong>sent</strong> transfer via the standard <code style="padding:1px 5px;border-radius:4px;background:rgba(217,119,6,0.08);font-size:11px;">transfers</code> endpoint for ongoing monitoring.</p>
+              </div>
+              <div class="flow-diagram" style="padding:8px 0;">
+                <span class="flow-node" style="background:rgba(234,88,12,0.08);color:#ea580c;">Customer requests withdrawal</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-node" style="background:rgba(247,147,26,0.08);color:#b45309;">Pre-screen destination</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-node" style="background:rgba(22,163,106,0.08);color:var(--success);">✓ Allow</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-node" style="background:rgba(15,48,87,0.06);color:var(--ch-blue);">Register sent transfer</span>
+                <span class="flow-arrow">→</span>
+                <span class="flow-node" style="background:rgba(26,107,106,0.08);color:var(--ch-teal);">KYT monitors</span>
+              </div>
+              <div class="flow-diagram" style="padding:0 0 4px;margin-top:-8px;">
+                <span style="min-width:200px;"></span>
+                <span style="min-width:180px;"></span>
+                <span class="flow-arrow" style="visibility:hidden;">→</span>
+                <span class="flow-node" style="background:rgba(239,68,68,0.08);color:var(--destructive);">✗ Block → notify compliance</span>
+              </div>
+              <div class="callout callout-prospect" style="margin-top:0;margin-bottom:12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ch-teal)" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <p class="text-xs" style="color:var(--ch-teal);line-height:1.6;"><strong>Key distinction:</strong> This is NOT the same as screening an address at onboarding. Withdrawal pre-screening happens at the moment of the transaction, catching addresses that may have been clean at onboarding but have since been sanctioned.</p>
+              </div>
+              <button class="code-toggle" onclick="toggleCode('code-2-withdrawal')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                View API Call
+              </button>
+              <div class="code-block has-response" id="code-2-withdrawal">
+<span class="code-comment">// ─── STEP A: Pre-screen the destination address BEFORE sending ───</span>
+
+<span class="code-method">POST</span> <span class="code-url">/api/kyt/v2/users/customer-jane-doe-123/withdrawal-attempts</span>
+
+{
+  <span class="code-key">"network"</span>:            <span class="code-string">"Bitcoin"</span>,
+  <span class="code-key">"asset"</span>:              <span class="code-string">"BTC"</span>,
+  <span class="code-key">"address"</span>:            <span class="code-string">"bc1qxy2kgdygjrsqtzq2n0yrf..."</span>,
+  <span class="code-key">"attemptIdentifier"</span>: <span class="code-string">"withdrawal-w-001"</span>
+}
+</div>
+<button class="sim-btn" id="sim-code-2-wd-a" onclick="simulateCall('code-2-wd-a')">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  Simulate Pre-Screen
+</button>
+<div class="code-response" id="resp-code-2-wd-a">
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"externalId"</span>:         <span class="code-string">"wa-ext-456"</span>,
+  <span class="code-key">"asset"</span>:              <span class="code-string">"BTC"</span>,
+  <span class="code-key">"attemptIdentifier"</span>: <span class="code-string">"withdrawal-w-001"</span>,
+  <span class="code-key">"address"</span>:            <span class="code-string">"bc1qxy2kgdygjrsqtzq2n0yrf..."</span>,
+  <span class="code-key">"updatedAt"</span>:          <span class="code-string">"2026-06-16T10:31:00Z"</span>
+}
+
+<span class="code-comment">// Check exposure on the destination address</span>
+<span class="code-method">GET</span> <span class="code-url">/api/kyt/v2/withdrawal-attempts/wa-ext-456/exposures</span>
+
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"exposures"</span>: [
+    { <span class="code-key">"category"</span>: <span class="code-string">"exchange"</span>,           <span class="code-key">"exposure"</span>: <span class="code-string">0.71</span>, <span class="code-key">"exposureType"</span>: <span class="code-string">"direct"</span> },
+    { <span class="code-key">"category"</span>: <span class="code-string">"sanctioned entity"</span>,  <span class="code-key">"exposure"</span>: <span class="code-string">0.05</span>, <span class="code-key">"exposureType"</span>: <span class="code-string">"indirect"</span> },
+    { <span class="code-key">"category"</span>: <span class="code-string">"darknet marketplace"</span>, <span class="code-key">"exposure"</span>: <span class="code-string">0.03</span>, <span class="code-key">"exposureType"</span>: <span class="code-string">"indirect"</span> }
+  ]
+}
+
+<span class="code-comment">// Check fraud risk assessment</span>
+<span class="code-method">GET</span> <span class="code-url">/api/kyt/v2/withdrawal-attempts/wa-ext-456/fraud-assessment</span>
+
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"riskScore"</span>:  <span class="code-string">72</span>,
+  <span class="code-key">"riskLevel"</span>:  <span class="code-string">"HIGH"</span>
+}
+
+<span class="code-comment">// If risk is acceptable → approve and broadcast the transaction</span>
+<span class="code-comment">// If risk is too high   → block the withdrawal, notify compliance</span>
+</div>
+<div class="code-block has-response" id="code-2-wd-b" style="margin-top:4px;">
+
+<span class="code-comment">// ─── STEP B: After approval, register the on-chain tx for monitoring ───</span>
+
+<span class="code-method">POST</span> <span class="code-url">/api/kyt/v2/users/customer-jane-doe-123/transfers</span>
+
+{
+  <span class="code-key">"network"</span>:           <span class="code-string">"Bitcoin"</span>,
+  <span class="code-key">"asset"</span>:             <span class="code-string">"BTC"</span>,
+  <span class="code-key">"direction"</span>:         <span class="code-string">"sent"</span>,
+  <span class="code-key">"transferReference"</span>: <span class="code-string">"txhash:bc1qxy2kgdygjrsqtzq2n0yrf..."</span>
+}
+</div>
+<button class="sim-btn" id="sim-code-2-wd-b" onclick="simulateCall('code-2-wd-b')">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  Simulate Transfer Registration
+</button>
+<div class="code-response" id="resp-code-2-wd-b">
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"externalId"</span>: <span class="code-string">"transfer-ext-790"</span>,
+  <span class="code-key">"asset"</span>:      <span class="code-string">"BTC"</span>,
+  <span class="code-key">"updatedAt"</span>:  null  <span class="code-comment">// KYT begins monitoring the sent transfer</span>
+}
+              
+</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="step-card" id="step-3">
+          <div class="step-header">
+            <div class="step-num" style="background:linear-gradient(135deg,var(--ch-blue),var(--ch-teal));">3</div>
+            <div style="flex:1;">
+              <h3 class="text-base font-bold">KYT Monitors & Scores</h3>
+              <p class="text-sm text-muted-foreground" style="margin-top:4px;line-height:1.6;">Behind the scenes, KYT traces the transaction through the blockchain. It identifies the counterparties, calculates exposure to risk categories, and assigns a risk score. This happens automatically — you just poll until the result is ready.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div style="padding:14px 18px;border-radius:10px;background:var(--muted);margin-bottom:12px;">
+              <p class="text-xs font-semibold" style="color:var(--ch-navy);margin-bottom:8px;">What KYT analyzes:</p>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                <div style="padding:8px 10px;border-radius:6px;background:white;border:1px solid var(--border);"><p class="text-xs font-semibold">Counterparties</p><p style="font-size:10px;color:var(--muted-foreground);margin-top:2px;">Who sent/received the funds?</p></div>
+                <div style="padding:8px 10px;border-radius:6px;background:white;border:1px solid var(--border);"><p class="text-xs font-semibold">Exposure</p><p style="font-size:10px;color:var(--muted-foreground);margin-top:2px;">What % links to risky categories?</p></div>
+                <div style="padding:8px 10px;border-radius:6px;background:white;border:1px solid var(--border);"><p class="text-xs font-semibold">Entity Attribution</p><p style="font-size:10px;color:var(--muted-foreground);margin-top:2px;">Is it a known service, mixer, or sanctioned entity?</p></div>
+              </div>
+            </div>
+            <button class="code-toggle" onclick="toggleCode('code-3')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              View API Call
+            </button>
+            <div class="code-block has-response" id="code-3">
+<span class="code-comment">// Poll until updatedAt is non-null</span>
+<span class="code-method">GET</span> <span class="code-url">/api/kyt/v2/transfers/transfer-ext-789</span>
+</div>
+<button class="sim-btn" id="sim-code-3" onclick="simulateCall('code-3')">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  Simulate API Call
+</button>
+<div class="code-response" id="resp-code-3">
+<span class="code-comment">// Response (complete)</span>
+{
+  <span class="code-key">"externalId"</span>: <span class="code-string">"transfer-ext-789"</span>,
+  <span class="code-key">"asset"</span>:      <span class="code-string">"ETH"</span>,
+  <span class="code-key">"usdAmount"</span>:  <span class="code-string">2847.32</span>,
+  <span class="code-key">"updatedAt"</span>:  <span class="code-string">"2026-06-16T10:30:05Z"</span>  <span class="code-comment">// ✓ Ready!</span>
+}
+            
+</div>
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="step-card" id="step-4">
+          <div class="step-header">
+            <div class="step-num" style="background:linear-gradient(135deg,var(--ch-blue),var(--ch-teal));">4</div>
+            <div style="flex:1;">
+              <h3 class="text-base font-bold">Check Exposure</h3>
+              <p class="text-sm text-muted-foreground" style="margin-top:4px;line-height:1.6;">Pull the exposure breakdown to see exactly which categories of entities the funds have been associated with. Each category shows a USD value and whether the exposure is <strong>direct</strong> (the counterparty itself) or <strong>indirect</strong> (one or more hops away).</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <div style="flex:1;padding:8px 12px;border-radius:8px;background:rgba(15,48,87,0.04);border:1px solid rgba(15,48,87,0.08);">
+                <p class="text-xs font-bold" style="color:var(--ch-blue);">Direct Exposure</p>
+                <p style="font-size:10px;color:var(--muted-foreground);margin-top:2px;">The immediate counterparty IS a risky entity</p>
+              </div>
+              <div style="flex:1;padding:8px 12px;border-radius:8px;background:var(--muted);border:1px solid var(--border);">
+                <p class="text-xs font-bold" style="color:var(--muted-foreground);">Indirect Exposure</p>
+                <p style="font-size:10px;color:var(--muted-foreground);margin-top:2px;">Funds passed through a risky entity upstream</p>
+              </div>
+            </div>
+            <button class="code-toggle" onclick="toggleCode('code-4')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              View API Call
+            </button>
+            <div class="code-block has-response" id="code-4">
+<span class="code-method">GET</span> <span class="code-url">/api/kyt/v2/transfers/transfer-ext-789/exposures</span>
+</div>
+<button class="sim-btn" id="sim-code-4" onclick="simulateCall('code-4')">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  Simulate API Call
+</button>
+<div class="code-response" id="resp-code-4">
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"exposures"</span>: [
+    { <span class="code-key">"category"</span>: <span class="code-string">"exchange"</span>,    <span class="code-key">"exposure"</span>: <span class="code-string">0.82</span>, <span class="code-key">"exposureType"</span>: <span class="code-string">"direct"</span> },
+    { <span class="code-key">"category"</span>: <span class="code-string">"defi"</span>,        <span class="code-key">"exposure"</span>: <span class="code-string">0.12</span>, <span class="code-key">"exposureType"</span>: <span class="code-string">"direct"</span> },
+    { <span class="code-key">"category"</span>: <span class="code-string">"mixer"</span>,       <span class="code-key">"exposure"</span>: <span class="code-string">0.04</span>, <span class="code-key">"exposureType"</span>: <span class="code-string">"indirect"</span> },
+    { <span class="code-key">"category"</span>: <span class="code-string">"sanctioned"</span>,  <span class="code-key">"exposure"</span>: <span class="code-string">0.02</span>, <span class="code-key">"exposureType"</span>: <span class="code-string">"indirect"</span> }
+  ]
+}
+            
+</div>
+          </div>
+        </div>
+
+        <!-- STEP 5 -->
+        <div class="step-card" id="step-5">
+          <div class="step-header">
+            <div class="step-num" style="background:linear-gradient(135deg,#ea580c,#dc2626);">5</div>
+            <div style="flex:1;">
+              <h3 class="text-base font-bold">Alerts</h3>
+              <p class="text-sm text-muted-foreground" style="margin-top:4px;line-height:1.6;">If the exposure exceeds your configured risk thresholds, KYT automatically generates an alert. Alerts have severity levels (<strong>HIGH</strong> or <strong>SEVERE</strong>) and link to the specific risk category that triggered them. Your compliance team gets notified and can investigate.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div style="padding:12px 16px;border-radius:10px;background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.12);margin-bottom:12px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="padding:2px 8px;border-radius:5px;background:rgba(239,68,68,0.1);font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;">HIGH</span>
+                <span class="text-xs font-semibold">Sanctioned Entity Exposure</span>
+                <span class="mono text-xs text-muted-foreground" style="margin-left:auto;">2.1%</span>
+              </div>
+              <p class="text-xs text-muted-foreground" style="margin-top:6px;">Transfer has 2.1% indirect exposure to a sanctioned entity via an intermediary mixer service.</p>
+            </div>
+            <div class="callout callout-prospect">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ch-teal)" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <p class="text-xs" style="color:var(--ch-teal);"><strong>What this means for the customer:</strong> Their deposit may be held for review. They might see a "pending compliance review" status. This protects your platform from processing illicit funds.</p>
+            </div>
+            <button class="code-toggle" onclick="toggleCode('code-5')" style="margin-top:12px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              View API Call
+            </button>
+            <div class="code-block has-response" id="code-5">
+<span class="code-method">GET</span> <span class="code-url">/api/kyt/v2/transfers/transfer-ext-789/alerts</span>
+</div>
+<button class="sim-btn" id="sim-code-5" onclick="simulateCall('code-5')">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  Simulate API Call
+</button>
+<div class="code-response" id="resp-code-5">
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"alerts"</span>: [
+    {
+      <span class="code-key">"alertId"</span>:    <span class="code-string">"alert-abc-456"</span>,
+      <span class="code-key">"level"</span>:      <span class="code-string">"HIGH"</span>,
+      <span class="code-key">"categoryId"</span>: <span class="code-string">3</span>,
+      <span class="code-key">"category"</span>:   <span class="code-string">"sanctioned entity"</span>,
+      <span class="code-key">"exposure"</span>:   <span class="code-string">0.021</span>
+    }
+  ]
+}
+            
+</div>
+          </div>
+        </div>
+
+        <!-- STEP 6 -->
+        <div class="step-card" id="step-6">
+          <div class="step-header">
+            <div class="step-num" style="background:linear-gradient(135deg,var(--ch-blue),var(--ch-teal));">6</div>
+            <div style="flex:1;">
+              <h3 class="text-base font-bold">Review & Resolve</h3>
+              <p class="text-sm text-muted-foreground" style="margin-top:4px;line-height:1.6;">When alerts are generated, your compliance team reviews them. They can investigate the transaction in <strong>Reactor</strong> to trace fund flows visually, then make a disposition decision — clear, escalate, or file a SAR.</p>
+            </div>
+          </div>
+          <div class="step-body">
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+              <div style="padding:10px;border-radius:8px;background:rgba(22,163,106,0.06);border:1px solid rgba(22,163,106,0.1);text-align:center;">
+                <p class="text-xs font-bold" style="color:var(--success);">✓ Clear</p>
+                <p style="font-size:10px;color:var(--muted-foreground);margin-top:2px;">False positive — release funds</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:rgba(217,119,6,0.06);border:1px solid rgba(217,119,6,0.1);text-align:center;">
+                <p class="text-xs font-bold" style="color:#d97706;">↑ Escalate</p>
+                <p style="font-size:10px;color:var(--muted-foreground);margin-top:2px;">Needs senior review or legal</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.1);text-align:center;">
+                <p class="text-xs font-bold" style="color:var(--destructive);">📋 File SAR</p>
+                <p style="font-size:10px;color:var(--muted-foreground);margin-top:2px;">Suspicious Activity Report</p>
+              </div>
+            </div>
+            <button class="code-toggle" onclick="toggleCode('code-7')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              View API Call
+            </button>
+            <div class="code-block has-response" id="code-7">
+<span class="code-comment">// Update alert status after review</span>
+<span class="code-method">PATCH</span> <span class="code-url">/api/kyt/v1/alerts/alert-abc-456</span>
+
+{
+  <span class="code-key">"status"</span>: <span class="code-string">"RESOLVED"</span>
+}
+</div>
+<button class="sim-btn" id="sim-code-7" onclick="simulateCall('code-7')">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  Simulate API Call
+</button>
+<div class="code-response" id="resp-code-7">
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"alertIdentifier"</span>: <span class="code-string">"alert-abc-456"</span>,
+  <span class="code-key">"status"</span>:          <span class="code-string">"RESOLVED"</span>,
+  <span class="code-key">"updatedAt"</span>:       <span class="code-string">"2026-06-16T14:22:00Z"</span>
+}
+<hr style="border:none;border-top:1px solid rgba(99,102,241,0.15);margin:16px 0;"/>
+<span class="code-comment">// Or assign to a specific analyst for review</span>
+<span class="code-method">PATCH</span> <span class="code-url">/api/kyt/v1/alerts/alert-abc-456/assignment</span>
+
+{
+  <span class="code-key">"assigneeId"</span>: <span class="code-string">"analyst@company.com"</span>
+}
+
+<span class="code-comment">// Response</span>
+{
+  <span class="code-key">"alertIdentifier"</span>: <span class="code-string">"alert-abc-456"</span>,
+  <span class="code-key">"assigneeId"</span>:      <span class="code-string">"analyst@company.com"</span>,
+  <span class="code-key">"updatedAt"</span>:       <span class="code-string">"2026-06-16T14:22:05Z"</span>
+}
+            
+</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="ch-footer">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="var(--ch-teal)" width="16" height="16"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span class="text-xs font-medium" style="color:var(--muted-foreground);">Chainalysis KYT — Know Your Transaction</span>
+        </div>
+        <span class="text-xs text-muted-foreground">API Integration Guide</span>
+      </div>
+    </div>
+
+    <script>
+    function toggleCode(id){
+      const el=document.getElementById(id);
+      if(el) el.classList.toggle('open');
+      const isOpen=el && el.classList.contains('open');
+
+      // Special handling for withdrawal — has two sub-steps
+      if(id==='code-2-withdrawal'){
+        const simA=document.getElementById('sim-code-2-wd-a');
+        const respA=document.getElementById('resp-code-2-wd-a');
+        const blockB=document.getElementById('code-2-wd-b');
+        const simB=document.getElementById('sim-code-2-wd-b');
+        const respB=document.getElementById('resp-code-2-wd-b');
+        if(isOpen){
+          if(simA) simA.classList.add('visible');
+        } else {
+          // Reset everything when closing
+          if(simA){ simA.classList.remove('visible','fired'); simA.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Simulate Pre-Screen'; }
+          if(simB){ simB.classList.remove('visible','fired'); simB.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Simulate Transfer Registration'; }
+          if(respA) respA.classList.remove('open');
+          if(respB) respB.classList.remove('open');
+          if(blockB) blockB.classList.remove('open');
+        }
+        return;
+      }
+
+      // Standard handling
+      const sim=document.getElementById('sim-'+id);
+      if(sim){
+        if(isOpen){ sim.classList.add('visible'); }
+        else{ sim.classList.remove('visible','fired');
+          sim.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> Simulate API Call'; }
+      }
+      const resp=document.getElementById('resp-'+id);
+      if(resp && !isOpen) resp.classList.remove('open');
+    }
+
+    function simulateCall(id){
+      const btn=document.getElementById('sim-'+id);
+      if(!btn || btn.classList.contains('fired')) return;
+
+      // Show loading state
+      btn.innerHTML='<div class="animate-spin" style="width:11px;height:11px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;"></div> Calling API…';
+
+      // Simulate network delay
+      setTimeout(()=>{
+        // Reveal response
+        const resp=document.getElementById('resp-'+id);
+        if(resp) resp.classList.add('open');
+
+        // Update button to "sent" state
+        btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Response Received';
+        btn.classList.add('fired');
+
+        // For withdrawal Step A: show Step B after response appears
+        if(id==='code-2-wd-a'){
+          setTimeout(()=>{
+            const bBlock=document.getElementById('code-2-wd-b');
+            const bSim=document.getElementById('sim-code-2-wd-b');
+            if(bBlock) bBlock.classList.add('open');
+            if(bSim) bSim.classList.add('visible');
+          },500);
+        }
+      }, 800);
+    }
+
+    function showTxTab(tab){
+      const isDeposit = tab === 'deposit';
+
+      // Toggle content
+      document.getElementById('tx-deposit').style.display = isDeposit ? '' : 'none';
+      document.getElementById('tx-withdrawal').style.display = isDeposit ? 'none' : '';
+
+      // Toggle button styles
+      const depBtn = document.getElementById('tab-deposit');
+      const wdBtn = document.getElementById('tab-withdrawal');
+
+      depBtn.style.background = isDeposit ? 'rgba(22,163,106,0.08)' : 'var(--muted)';
+      depBtn.style.borderColor = isDeposit ? '#16a34a' : 'transparent';
+      depBtn.querySelector('.text-sm').style.color = isDeposit ? '#16a34a' : '#6b7280';
+      depBtn.querySelector('svg').setAttribute('stroke', isDeposit ? '#16a34a' : '#6b7280');
+
+      wdBtn.style.background = !isDeposit ? 'rgba(234,88,12,0.08)' : 'var(--muted)';
+      wdBtn.style.borderColor = !isDeposit ? '#ea580c' : 'transparent';
+      wdBtn.querySelector('.text-sm').style.color = !isDeposit ? '#ea580c' : '#6b7280';
+      wdBtn.querySelector('svg').setAttribute('stroke', !isDeposit ? '#ea580c' : '#6b7280');
+    }
+    </script>
+  
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';
+    var M=document.querySelector('meta[name="cove-demo"]');
+    var D=M?M.getAttribute('content'):(document.title.split('\u2014')[0].trim()||'unknown');
+    var P=new URLSearchParams(location.search);
+    var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
+    window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,
+    demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,
+    domain:d.domain||DM,address:d.address||'',filter:d.filter||'',
+    viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};
+    addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
+    </script>
+  </body>
+</html>

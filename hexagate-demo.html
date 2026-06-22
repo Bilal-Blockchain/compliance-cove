@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Smart Contract Security (Hexagate)" />
+    <title>ShieldFi — Protocol Security Dashboard</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root{color-scheme:dark;--sf-bg:#070a12;--sf-card:rgba(12,16,28,0.85);--sf-border:rgba(14,165,233,0.1);--sf-glow:rgba(14,165,233,0.12);--sf-cyan:#0ea5e9;--sf-navy:#0c1e3a;--sf-green:#22c55e;--sf-red:#ef4444;--sf-yellow:#eab308;}
+      *{font-family:'Inter',system-ui,sans-serif;}
+      body{background:var(--sf-bg)!important;color:#e2e8f0!important;}
+      .mono{font-family:'JetBrains Mono',monospace;}
+      #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+      /* Nav */
+      .sf-nav{position:sticky;top:0;z-index:50;background:rgba(7,10,18,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--sf-border);}
+      .sf-nav::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(14,165,233,0.3),rgba(34,197,94,0.2),transparent);}
+
+      /* Cards */
+      .sf-card{border-radius:14px;background:var(--sf-card);backdrop-filter:blur(12px);border:1px solid var(--sf-border);transition:border-color .25s,box-shadow .25s;}
+      .sf-card:hover{border-color:rgba(14,165,233,0.25);box-shadow:0 0 30px var(--sf-glow);}
+
+      /* Stats */
+      .sf-stat{text-align:center;padding:16px 12px;}
+      .sf-stat-val{font-size:24px;font-weight:800;letter-spacing:-0.5px;}
+      .sf-stat-label{font-size:10px;color:#64748b;margin-top:2px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
+
+      /* Tabs */
+      .sf-tabs{display:flex;gap:4px;padding:4px;border-radius:10px;background:rgba(14,165,233,0.04);border:1px solid var(--sf-border);}
+      .sf-tab{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;color:#64748b;border:none;background:none;}
+      .sf-tab:hover{color:#e2e8f0;}
+      .sf-tab.active{background:var(--sf-cyan);color:white;box-shadow:0 0 12px rgba(14,165,233,0.3);}
+
+      /* Alert feed */
+      .alert-row{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:10px;border:1px solid var(--sf-border);margin-bottom:6px;transition:all .15s;}
+      .alert-row:hover{border-color:rgba(14,165,233,0.2);background:rgba(14,165,233,0.03);}
+      .alert-dot{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}
+      .alert-time{font-size:10px;color:#475569;white-space:nowrap;margin-top:2px;font-family:'JetBrains Mono',monospace;}
+
+      /* Severity badges */
+      .sev-critical{background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);}
+      .sev-high{background:rgba(249,115,22,0.1);color:#f97316;border:1px solid rgba(249,115,22,0.2);}
+      .sev-medium{background:rgba(234,179,8,0.1);color:#eab308;border:1px solid rgba(234,179,8,0.2);}
+      .sev-low{background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2);}
+      .sev-badge{display:inline-flex;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+
+      /* Risk meter */
+      .risk-meter{height:6px;border-radius:3px;background:#1e293b;overflow:hidden;flex:1;}
+      .risk-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+
+      /* Input */
+      .sf-input{width:100%;box-sizing:border-box;height:44px;border-radius:10px;border:1px solid var(--sf-border);background:rgba(7,10,18,0.6);padding:0 14px;font-size:13px;font-family:'JetBrains Mono',monospace;color:#e2e8f0;outline:none;transition:all .2s;}
+      .sf-input:focus{border-color:rgba(14,165,233,0.4);box-shadow:0 0 16px var(--sf-glow);}
+      .sf-input::placeholder{color:#475569;font-family:'Inter',sans-serif;}
+
+      /* Buttons */
+      .sf-btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;transition:all .2s;display:inline-flex;align-items:center;gap:6px;}
+      .sf-btn-primary{background:linear-gradient(135deg,#0ea5e9,#0284c7);color:white;}
+      .sf-btn-primary:hover{box-shadow:0 0 16px rgba(14,165,233,0.3);}
+
+      /* Section heads */
+      .section-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+      .section-head-line{flex:1;height:1px;background:var(--sf-border);}
+
+      /* Contract cards */
+      .contract-card{padding:12px;border-radius:10px;border:1px solid var(--sf-border);transition:all .15s;}
+      .contract-card:hover{border-color:rgba(14,165,233,0.2);background:rgba(14,165,233,0.03);}
+
+      /* Simulation */
+      .sim-output{border-radius:10px;background:#0b1120;border:1px solid var(--sf-border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#e2e8f0;white-space:pre-wrap;}
+
+      /* Footer */
+      .sf-footer{position:relative;z-index:1;border-top:1px solid var(--sf-border);padding:24px 0;background:rgba(7,10,18,0.9);}
+
+      /* Page tabs */
+      .page-panel{display:none;}
+      .page-panel.active{display:block;}
+
+      @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+      .pulse{animation:pulse 2s ease infinite;}
+    
+      .cove-disclaimer {
+        display:flex;align-items:flex-start;gap:8px;
+        padding:10px 14px;margin:8px 0;border-radius:8px;
+        background:rgba(26,107,106,0.08);border:1px solid rgba(26,107,106,0.2);
+        font-size:11px;line-height:1.5;color:#2d9f8f;
+      }
+      .cove-disclaimer svg{flex-shrink:0;margin-top:1px;color:#2d9f8f;}
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- Nav -->
+    <nav class="sf-nav">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:56px;">
+        <div class="flex items-center gap-3">
+          <div style="width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#0ea5e9,#0284c7);display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(14,165,233,0.3);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <span class="text-base font-bold" style="background:linear-gradient(135deg,#e2e8f0,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">ShieldFi</span>
+        </div>
+        <div class="sf-tabs">
+          <button class="sf-tab active" onclick="showPanel('overview')">Overview</button>
+          <button class="sf-tab" onclick="showPanel('analyze')">Address Analysis</button>
+          <button class="sf-tab" onclick="showPanel('simulate')">Tx Simulation</button>
+          <button class="sf-tab" onclick="showPanel('monitors')">Monitors</button>
+          <button class="sf-tab" onclick="showPanel('gate')">Gate DSL</button>
+          <button class="sf-tab" onclick="showPanel('approvals')">Approvals</button>
+          <button class="sf-tab" onclick="showPanel('alerts')">Alert Feed</button>
+          <button class="sf-tab" onclick="showPanel('about')">About</button>
+        </div>
+        <div class="flex items-center gap-2" style="padding:4px 10px;border-radius:8px;border:1px solid var(--sf-border);background:rgba(14,165,233,0.04);">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#0ea5e9" width="13" height="13"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span class="text-xs font-medium" style="color:#0ea5e9;">Powered by Hexagate</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 py-6" style="position:relative;z-index:1;">
+
+      <!-- ==================== OVERVIEW ==================== -->
+      <div class="page-panel active" id="panel-overview">
+        <!-- Stats -->
+        <div class="grid grid-cols-4 gap-4 mb-5">
+          <div class="sf-card"><div class="sf-stat"><div class="sf-stat-val" style="color:#22c55e;">$842M</div><div class="sf-stat-label">Total Value Locked</div></div></div>
+          <div class="sf-card"><div class="sf-stat"><div class="sf-stat-val" style="color:#0ea5e9;">24</div><div class="sf-stat-label">Contracts Monitored</div></div></div>
+          <div class="sf-card"><div class="sf-stat"><div class="sf-stat-val" style="color:#eab308;">7</div><div class="sf-stat-label">Active Alerts</div></div></div>
+          <div class="sf-card"><div class="sf-stat"><div class="sf-stat-val" style="color:#22c55e;">99.7%</div><div class="sf-stat-label">Uptime (30d)</div></div></div>
+        </div>
+
+        <!-- Monitored Contracts + Alert Feed -->
+        <div class="grid md:grid-cols-5 gap-4">
+          <!-- Contracts -->
+          <div class="sf-card md:col-span-3" style="padding:20px;">
+            <div class="section-head">
+              <span class="text-xs font-semibold uppercase tracking-wide" style="color:#0ea5e9;">Monitored Contracts</span>
+              <div class="section-head-line"></div>
+            </div>
+            <div class="space-y-2" id="contractsList"></div>
+          </div>
+
+          <!-- Recent Alerts -->
+          <div class="sf-card md:col-span-2" style="padding:20px;">
+            <div class="section-head">
+              <span class="text-xs font-semibold uppercase tracking-wide" style="color:#0ea5e9;">Recent Alerts</span>
+              <div class="pulse" style="width:6px;height:6px;border-radius:50%;background:#ef4444;"></div>
+              <div class="section-head-line"></div>
+            </div>
+            <div id="alertMini" style="max-height:340px;overflow-y:auto;"></div>
+          </div>
+        </div>
+
+        <!-- Chainalysis product callout -->
+        <div class="sf-card" style="padding:16px 20px;margin-top:16px;display:flex;align-items:center;gap:12px;border-color:rgba(14,165,233,0.15);">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#0ea5e9" width="20" height="20"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <div style="flex:1;">
+            <p class="text-sm font-semibold" style="color:#e2e8f0;">Chainalysis Hexagate — Smart Contract Security</p>
+            <p class="text-xs" style="color:#64748b;margin-top:2px;">Real-time monitoring, transaction simulation, and threat detection for DeFi protocols. Protecting $20B+ in TVL across 100+ protocols.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== ADDRESS ANALYSIS ==================== -->
+      <div class="page-panel" id="panel-analyze">
+        <div class="sf-card" style="padding:20px;margin-bottom:16px;">
+          <h2 class="text-base font-bold mb-1">Address Risk Analysis</h2>
+          <p class="text-xs" style="color:#64748b;margin-bottom:14px;">Analyze any EVM address for risk level, entity type, and security issues. Powered by Hexagate's address intelligence.</p>
+          <div class="flex gap-3">
+            <input id="analyzeAddr" class="sf-input" style="flex:1;" placeholder="0x... Enter any EVM address" />
+            <button class="sf-btn sf-btn-primary" onclick="analyzeAddress()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              Analyze
+            </button>
+          </div>
+        </div>
+        <div id="analyzeResults"></div>
+      </div>
+
+      <!-- ==================== TX SIMULATION ==================== -->
+      <div class="page-panel" id="panel-simulate">
+        <div class="sf-card" style="padding:20px;margin-bottom:16px;">
+          <h2 class="text-base font-bold mb-1">Transaction Simulation</h2>
+          <p class="text-xs" style="color:#64748b;margin-bottom:14px;">Simulate a transaction before it executes — see state changes, token transfers, approvals, and potential risks without broadcasting on-chain.</p>
+          <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class="text-xs font-medium" style="color:#64748b;">From</label><input id="simFrom" class="sf-input" style="margin-top:4px;" placeholder="0x..." value="0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296" /></div>
+              <div><label class="text-xs font-medium" style="color:#64748b;">To (Contract)</label><input id="simTo" class="sf-input" style="margin-top:4px;" placeholder="0x..." value="0xcc9a0b7c43dc2a5f023bb9b738e45b0ef6b06e04" /></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div><label class="text-xs font-medium" style="color:#64748b;">Value (wei)</label><input id="simValue" class="sf-input" style="margin-top:4px;" placeholder="0x0" value="0x1d7d843dc3b480000" /></div>
+              <div><label class="text-xs font-medium" style="color:#64748b;">Gas</label><input id="simGas" class="sf-input" style="margin-top:4px;" placeholder="0x55cea" value="0x55cea" /></div>
+            </div>
+            <div><label class="text-xs font-medium" style="color:#64748b;">Calldata</label><input id="simData" class="sf-input" style="margin-top:4px;" placeholder="0x..." value="0x474cf53d000000000000000000000000000000000000000000000000000000000000002" /></div>
+            <button class="sf-btn sf-btn-primary" onclick="simulateTx()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Simulate Transaction
+            </button>
+          </div>
+        </div>
+        <div id="simResults"></div>
+      </div>
+
+      <!-- ==================== MONITORS ==================== -->
+      <div class="page-panel" id="panel-monitors">
+        <div class="sf-card" style="padding:20px;margin-bottom:16px;border-left:3px solid #0ea5e9;">
+          <h2 class="text-base font-bold mb-1">Monitor Configuration</h2>
+          <p class="text-xs" style="color:#64748b;">Three layers of protection — no-code rules, ML-powered threat detection, and custom Gate DSL monitors. Configure what matters for your protocol.</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-4 mb-4">
+          <!-- IntelliGate (ML) -->
+          <div class="sf-card" style="padding:18px;">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#8b5cf6,#6366f1);display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold">IntelliGate</p>
+                <p style="font-size:10px;color:#8b5cf6;font-weight:600;">ML-Powered</p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">Threat Monitor</span><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Trained on 200+ real exploits. Detects reentrancy, oracle manipulation, flash loan attacks.</p></div>
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">Wallet Compromise</span><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Detects private key compromise patterns — unusual signing behavior, rapid drains.</p></div>
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">Ecosystem Monitor</span><span style="width:8px;height:8px;border-radius:50%;background:#eab308;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Alerts when protocols in your dependency chain are exploited.</p></div>
+            </div>
+          </div>
+
+          <!-- No-Code Monitors -->
+          <div class="sf-card" style="padding:18px;">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#0ea5e9,#0284c7);display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 12l2 2 4-4"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold">No-Code Rules</p>
+                <p style="font-size:10px;color:#0ea5e9;font-weight:600;">Configure in UI</p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">Balance Change</span><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Alert when any monitored wallet balance drops > 10% in a single block.</p></div>
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">Contract Event</span><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Watch for OwnershipTransferred, Upgraded, RoleGranted on critical contracts.</p></div>
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">Function Call</span><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Track calls to admin functions: pause(), setFee(), upgradeTo().</p></div>
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">Token Depeg</span><span style="width:8px;height:8px;border-radius:50%;background:#64748b;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Alert when stablecoin or LP token deviates > 2% from peg.</p></div>
+            </div>
+          </div>
+
+          <!-- Gate Monitors -->
+          <div class="sf-card" style="padding:18px;">
+            <div class="flex items-center gap-2 mb-3">
+              <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </div>
+              <div>
+                <p class="text-sm font-bold">Gate DSL</p>
+                <p style="font-size:10px;color:#22c55e;font-weight:600;">Custom Code</p>
+              </div>
+            </div>
+            <div class="space-y-2">
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">USDC Volume Rule</span><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Alert when single-block USDC transfer volume exceeds $10M threshold.</p></div>
+              <div class="contract-card"><div class="flex items-center justify-between"><span class="text-xs font-medium">Approval Watchdog</span><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span></div><p style="font-size:10px;color:#64748b;margin-top:2px;">Flag unlimited token approvals to non-whitelisted contracts.</p></div>
+              <div class="contract-card" style="border-color:rgba(14,165,233,0.25);cursor:pointer;" onclick="showPanel('gate')"><div class="flex items-center justify-between"><span class="text-xs font-medium" style="color:#0ea5e9;">+ Write New Gate Rule →</span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== GATE DSL ==================== -->
+      <div class="page-panel" id="panel-gate">
+        <div class="sf-card" style="padding:20px;margin-bottom:16px;border-left:3px solid #22c55e;">
+          <h2 class="text-base font-bold mb-1">Gate DSL — Custom Monitoring Rules</h2>
+          <p class="text-xs" style="color:#64748b;">Write custom detection logic using Hexagate's domain-specific language. Rules are evaluated on every block in real-time. Below is an example rule that monitors unusual USDC transfer volume.</p>
+        </div>
+
+        <div class="grid md:grid-cols-5 gap-4">
+          <!-- Code editor -->
+          <div class="sf-card md:col-span-3" style="padding:0;overflow:hidden;">
+            <div style="padding:10px 16px;background:rgba(14,165,233,0.04);border-bottom:1px solid var(--sf-border);display:flex;align-items:center;justify-content:between;">
+              <div class="flex items-center gap-2" style="flex:1;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                <span class="text-xs font-semibold">usdc-volume-monitor.gate</span>
+              </div>
+              <button class="sf-btn sf-btn-primary" style="padding:5px 12px;font-size:11px;" onclick="validateGate()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Validate
+              </button>
+            </div>
+            <div style="padding:16px 20px;background:#060810;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8;color:#e2e8f0;white-space:pre-wrap;min-height:320px;"><span style="color:#c084fc;">use</span> <span style="color:#7dd3fc;">Events</span>, <span style="color:#7dd3fc;">Sum</span> <span style="color:#c084fc;">from</span> hexagate;
+
+<span style="color:#64748b;">// USDC contract address on Ethereum</span>
+<span style="color:#c084fc;">source</span> <span style="color:#7dd3fc;">usdc</span>: <span style="color:#fde68a;">address</span> = <span style="color:#86efac;">0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48</span>;
+
+<span style="color:#64748b;">// Fetch all Transfer events from the current block</span>
+<span style="color:#c084fc;">source</span> <span style="color:#7dd3fc;">transfers</span>: <span style="color:#fde68a;">list</span>&lt;<span style="color:#fde68a;">tuple</span>&lt;<span style="color:#fde68a;">address</span>, <span style="color:#fde68a;">address</span>, <span style="color:#fde68a;">integer</span>&gt;&gt; = <span style="color:#7dd3fc;">Events</span> {
+    contract: usdc,
+    signature: <span style="color:#86efac;">"event Transfer(address indexed from, address indexed to, uint256 value)"</span>
+};
+
+<span style="color:#64748b;">// Sum all transfer values in the block</span>
+<span style="color:#c084fc;">source</span> <span style="color:#7dd3fc;">totalVolume</span>: <span style="color:#fde68a;">integer</span> = <span style="color:#7dd3fc;">Sum</span> {
+    sequence: [transfer[<span style="color:#fca5a5;">2</span>] <span style="color:#c084fc;">for</span> transfer <span style="color:#c084fc;">in</span> transfers]
+};
+
+<span style="color:#64748b;">// Alert if single-block volume exceeds $10M (10M * 10^6 decimals)</span>
+<span style="color:#c084fc;">rule</span> {
+    description: <span style="color:#86efac;">"Unusual USDC transfer volume detected"</span>,
+    condition: totalVolume &lt; <span style="color:#fca5a5;">10000000000000</span>,
+    severity: <span style="color:#86efac;">"HIGH"</span>
+};</div>
+          </div>
+
+          <!-- Validation output -->
+          <div class="sf-card md:col-span-2" style="padding:18px;">
+            <div class="section-head">
+              <span class="text-xs font-semibold uppercase tracking-wide" style="color:#0ea5e9;">Validation Output</span>
+              <div class="section-head-line"></div>
+            </div>
+            <div id="gateOutput">
+              <p class="text-xs" style="color:#64748b;">Click <strong>Validate</strong> to compile and test the Gate rule against a recent Ethereum block.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== APPROVALS ==================== -->
+      <div class="page-panel" id="panel-approvals">
+        <div class="sf-card" style="padding:20px;margin-bottom:16px;border-left:3px solid #f59e0b;">
+          <h2 class="text-base font-bold mb-1">Pending Approvals</h2>
+          <p class="text-xs" style="color:#64748b;">Smart contract calls flagged by Hexagate monitoring that require human sign-off before execution. Review the simulation results and approve or reject.</p>
+        </div>
+
+        <div class="space-y-4">
+          <!-- Pending approval 1 -->
+          <div class="sf-card" style="padding:20px;" id="approval-1">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(245,158,11,0.1);display:flex;align-items:center;justify-content:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div>
+                  <p class="text-sm font-bold">Contract Upgrade — Lending Pool v3</p>
+                  <p class="mono text-xs" style="color:#64748b;">upgradeTo(0x7f2c…e912) via Timelock</p>
+                </div>
+              </div>
+              <span class="sev-badge sev-high">Requires Approval</span>
+            </div>
+            <div class="grid md:grid-cols-2 gap-3 mb-3">
+              <div class="contract-card">
+                <p class="text-xs font-semibold mb-2" style="color:#0ea5e9;">Simulation Result</p>
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">New implementation</span><span class="mono text-xs">0x7f2c…e912</span></div>
+                  <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Functions modified</span><span class="text-xs font-medium">12 of 34</span></div>
+                  <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Bytecode diff</span><span class="text-xs font-medium" style="color:#eab308;">+842 / -216 bytes</span></div>
+                  <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Audit status</span><span class="text-xs font-medium" style="color:#22c55e;">Verified by Trail of Bits</span></div>
+                </div>
+              </div>
+              <div class="contract-card">
+                <p class="text-xs font-semibold mb-2" style="color:#0ea5e9;">Risk Assessment</p>
+                <div class="space-y-1">
+                  <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Threat scan</span><span class="text-xs font-medium" style="color:#22c55e;">No threats detected</span></div>
+                  <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Timelock</span><span class="text-xs font-medium">48hr — expires Jun 18</span></div>
+                  <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Multisig</span><span class="text-xs font-medium">2 of 5 signed</span></div>
+                  <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">TVL at risk</span><span class="text-xs font-bold">$312M</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button class="sf-btn" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2);flex:1;" onclick="resolveApproval('approval-1','approved')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                Approve Upgrade
+              </button>
+              <button class="sf-btn" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);" onclick="resolveApproval('approval-1','rejected')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                Reject
+              </button>
+            </div>
+          </div>
+
+          <!-- Pending approval 2 -->
+          <div class="sf-card" style="padding:20px;" id="approval-2">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(239,68,68,0.1);display:flex;align-items:center;justify-content:center;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div>
+                  <p class="text-sm font-bold">Emergency Pause — DEX Aggregator</p>
+                  <p class="mono text-xs" style="color:#64748b;">pause() triggered by Threat Monitor</p>
+                </div>
+              </div>
+              <span class="sev-badge sev-critical">Critical — Auto-Paused</span>
+            </div>
+            <div class="contract-card" style="margin-bottom:12px;">
+              <p class="text-xs font-semibold mb-2" style="color:#ef4444;">Threat Detected</p>
+              <p class="text-xs" style="color:#94a3b8;line-height:1.6;">IntelliGate detected a reentrancy pattern matching the Curve Finance exploit signature. The protocol has been automatically paused. 3 transactions from 0x7a2b…c4f1 attempted nested calls to the withdraw() function before state was updated. Total value at risk: <strong style="color:#e2e8f0;">$89M</strong>.</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="sf-btn" style="background:rgba(34,197,94,0.1);color:#22c55e;border:1px solid rgba(34,197,94,0.2);flex:1;" onclick="resolveApproval('approval-2','resumed')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Resume Protocol
+              </button>
+              <button class="sf-btn" style="background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);flex:1;" onclick="resolveApproval('approval-2','maintained')">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                Maintain Pause
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== ALERT FEED ==================== -->
+      <div class="page-panel" id="panel-alerts">
+        <div class="sf-card" style="padding:20px;">
+          <div class="section-head">
+            <span class="text-xs font-semibold uppercase tracking-wide" style="color:#0ea5e9;">Live Alert Feed</span>
+            <div class="pulse" style="width:6px;height:6px;border-radius:50%;background:#ef4444;"></div>
+            <div class="section-head-line"></div>
+            <div class="sf-tabs" style="padding:2px;gap:2px;">
+              <button class="sf-tab active" style="padding:4px 10px;font-size:10px;" onclick="filterAlerts('all',this)">All</button>
+              <button class="sf-tab" style="padding:4px 10px;font-size:10px;" onclick="filterAlerts('critical',this)">Critical</button>
+              <button class="sf-tab" style="padding:4px 10px;font-size:10px;" onclick="filterAlerts('high',this)">High</button>
+            </div>
+          </div>
+          <div id="alertFull"></div>
+        </div>
+      </div>
+
+
+      <!-- ==================== ABOUT ==================== -->
+      <div id="panel-about" class="page-panel">
+        <div class="max-w-4xl mx-auto px-4 py-8 space-y-5">
+          <div style="border-radius:14px;background:linear-gradient(135deg,#0ea5e9,#0284c7);padding:28px 24px;color:white;">
+            <h1 style="font-size:24px;font-weight:900;letter-spacing:-0.5px;">About ShieldFi</h1>
+            <p style="font-size:14px;margin-top:6px;opacity:0.85;line-height:1.6;max-width:600px;">Smart Contract Security — Compliance Cove Demo</p>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;">What This Demo Shows</h2>
+            <p class="text-sm" style="color:#94a3b8;margin-top:6px;line-height:1.7;">ShieldFi is a DeFi protocol security dashboard powered by Hexagate. It demonstrates real-time smart contract monitoring, address risk analysis, transaction simulation, approval workflows, and Gate DSL custom monitoring rules. Use this when demoing to DeFi protocols, bridges, or any project with smart contracts.</p>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;margin-bottom:12px;">Presenter Workflow</h2>
+            <p class="text-xs" style="color:#94a3b8;margin-bottom:14px;">Follow these steps during a customer call. Each step includes a talking point you can use.</p>
+            
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#0ea5e9;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">1</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Overview — Show Protocol Health</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Start on the Overview tab. Highlight TVL, monitored contracts, active alerts, and uptime. Click through the contract list to show Hexagate monitoring per protocol.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> This is your protocol's security command center. Hexagate monitors every contract in real-time — reentrancy, oracle manipulation, and exploit patterns trained on 200+ real attacks.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#0ea5e9;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">2</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Address Analysis</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Address Analysis. Use the pre-screened picker to analyze the BAYC contract (Low) or Lazarus Group address (Severe).</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Any address interacting with your protocol can be analyzed instantly — risk level, entity type, and security issues. This is how you gate who can interact with your smart contracts.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#06b6d4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">3</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Transaction Simulation</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Tx Simulation. Click 'Simulate Transaction' with the pre-filled fields. Show the warnings and state changes.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Before a large transaction executes, simulate it first. See the state changes, token approvals, and risk warnings BEFORE it hits the blockchain.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">4</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Gate DSL</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Gate DSL. Show the syntax-highlighted USDC volume rule. Click 'Validate' to run it against a real Ethereum block.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Gate is Hexagate's custom monitoring language. Write rules like 'alert if single-block USDC volume exceeds $10M'. The rule runs on every block in real-time.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#f59e0b;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">5</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Approvals Workflow</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Approvals. Show the contract upgrade pending sign-off and the emergency pause triggered by IntelliGate. Approve or reject.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> When Hexagate detects a threat, it can auto-pause your protocol. The security team then reviews the simulation, signs off, and either resumes or maintains the pause.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;margin-bottom:10px;">Chainalysis Products Used</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+              
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Hexagate</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Smart contract monitoring, transaction simulation, Gate DSL, and ML-powered threat detection</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Address Screening</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Risk analysis for addresses interacting with the protocol</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="sf-footer">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#0ea5e9,#0284c7);display:flex;align-items:center;justify-content:center;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+          </div>
+          <span class="text-sm font-semibold" style="color:#64748b;">ShieldFi</span>
+          <span class="text-xs" style="color:#334155;">Protocol Security Demo</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs" style="color:#475569;">
+          <span>Hexagate</span><span style="opacity:0.3;">·</span>
+          <span>Address Risk</span><span style="opacity:0.3;">·</span>
+          <span>Tx Simulation</span><span style="opacity:0.3;">·</span>
+          <span>Real-time Monitoring</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/gsap.min.js"></script>
+    <script>
+    // =====================================================
+    // PANEL NAVIGATION
+    // =====================================================
+    function showPanel(id) {
+      document.querySelectorAll('.page-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + id).classList.add('active');
+      document.querySelectorAll('.sf-nav .sf-tab').forEach((t, i) => {
+        t.classList.toggle('active', t.textContent.toLowerCase().includes(id.slice(0, 4)));
+      });
+    }
+
+    // =====================================================
+    // MOCK DATA
+    // =====================================================
+    const contracts = [
+      { name: 'Lending Pool v3', addr: '0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2', tvl: '$312M', risk: 'Low', monitors: 8, chain: 'Ethereum' },
+      { name: 'Staking Router', addr: '0xFdDf38947aFB03C621C71b06C9C70bce73f12999', tvl: '$248M', risk: 'Low', monitors: 5, chain: 'Ethereum' },
+      { name: 'DEX Aggregator', addr: '0x1111111254EEB25477B68fb85Ed929f73A960582', tvl: '$89M', risk: 'Medium', monitors: 6, chain: 'Ethereum' },
+      { name: 'Bridge Escrow', addr: '0x40ec5B33f54e0E8A33A975908C5BA1c14e5BbbDf', tvl: '$156M', risk: 'Low', monitors: 12, chain: 'Polygon' },
+      { name: 'Vault Strategy', addr: '0xBA12222222228d8Ba445958a75a0704d566BF2C8', tvl: '$37M', risk: 'Medium', monitors: 4, chain: 'Arbitrum' },
+    ];
+
+    const alerts = [
+      { time: '2 min ago', sev: 'critical', title: 'Reentrancy Pattern Detected', desc: 'Suspicious call pattern on Lending Pool v3 — nested external call before state update. Transaction 0xf8c2…a91d.', contract: 'Lending Pool v3' },
+      { time: '8 min ago', sev: 'high', title: 'Unusual Approval Amount', desc: 'Unlimited token approval (type(uint256).max) granted to unverified contract 0x7a2b…c4f1 by whale wallet.', contract: 'DEX Aggregator' },
+      { time: '14 min ago', sev: 'high', title: 'Flash Loan Anomaly', desc: 'Large flash loan ($12M USDC) with price oracle query in same block. Potential oracle manipulation attempt.', contract: 'Lending Pool v3' },
+      { time: '31 min ago', sev: 'medium', title: 'New Admin Key Added', desc: 'Multisig added new signer 0x9f1c…e823. Now 3/5 threshold. Verify this was an authorized governance action.', contract: 'Bridge Escrow' },
+      { time: '47 min ago', sev: 'medium', title: 'TVL Drop >5% in 1hr', desc: 'Vault Strategy TVL decreased from $39M to $37M (5.1%) in the last 60 minutes. Large withdrawal from 0x3dd…5296.', contract: 'Vault Strategy' },
+      { time: '1 hr ago', sev: 'low', title: 'Contract Upgrade Proposed', desc: 'New implementation contract deployed. 48hr timelock active. Bytecode diff shows 12 modified functions.', contract: 'Staking Router' },
+      { time: '2 hr ago', sev: 'critical', title: 'Sanctioned Address Interaction', desc: 'OFAC-listed address 0x098B…2f96 (Lazarus Group) attempted to interact with DEX Aggregator. Transaction reverted by protocol.', contract: 'DEX Aggregator' },
+      { time: '3 hr ago', sev: 'low', title: 'Gas Price Spike', desc: 'Network gas price exceeded 200 gwei. Monitor threshold set at 150 gwei. May affect protocol operations.', contract: 'All' },
+    ];
+
+    // =====================================================
+    // RENDER
+    // =====================================================
+    const riskColors = { Low: '#22c55e', Medium: '#eab308', High: '#f97316', Critical: '#ef4444' };
+    const sevClasses = { critical: 'sev-critical', high: 'sev-high', medium: 'sev-medium', low: 'sev-low' };
+    const sevDots = { critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#22c55e' };
+
+    // Contracts list
+    document.getElementById('contractsList').innerHTML = contracts.map(c => {
+      const riskPct = c.risk === 'Low' ? 15 : c.risk === 'Medium' ? 45 : 75;
+      return `<div class="contract-card">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <div style="width:8px;height:8px;border-radius:50%;background:${riskColors[c.risk]};"></div>
+            <span class="text-sm font-semibold">${c.name}</span>
+            <span class="text-xs" style="padding:1px 6px;border-radius:4px;background:rgba(14,165,233,0.06);color:#0ea5e9;font-weight:600;">${c.chain}</span>
+          </div>
+          <span class="mono text-xs" style="color:#475569;">${c.addr.slice(0,6)}…${c.addr.slice(-4)}</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs" style="color:#64748b;">
+          <span>TVL: <strong style="color:#e2e8f0;">${c.tvl}</strong></span>
+          <span>Monitors: <strong style="color:#e2e8f0;">${c.monitors}</strong></span>
+          <span>Risk: <strong style="color:${riskColors[c.risk]};">${c.risk}</strong></span>
+          <div class="risk-meter"><div class="risk-fill" style="width:${riskPct}%;background:${riskColors[c.risk]};"></div></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Alert mini feed (overview)
+    function renderAlerts(container, list) {
+      document.getElementById(container).innerHTML = list.map(a =>
+        `<div class="alert-row" data-sev="${a.sev}">
+          <div class="alert-dot" style="background:${sevDots[a.sev]};"></div>
+          <div style="flex:1;">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="sev-badge ${sevClasses[a.sev]}">${a.sev}</span>
+              <span class="text-xs font-semibold">${a.title}</span>
+            </div>
+            <p class="text-xs" style="color:#64748b;margin-top:4px;line-height:1.5;">${a.desc}</p>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-xs" style="color:#475569;">${a.contract}</span>
+              <span class="alert-time">${a.time}</span>
+            </div>
+          </div>
+        </div>`
+      ).join('');
+    }
+    renderAlerts('alertMini', alerts.slice(0, 5));
+    renderAlerts('alertFull', alerts);
+
+    function filterAlerts(sev, btn) {
+      document.querySelectorAll('#panel-alerts .sf-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#alertFull .alert-row').forEach(r => {
+        r.style.display = (sev === 'all' || r.dataset.sev === sev) ? '' : 'none';
+      });
+    }
+
+    // =====================================================
+    // ADDRESS ANALYSIS (simulated)
+    // =====================================================
+    function analyzeAddress() {
+      const addr = document.getElementById('analyzeAddr').value.trim();
+      if (!addr) return;
+      const el = document.getElementById('analyzeResults');
+      el.innerHTML = '<div class="sf-card" style="padding:24px;text-align:center;"><div class="animate-spin" style="width:20px;height:20px;border:2px solid #1e293b;border-top-color:#0ea5e9;border-radius:50%;margin:0 auto 8px;"></div><p class="text-xs" style="color:#64748b;">Analyzing address…</p></div>';
+
+      setTimeout(() => {
+        // Simulated results
+        const isRisky = addr.toLowerCase().includes('098b') || addr.toLowerCase().includes('d90e');
+        const risk = isRisky ? 'CRITICAL' : (addr.length > 42 ? 'MEDIUM' : 'LOW');
+        const rc = risk === 'CRITICAL' ? '#ef4444' : risk === 'MEDIUM' ? '#eab308' : '#22c55e';
+        const rbg = risk === 'CRITICAL' ? 'rgba(239,68,68,0.08)' : risk === 'MEDIUM' ? 'rgba(234,179,8,0.08)' : 'rgba(34,197,94,0.08)';
+
+        el.innerHTML = `
+        <div class="grid md:grid-cols-3 gap-4">
+          <div class="sf-card" style="padding:20px;text-align:center;">
+            <div style="width:48px;height:48px;border-radius:12px;background:${rbg};display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${rc}" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div style="font-size:20px;font-weight:800;color:${rc};">${risk}</div>
+            <div class="sf-stat-label">Risk Level</div>
+          </div>
+          <div class="sf-card" style="padding:20px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#0ea5e9;">Address Info</span><div class="section-head-line"></div></div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Address</span><span class="mono text-xs">${addr.slice(0,10)}…${addr.slice(-6)}</span></div>
+              <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Type</span><span class="text-xs font-medium">${isRisky ? 'EOA (Externally Owned)' : 'Smart Contract'}</span></div>
+              <div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Chain</span><span class="text-xs font-medium">Ethereum Mainnet</span></div>
+              ${isRisky ? '<div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Entity</span><span class="text-xs font-semibold" style="color:#ef4444;">Lazarus Group (OFAC)</span></div>' : '<div class="flex items-center justify-between"><span class="text-xs" style="color:#64748b;">Name</span><span class="text-xs font-medium">Uniswap V3: Router</span></div>'}
+            </div>
+          </div>
+          <div class="sf-card" style="padding:20px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#0ea5e9;">Security Issues</span><div class="section-head-line"></div></div>
+            ${isRisky ? `
+              <div style="padding:8px 10px;border-radius:8px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.12);margin-bottom:6px;">
+                <span class="sev-badge sev-critical">CRITICAL</span>
+                <span class="text-xs font-semibold" style="margin-left:4px;">OFAC Sanctioned Entity</span>
+              </div>
+              <div style="padding:8px 10px;border-radius:8px;background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.12);">
+                <span class="sev-badge sev-high">HIGH</span>
+                <span class="text-xs font-semibold" style="margin-left:4px;">Stolen Funds Association</span>
+              </div>
+            ` : `
+              <div style="padding:8px 10px;border-radius:8px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.12);">
+                <span class="sev-badge sev-low">LOW</span>
+                <span class="text-xs font-semibold" style="margin-left:4px;">No issues detected</span>
+                <p class="text-xs" style="color:#64748b;margin-top:4px;">Verified contract, audit trail present.</p>
+              </div>
+            `}
+          </div>
+        </div>`;
+      }, 1200);
+    }
+
+    // =====================================================
+    // TX SIMULATION (simulated)
+    // =====================================================
+    function simulateTx() {
+      const el = document.getElementById('simResults');
+      el.innerHTML = '<div class="sf-card" style="padding:24px;text-align:center;"><div class="animate-spin" style="width:20px;height:20px;border:2px solid #1e293b;border-top-color:#0ea5e9;border-radius:50%;margin:0 auto 8px;"></div><p class="text-xs" style="color:#64748b;">Simulating transaction…</p></div>';
+
+      setTimeout(() => {
+        el.innerHTML = `
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="sf-card" style="padding:20px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#0ea5e9;">Simulation Result</span><div class="section-head-line"></div></div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="sev-badge sev-high">HIGH RISK</span>
+              <span class="text-xs font-semibold">2 warnings detected</span>
+            </div>
+            <div class="space-y-2">
+              <div style="padding:8px 10px;border-radius:8px;background:rgba(249,115,22,0.06);border:1px solid rgba(249,115,22,0.12);">
+                <p class="text-xs font-semibold" style="color:#f97316;">⚠ Unlimited Token Approval</p>
+                <p class="text-xs" style="color:#64748b;margin-top:2px;">Transaction grants unlimited spending approval to an unverified contract.</p>
+              </div>
+              <div style="padding:8px 10px;border-radius:8px;background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.12);">
+                <p class="text-xs font-semibold" style="color:#eab308;">⚠ Large Value Transfer</p>
+                <p class="text-xs" style="color:#64748b;margin-top:2px;">Transaction moves 34.5 ETH ($98,200). Exceeds protocol daily limit threshold.</p>
+              </div>
+            </div>
+          </div>
+          <div class="sf-card" style="padding:20px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#0ea5e9;">State Changes</span><div class="section-head-line"></div></div>
+            <div class="sim-output"><span style="color:#64748b;">// Simulated state changes</span>
+<span style="color:#7dd3fc;">ETH Balance</span>
+  From: <span style="color:#ef4444;">-34.50 ETH</span>  (0x3DdfA8…5296)
+  To:   <span style="color:#22c55e;">+34.50 ETH</span>  (0xcc9a0b…e04)
+
+<span style="color:#7dd3fc;">Token Approval</span>
+  Token:   USDC (0xA0b86991…)
+  Spender: 0xcc9a0b7c…
+  Amount:  <span style="color:#f97316;">UNLIMITED</span>
+
+<span style="color:#7dd3fc;">Gas Used</span>: 148,204 / 351,466
+<span style="color:#7dd3fc;">Status</span>:   <span style="color:#22c55e;">SUCCESS</span></div>
+          </div>
+        </div>`;
+      }, 1500);
+    }
+
+    // =====================================================
+    // SHIELD SECURITY BACKGROUND
+    // Hexagonal grid + scanning pulse rings + threat interceptions
+    // =====================================================
+    (function(){
+      const c=document.getElementById('bgCanvas');if(!c)return;
+      const x=c.getContext('2d');
+      let w,h,time=0;
+      const hexSize=50;
+      const pulses=[];   // scanning rings that expand outward
+      const threats=[];  // red dots that get intercepted
+
+      function resize(){w=c.width=innerWidth;h=c.height=innerHeight;}
+      resize();addEventListener('resize',resize);
+
+      // Draw a single hexagon
+      function hex(cx,cy,r,stroke,alpha){
+        x.beginPath();
+        for(let i=0;i<6;i++){
+          const a=Math.PI/3*i-Math.PI/6;
+          const px=cx+r*Math.cos(a), py=cy+r*Math.sin(a);
+          i===0?x.moveTo(px,py):x.lineTo(px,py);
+        }
+        x.closePath();
+        x.strokeStyle=stroke;
+        x.globalAlpha=alpha;
+        x.lineWidth=0.5;
+        x.stroke();
+        x.globalAlpha=1;
+      }
+
+      // Spawn scanning pulses on the left and right margins
+      function spawnPulse(){
+        const side=Math.random()>0.5;
+        pulses.push({
+          cx: side ? w*(0.70+Math.random()*0.28) : w*(0.02+Math.random()*0.28),
+          cy: h*(0.1+Math.random()*0.8),
+          r: 0, maxR: 120+Math.random()*180,
+          speed: 0.8+Math.random()*0.5,
+          color: Math.random()>0.3?'14,165,233':'34,197,94'
+        });
+      }
+
+      // Spawn threat dots on edges, intercept them in the margins (not center)
+      function spawnThreat(){
+        const side=Math.random()>0.5; // left or right side
+        let sx,sy,tx,ty;
+        if(side){
+          sx=w+10; sy=Math.random()*h;
+          tx=w*0.70+Math.random()*w*0.25; ty=h*(0.15+Math.random()*0.7);
+        }else{
+          sx=-10; sy=Math.random()*h;
+          tx=w*0.05+Math.random()*w*0.25; ty=h*(0.15+Math.random()*0.7);
+        }
+        threats.push({
+          x:sx,y:sy,tx:tx,ty:ty,
+          progress:0, speed:0.003+Math.random()*0.004,
+          blocked:false, blockTime:0,
+          interceptAt:0.4+Math.random()*0.3 // gets blocked partway
+        });
+      }
+
+      function draw(){
+        time++;
+        x.clearRect(0,0,w,h);
+
+        // Ambient gradients
+        const g1=x.createRadialGradient(w*.15,h*.25,0,w*.15,h*.25,w*.5);
+        g1.addColorStop(0,'rgba(14,165,233,0.015)');g1.addColorStop(1,'transparent');
+        x.fillStyle=g1;x.fillRect(0,0,w,h);
+        const g2=x.createRadialGradient(w*.8,h*.7,0,w*.8,h*.7,w*.35);
+        g2.addColorStop(0,'rgba(34,197,94,0.01)');g2.addColorStop(1,'transparent');
+        x.fillStyle=g2;x.fillRect(0,0,w,h);
+
+        // Hexagonal grid
+        const cols=Math.ceil(w/(hexSize*1.75))+2;
+        const rows=Math.ceil(h/(hexSize*1.5))+2;
+        for(let r=0;r<rows;r++){
+          for(let c2=0;c2<cols;c2++){
+            const cx=c2*hexSize*1.75+(r%2)*hexSize*0.875;
+            const cy=r*hexSize*1.5;
+            // Subtle breathing effect
+            const breathe=Math.sin(time*0.008+cx*0.003+cy*0.002)*0.015+0.025;
+            hex(cx,cy,hexSize*0.85,'rgba(14,165,233,1)',breathe);
+          }
+        }
+
+        // Draw scanning pulses
+        if(time%120===0) spawnPulse();
+        for(let i=pulses.length-1;i>=0;i--){
+          const p=pulses[i];
+          p.r+=p.speed;
+          const alpha=(1-p.r/p.maxR)*0.12;
+          if(alpha<=0){pulses.splice(i,1);continue;}
+          x.beginPath();x.arc(p.cx,p.cy,p.r,0,Math.PI*2);
+          x.strokeStyle=`rgba(${p.color},${alpha})`;
+          x.lineWidth=1.5;x.stroke();
+          // Inner glow
+          x.beginPath();x.arc(p.cx,p.cy,p.r*0.98,0,Math.PI*2);
+          x.strokeStyle=`rgba(${p.color},${alpha*0.5})`;
+          x.lineWidth=3;x.stroke();
+        }
+
+        // Draw threats (red dots that get intercepted)
+        if(time%200===0) spawnThreat();
+        for(let i=threats.length-1;i>=0;i--){
+          const t=threats[i];
+          if(!t.blocked){
+            t.progress+=t.speed;
+            t.x=t.x+(t.tx-t.x)*t.speed*3;
+            t.y=t.y+(t.ty-t.y)*t.speed*3;
+            if(t.progress>=t.interceptAt){
+              t.blocked=true;t.blockTime=time;
+              // Spawn a green pulse at intercept point
+              pulses.push({cx:t.x,cy:t.y,r:0,maxR:60,speed:1.5,color:'34,197,94'});
+            }
+          }
+
+          if(t.blocked){
+            const age=time-t.blockTime;
+            if(age>60){threats.splice(i,1);continue;}
+            // Shield flash at intercept point
+            const flashAlpha=Math.max(0,(1-age/60)*0.4);
+            x.beginPath();x.arc(t.x,t.y,8-age*0.1,0,Math.PI*2);
+            x.fillStyle=`rgba(34,197,94,${flashAlpha})`;x.fill();
+            // Blocked X mark
+            x.strokeStyle=`rgba(34,197,94,${flashAlpha})`;x.lineWidth=2;
+            x.beginPath();x.moveTo(t.x-4,t.y-4);x.lineTo(t.x+4,t.y+4);x.stroke();
+            x.beginPath();x.moveTo(t.x+4,t.y-4);x.lineTo(t.x-4,t.y+4);x.stroke();
+          } else {
+            // Draw red dot traveling inward
+            x.beginPath();x.arc(t.x,t.y,2.5,0,Math.PI*2);
+            x.fillStyle='rgba(239,68,68,0.5)';x.fill();
+            // Trail
+            const dx=t.tx-t.x,dy=t.ty-t.y,d=Math.sqrt(dx*dx+dy*dy);
+            if(d>1){
+              x.beginPath();
+              x.moveTo(t.x,t.y);
+              x.lineTo(t.x-dx/d*15,t.y-dy/d*15);
+              x.strokeStyle='rgba(239,68,68,0.15)';x.lineWidth=1;x.stroke();
+            }
+          }
+        }
+
+        // Shield silhouettes on left and right margins
+        const shieldAlpha=0.02+Math.sin(time*0.01)*0.008;
+        // Left shield
+        x.save();
+        x.translate(w*0.08,h*0.45);
+        x.scale(2.5,2.5);
+        x.beginPath();
+        x.moveTo(0,-20);
+        x.bezierCurveTo(12,-18,20,-10,20,0);
+        x.bezierCurveTo(20,12,12,22,0,28);
+        x.bezierCurveTo(-12,22,-20,12,-20,0);
+        x.bezierCurveTo(-20,-10,-12,-18,0,-20);
+        x.closePath();
+        x.strokeStyle=`rgba(14,165,233,${shieldAlpha})`;
+        x.lineWidth=0.5;x.stroke();
+        x.restore();
+        // Right shield
+        x.save();
+        x.translate(w*0.92,h*0.55);
+        x.scale(2.5,2.5);
+        x.beginPath();
+        x.moveTo(0,-20);
+        x.bezierCurveTo(12,-18,20,-10,20,0);
+        x.bezierCurveTo(20,12,12,22,0,28);
+        x.bezierCurveTo(-12,22,-20,12,-20,0);
+        x.bezierCurveTo(-20,-10,-12,-18,0,-20);
+        x.closePath();
+        x.strokeStyle=`rgba(34,197,94,${shieldAlpha*0.7})`;
+        x.lineWidth=0.5;x.stroke();
+        x.restore();
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // =====================================================
+    // GATE VALIDATION (simulated)
+    // =====================================================
+    function validateGate() {
+      const el = document.getElementById('gateOutput');
+      el.innerHTML = '<div style="text-align:center;padding:20px;"><div class="animate-spin" style="width:18px;height:18px;border:2px solid #1e293b;border-top-color:#22c55e;border-radius:50%;margin:0 auto 8px;"></div><p class="text-xs" style="color:#64748b;">Compiling & validating against block #22,847,193…</p></div>';
+
+      setTimeout(() => {
+        el.innerHTML = `
+          <div style="padding:10px 12px;border-radius:8px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.12);margin-bottom:10px;">
+            <div class="flex items-center gap-2"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span><span class="text-xs font-bold" style="color:#22c55e;">Compilation Successful</span></div>
+          </div>
+          <div class="section-head" style="margin-top:12px;"><span style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Trace Output</span><div class="section-head-line"></div></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#94a3b8;">
+            <div class="flex items-center justify-between" style="padding:3px 0;border-bottom:1px solid rgba(14,165,233,0.06);"><span style="color:#7dd3fc;">usdc</span><span class="mono" style="font-size:10px;">0xA0b8…eB48</span></div>
+            <div class="flex items-center justify-between" style="padding:3px 0;border-bottom:1px solid rgba(14,165,233,0.06);"><span style="color:#7dd3fc;">transfers</span><span style="font-size:10px;">142 events</span></div>
+            <div class="flex items-center justify-between" style="padding:3px 0;border-bottom:1px solid rgba(14,165,233,0.06);"><span style="color:#7dd3fc;">totalVolume</span><span style="font-size:10px;color:#86efac;">$4,821,093</span></div>
+          </div>
+          <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:rgba(34,197,94,0.04);border:1px solid rgba(34,197,94,0.08);">
+            <p style="font-size:10px;color:#22c55e;font-weight:600;">Rule: "Unusual USDC transfer volume"</p>
+            <p style="font-size:10px;color:#64748b;margin-top:2px;">Result: <strong style="color:#22c55e;">PASSED</strong> — $4.8M < $10M threshold</p>
+          </div>
+          <div style="margin-top:8px;padding:8px 10px;border-radius:6px;background:rgba(14,165,233,0.04);">
+            <p style="font-size:10px;color:#64748b;">Block <span class="mono">#22,847,193</span> · Ethereum Mainnet · 142 USDC transfers analyzed</p>
+          </div>
+        `;
+      }, 1800);
+    }
+
+    // =====================================================
+    // APPROVAL WORKFLOW
+    // =====================================================
+    function resolveApproval(id, action) {
+      const el = document.getElementById(id);
+      const colors = { approved: '#22c55e', rejected: '#ef4444', resumed: '#22c55e', maintained: '#f59e0b' };
+      const labels = { approved: '✓ Upgrade Approved', rejected: '✗ Upgrade Rejected', resumed: '▶ Protocol Resumed', maintained: '⏸ Pause Maintained' };
+      const c = colors[action] || '#64748b';
+
+      el.style.borderColor = c;
+      el.style.opacity = '0.7';
+      const btns = el.querySelector('.flex.gap-2');
+      if (btns) btns.innerHTML = `<div style="flex:1;text-align:center;padding:10px;border-radius:8px;background:${c}12;border:1px solid ${c}30;"><span class="text-sm font-bold" style="color:${c};">${labels[action]}</span><p class="text-xs" style="color:#64748b;margin-top:2px;">Resolved by admin · ${new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}</p></div>`;
+    }
+
+    // =====================================================
+    // BRAND SWAP
+    // =====================================================
+    </script>
+
+
+    <!-- Pre-screened addresses for Address Analysis -->
+    <script>
+    const DEMO_ADDRESSES=[
+      {id:'bayc',label:'🟢 BAYC Contract',address:'0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',risk:'Low',story:'Bored Ape Yacht Club NFT — verified ERC721 contract.',category:'low'},
+      {id:'binance-hot',label:'🟢 Binance Hot Wallet',address:'0x28C6c06298d514Db089934071355E5743bf21d60',risk:'Low',story:'Major exchange hot wallet — identified as Binance.com.',category:'low'},
+      {id:'unnamed-svc',label:'🟡 Unnamed Service',address:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',risk:'Medium',story:'Categorized as unnamed service — $4M+ exposure.',category:'medium'},
+      {id:'lazarus',label:'🔴 Lazarus Group (OFAC)',address:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',risk:'Severe',story:'OFAC-sanctioned — Ronin Bridge exploit ($625M).',category:'severe'},
+      {id:'tornado',label:'🔴 Tornado Cash',address:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',risk:'Severe',story:'OFAC-sanctioned mixing service.',category:'severe'},
+    ];
+    function renderAddressPicker(inputId){
+      const input=document.getElementById(inputId);if(!input||input.parentNode.parentNode.querySelector('.addr-picker'))return;
+      const w=document.createElement('div');w.className='addr-picker';w.style.cssText='position:relative;margin-top:6px;grid-column:span 2;';
+      const btn=document.createElement('button');btn.type='button';
+      btn.style.cssText='display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;border:1px solid var(--sf-border);background:transparent;color:#64748b;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;';
+      btn.innerHTML='\u{1F3AF} Try a pre-screened address <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+      btn.onmouseover=()=>{btn.style.borderColor='#0ea5e9';btn.style.color='#e2e8f0';};
+      btn.onmouseout=()=>{btn.style.borderColor='var(--sf-border)';btn.style.color='#64748b';};
+      const dd=document.createElement('div');
+      dd.style.cssText='display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;max-height:300px;overflow-y:auto;border-radius:12px;border:1px solid var(--sf-border);background:rgba(12,16,28,0.95);backdrop-filter:blur(12px);box-shadow:0 12px 40px rgba(0,0,0,.4);z-index:99;padding:6px;';
+      [{key:'low',label:'Low Risk',color:'#22c55e'},{key:'medium',label:'Medium Risk',color:'#eab308'},{key:'severe',label:'Severe Risk',color:'#ef4444'}].forEach(g=>{
+        const items=DEMO_ADDRESSES.filter(a=>a.category===g.key);if(!items.length)return;
+        const h=document.createElement('div');h.style.cssText='padding:6px 8px 2px;font-size:9px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:1px;';h.textContent=g.label;dd.appendChild(h);
+        items.forEach(a=>{
+          const r=document.createElement('div');r.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .1s;';
+          r.onmouseover=()=>{r.style.background='rgba(14,165,233,0.06)';};r.onmouseout=()=>{r.style.background='transparent';};
+          r.innerHTML='<div style="font-size:12px;font-weight:600;color:#e2e8f0;">'+a.label+'</div><div style="font-size:10px;color:#64748b;margin-top:2px;">'+a.story+'</div><div style="font-size:9px;color:#475569;margin-top:3px;font-family:monospace;">'+a.address.slice(0,10)+'\u2026'+a.address.slice(-8)+'</div>';
+          r.onclick=()=>{input.value=a.address;dd.style.display='none';};
+          dd.appendChild(r);
+        });
+      });
+      btn.onclick=(e)=>{e.preventDefault();e.stopPropagation();dd.style.display=dd.style.display==='none'?'block':'none';};
+      document.addEventListener('click',(e)=>{if(!w.contains(e.target))dd.style.display='none';});
+      w.appendChild(dd);w.appendChild(btn);input.closest('.sf-card').appendChild(w);
+    }
+    setTimeout(()=>renderAddressPicker('analyzeAddr'),200);
+    </script>
+
+    <!-- Brand customization (brand-swap) — supports ?brand=, ?color=, ?domain= from Branding Studio -->
+    <script>
+    (function(){
+      var p=new URLSearchParams(window.location.search);
+      var brand=p.get('brand');
+      var color=p.get('color');
+      var domain=p.get('domain');
+
+      function applyBrand(){
+        if(brand && brand!=='ShieldFi'){
+          var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+          while(walker.nextNode()){
+            if(walker.currentNode.textContent.includes('ShieldFi')){
+              walker.currentNode.textContent=walker.currentNode.textContent.split('ShieldFi').join(brand);
+            }
+          }
+          document.title=document.title.split('ShieldFi').join(brand);
+        }
+
+        if(color){
+          document.documentElement.style.setProperty('--primary',color);
+          document.documentElement.style.setProperty('--sf-cyan',color);
+          var dc=color+'cc';
+          var s=document.createElement('style');
+          s.textContent='.sf-tab.active{background:'+color+' !important;box-shadow:0 0 12px '+color+'50 !important}.sf-btn-primary{background:linear-gradient(135deg,'+color+','+dc+') !important}.accent{color:'+color+' !important}.accent-bg{background:linear-gradient(135deg,'+color+','+dc+') !important}.glow-btn::before{background:linear-gradient(135deg,'+color+','+dc+','+color+'99) !important}.ob-step.active .ob-num{background:'+color+' !important}.wallet-provider-btn:hover{border-color:'+color+' !important;box-shadow:0 0 0 1px '+color+' !important}.kyt-step.running .step-icon{background:'+color+'1a !important;color:'+color+' !important}.upload-zone:hover{border-color:'+color+' !important;background:'+color+'08 !important}';
+          document.head.appendChild(s);
+          // All accent colors: standard purples + cyan (this demo) + rose/red (NFT/remittance)
+          var defaults=['#0ea5e9','#0284c7','#6366f1','#4f46e5','#8b5cf6','#818cf8','#a78bfa','#7c3aed','#a855f7','#e11d48','#be123c','#f43f5e','#f093fb'];
+          document.querySelectorAll('[style]').forEach(function(el){
+            var st=el.getAttribute('style');var ch=false;
+            defaults.forEach(function(d){if(st.indexOf(d)!==-1){st=st.split(d).join(color);ch=true;}var ld=d.toLowerCase();if(st.toLowerCase().indexOf(ld)!==-1&&st.indexOf(d)===-1){st=st.replace(new RegExp(ld,'gi'),color);ch=true;}});
+            if(ch)el.setAttribute('style',st);
+          });
+          defaults.forEach(function(d){
+            document.querySelectorAll('[fill="'+d+'"]').forEach(function(el){el.setAttribute('fill',color);});
+          });
+          // Replace rgba patterns for cyan accent
+          document.querySelectorAll('[style*="14,165,233"]').forEach(function(el){
+            var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
+            var st=el.getAttribute('style');st=st.replace(/14,\s*165,\s*233/g,r+','+g+','+b);el.setAttribute('style',st);
+          });
+          // Replace rgba patterns for darker cyan
+          document.querySelectorAll('[style*="2,132,199"]').forEach(function(el){
+            var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
+            var st=el.getAttribute('style');st=st.replace(/2,\s*132,\s*199/g,r+','+g+','+b);el.setAttribute('style',st);
+          });
+        }
+
+        if(domain){
+          domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();
+          var els=document.querySelectorAll('[style*="linear-gradient"]');
+          for(var i=0;i<els.length;i++){
+            var el=els[i],sv=el.querySelector('svg');
+            if(sv&&el.offsetWidth<60){
+              var img=document.createElement('img');
+              img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';
+              img.style.cssText='width:18px;height:18px;object-fit:contain;border-radius:3px;';
+              img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};
+              sv.parentNode.replaceChild(img,sv);break;
+            }
+          }
+        }
+      }
+
+      if(!brand&&!color&&!domain)return;
+      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyBrand);
+      else applyBrand();
+    })();
+    </script>
+
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';
+    var M=document.querySelector('meta[name="cove-demo"]');
+    var D=M?M.getAttribute('content'):(document.title.split('\u2014')[0].trim()||'unknown');
+    var P=new URLSearchParams(location.search);
+    var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
+    window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,
+    demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,
+    domain:d.domain||DM,address:d.address||'',filter:d.filter||'',
+    viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};
+    addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
+    </script>
+  </body>
+</html>

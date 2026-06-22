@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Analytics Dashboard" />
+    <title>Analytics — Compliance Cove</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      :root { color-scheme:light;--background:#ffffff;--foreground:#0f1729;--card:#ffffff;--card-foreground:#0f1729;--muted:#f4f5f7;--muted-foreground:#6b7280;--border:#e5e7eb;--ch-navy:#0c1e3a;--ch-blue:#0f3057;--ch-teal:#1a6b6a;--ch-mint:#2d9f8f;--ch-orange:#F7931A; }
+      *{font-family:'Inter',system-ui,sans-serif;} body{background:#fff!important;}
+      .mono{font-family:'JetBrains Mono',monospace;}
+      .ch-header{background:linear-gradient(135deg,var(--ch-navy),var(--ch-blue),var(--ch-teal));padding:28px 0 32px;position:relative;overflow:hidden;}
+      .ch-header::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 80% 30%,rgba(45,159,143,0.2),transparent);pointer-events:none;}
+      .a-card{border-radius:14px;background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04);padding:20px;transition:box-shadow .2s;}
+      .a-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.06);}
+      .stat-big{font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--ch-navy);}
+      .stat-label{font-size:11px;color:var(--muted-foreground);font-weight:500;margin-top:2px;}
+      .section-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+      .section-head-line{flex:1;height:1px;background:var(--border);}
+      .launch-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;border:1px solid var(--muted);margin-bottom:6px;transition:all .15s;}
+      .launch-row:hover{border-color:var(--border);background:var(--muted);}
+      .event-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--muted);font-size:12px;}
+      .event-row:last-child{border-bottom:none;}
+      .event-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+      .brand-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:600;}
+      .loading-state{text-align:center;padding:60px 20px;color:var(--muted-foreground);}
+      .ch-footer{border-top:1px solid var(--border);padding:24px 0;margin-top:40px;}
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+
+    <div class="ch-header">
+      <div class="max-w-5xl mx-auto px-4" style="position:relative;z-index:1;">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#F7931A" width="28" height="28"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            <div>
+              <h1 class="text-xl font-bold" style="color:white;">Compliance Cove Analytics</h1>
+              <p style="font-size:12px;color:rgba(255,255,255,0.55);">Usage tracking across all SAs, AEs, and CSMs</p>
+            </div>
+          </div>
+          <button onclick="loadAnalytics()" style="display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:8px;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);border:none;color:rgba(255,255,255,0.85);font-size:11px;font-weight:600;cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-5xl mx-auto px-4" style="margin-top:-16px;">
+      <div id="dashboard">
+        <div class="loading-state">
+          <div class="animate-spin" style="width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--ch-teal);border-radius:50%;margin:0 auto 12px;"></div>
+          <p class="text-sm">Loading analytics…</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ch-footer">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="var(--ch-teal)" width="16" height="16"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span class="text-xs text-muted-foreground">Compliance Cove Analytics</span>
+        </div>
+        <a href="https://docs.google.com/spreadsheets/d/1c0kmUP0zw_umLQJzElGH3avG26eUs7SCxhLfYx7CqQU" target="_blank" class="text-xs" style="color:var(--ch-teal);text-decoration:none;">View Raw Data in Google Sheets ↗</a>
+      </div>
+    </div>
+
+    <script src="/assets/chart.min.js"></script>
+    <script>
+    const SLUG='compliance-cove-analytics';
+    const eventColors={demo_view:'#1a6b6a',demo_launched:'#0f3057',address_screened:'#6366f1',brand_customized:'#f97316',filter_used:'#8b5cf6',screen_change:'#94a3b8'};
+    const demoColors=['#0f3057','#1a6b6a','#2d9f8f','#6366f1','#8b5cf6','#f97316','#ea580c','#eab308','#22c55e','#e11d48','#0891b2','#7c3aed'];
+
+    async function loadAnalytics(){
+      const el=document.getElementById('dashboard');
+      el.innerHTML='<div class="loading-state"><div class="animate-spin" style="width:24px;height:24px;border:3px solid var(--border);border-top-color:var(--ch-teal);border-radius:50%;margin:0 auto 12px;"></div><p class="text-sm">Loading analytics…</p></div>';
+      try{
+        const res=await fetch('/api/workflow/'+SLUG+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'query'}})});
+        if(!res.ok)throw new Error('API error');
+        const data=await res.json();const r=data.output||data;
+        if(r.error)throw new Error(r.error);
+        renderDashboard(r);
+      }catch(e){
+        if(e instanceof TypeError){
+          el.innerHTML='<div class="a-card" style="text-align:center;padding:40px;"><h3 class="text-sm font-semibold">Open in a new tab</h3><p class="text-xs text-muted-foreground mt-1">Analytics requires the standalone page viewer.</p></div>';
+        }else{
+          el.innerHTML='<div class="a-card" style="text-align:center;padding:40px;"><h3 class="text-sm font-semibold" style="color:#ef4444;">Failed to load</h3><p class="text-xs text-muted-foreground mt-1">'+e.message+'</p></div>';
+        }
+      }
+    }
+
+    function fmtTime(ts){
+      if(!ts)return'—';
+      try{return new Date(ts).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return ts;}
+    }
+
+    function renderDashboard(r){
+      const el=document.getElementById('dashboard');
+      const demos=r.demos||{};const events=r.events||{};const brands=r.brands||{};
+      const filters=r.filters||{};const launches=r.launches||[];const brandedDemos=r.brandedDemos||[];
+      const recent=r.recent||[];const total=r.total||0;const dailyCounts=r.dailyCounts||{};
+
+      const demoViews=events.demo_view||0;
+      const demoLaunches=events.demo_launched||0;
+      const uniqueBrands=Object.keys(brands).length;
+      const screenings=r.screenings||0;
+
+      const demoNames=Object.keys(demos).filter(d=>d!=='Hub'&&d!=='Analytics Dashboard').sort((a,b)=>demos[b]-demos[a]);
+      const filterNames=Object.keys(filters).filter(f=>f!=='all').sort((a,b)=>filters[b]-filters[a]);
+      const brandNames=Object.keys(brands).filter(b=>b&&b!=='(default)').sort((a,b)=>brands[b]-brands[a]);
+
+      let h='';
+
+      // ===== STAT CARDS =====
+      h+='<div class="grid grid-cols-4 gap-4" style="margin-bottom:20px;">';
+      h+='<div class="a-card"><div class="stat-big">'+total+'</div><div class="stat-label">Total Events</div></div>';
+      h+='<div class="a-card"><div class="stat-big" style="color:var(--ch-teal);">'+demoLaunches+'</div><div class="stat-label">Demos Launched</div></div>';
+      h+='<div class="a-card"><div class="stat-big" style="color:#6366f1;">'+screenings+'</div><div class="stat-label">Addresses Screened</div></div>';
+      h+='<div class="a-card"><div class="stat-big" style="color:var(--ch-orange);">'+uniqueBrands+'</div><div class="stat-label">Prospects Branded</div></div>';
+      h+='</div>';
+
+      // ===== CHARTS ROW =====
+      h+='<div class="grid md:grid-cols-2 gap-4" style="margin-bottom:20px;">';
+      h+='<div class="a-card"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Demo Popularity</span><div class="section-head-line"></div></div><canvas id="demoChart" height="220"></canvas></div>';
+      h+='<div class="a-card"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Activity Over Time</span><div class="section-head-line"></div></div><canvas id="dailyChart" height="220"></canvas></div>';
+      h+='</div>';
+
+      // ===== DEMO LAUNCHES + BRANDED PROSPECTS (key value showcase) =====
+      h+='<div class="grid md:grid-cols-5 gap-4" style="margin-bottom:20px;">';
+
+      // Demo launches — shows exactly which demo was opened with what branding
+      h+='<div class="a-card md:col-span-3"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Demo Launches</span><span class="text-xs mono text-muted-foreground">'+launches.length+' total</span><div class="section-head-line"></div></div>';
+      if(launches.length){
+        h+='<div style="max-height:320px;overflow-y:auto;">';
+        launches.slice().reverse().forEach(function(l){
+          const isCustom=l.brand&&l.brand!=='(default)';
+          h+='<div class="launch-row">';
+          h+='<div style="width:8px;height:8px;border-radius:50%;background:'+(isCustom?'var(--ch-orange)':'var(--ch-teal)')+';flex-shrink:0;"></div>';
+          h+='<div style="flex:1;"><span class="text-sm font-semibold">'+l.demo+'</span>';
+          if(isCustom){
+            h+=' <span class="brand-pill" style="background:rgba(247,147,26,0.08);color:#b45309;margin-left:4px;">';
+            if(l.domain) h+='<img src="https://www.google.com/s2/favicons?domain='+l.domain+'&sz=32" style="width:12px;height:12px;border-radius:2px;" onerror="this.style.display=\'none\'">';
+            h+=l.brand+'</span>';
+          }else{
+            h+=' <span class="text-xs text-muted-foreground">default branding</span>';
+          }
+          h+='</div>';
+          h+='<span class="text-xs text-muted-foreground">'+fmtTime(l.timestamp)+'</span>';
+          h+='</div>';
+        });
+        h+='</div>';
+      }else{
+        h+='<p class="text-xs text-muted-foreground">No demos launched yet. Launches are tracked when a card is clicked from the hub.</p>';
+      }
+      h+='</div>';
+
+      // Branded prospects — which companies are being targeted
+      h+='<div class="a-card md:col-span-2"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-orange);">Prospect Pipeline</span><div class="section-head-line"></div></div>';
+      if(brandNames.length){
+        brandNames.forEach(function(b){
+          h+='<div class="event-row">';
+          h+='<div class="event-dot" style="background:var(--ch-orange);"></div>';
+          h+='<span style="flex:1;font-weight:600;font-size:13px;">'+b+'</span>';
+          h+='<span class="mono text-xs text-muted-foreground">'+brands[b]+'x</span>';
+          h+='</div>';
+        });
+      }else{
+        h+='<p class="text-xs text-muted-foreground">No prospects branded yet</p>';
+      }
+      // Product filters used
+      if(filterNames.length){
+        h+='<div style="margin-top:16px;"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Products Explored</span><div class="section-head-line"></div></div>';
+        filterNames.forEach(function(f){
+          h+='<div class="event-row"><div class="event-dot" style="background:var(--ch-teal);"></div><span style="flex:1;font-size:12px;">'+f+'</span><span class="mono text-xs text-muted-foreground">'+filters[f]+'x</span></div>';
+        });
+        h+='</div>';
+      }
+      h+='</div>';
+
+      h+='</div>';
+
+      // ===== RECENT ACTIVITY =====
+      h+='<div class="a-card"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Recent Activity</span><div class="section-head-line"></div></div>';
+      h+='<div style="max-height:300px;overflow-y:auto;">';
+      recent.slice(0,25).forEach(function(ev){
+        if(ev.event==='test')return;
+        const color=eventColors[ev.event]||'#94a3b8';
+        const evtLabel=(ev.event||'').replace(/_/g,' ');
+        const demo=ev.demo||'';
+        const brand=ev.brand&&ev.brand!=='(default)'?ev.brand:'';
+        h+='<div class="event-row">';
+        h+='<span class="event-dot" style="background:'+color+';"></span>';
+        h+='<span style="flex:1;"><strong>'+evtLabel+'</strong>';
+        if(demo) h+=' · '+demo;
+        if(brand) h+=' · <span style="color:var(--ch-orange);font-weight:600;">'+brand+'</span>';
+        if(ev.address) h+=' · <span class="mono" style="font-size:10px;color:var(--muted-foreground);">'+ev.address.slice(0,10)+'…</span>';
+        if(ev.filter) h+=' · <span style="color:var(--ch-teal);">'+ev.filter+'</span>';
+        h+='</span>';
+        h+='<span class="text-xs text-muted-foreground" style="white-space:nowrap;">'+fmtTime(ev.timestamp)+'</span>';
+        h+='</div>';
+      });
+      h+='</div></div>';
+
+      el.innerHTML=h;
+
+      // ===== RENDER CHARTS =====
+      if(demoNames.length){
+        new Chart(document.getElementById('demoChart'),{
+          type:'bar',
+          data:{labels:demoNames.slice(0,10),datasets:[{data:demoNames.slice(0,10).map(d=>demos[d]),backgroundColor:demoNames.map((_,i)=>demoColors[i%demoColors.length]),borderRadius:6,borderSkipped:false}]},
+          options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'},ticks:{stepSize:1}},x:{grid:{display:false},ticks:{font:{size:10}}}}}
+        });
+      }
+
+      const days=Object.keys(dailyCounts).sort();
+      if(days.length){
+        new Chart(document.getElementById('dailyChart'),{
+          type:'line',
+          data:{labels:days.map(d=>{try{return new Date(d+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});}catch(e){return d;}}),
+            datasets:[{data:days.map(d=>dailyCounts[d]),borderColor:'var(--ch-teal)',backgroundColor:'rgba(26,107,106,0.08)',fill:true,tension:0.3,borderWidth:2,pointRadius:3,pointBackgroundColor:'var(--ch-teal)'}]},
+          options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'},ticks:{stepSize:1}},x:{grid:{display:false},ticks:{font:{size:10}}}}}
+        });
+      }
+    }
+
+    loadAnalytics();
+    </script>
+  </body>
+</html>

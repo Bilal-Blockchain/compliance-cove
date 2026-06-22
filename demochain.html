@@ -3,76 +3,190 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DemoChain — DeFi Trading</title>
+    <meta name="cove-demo" content="DeFi Trading (ArcSwap)" />
+    <title>ArcSwap — DeFi Trading</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
+      :root {
+        color-scheme: dark;
+        --arc-bg: #06080f;
+        --arc-card: rgba(12, 16, 28, 0.85);
+        --arc-card-solid: #0c101c;
+        --arc-border: rgba(99, 102, 241, 0.1);
+        --arc-border-hover: rgba(99, 102, 241, 0.3);
+        --arc-glow: rgba(99, 102, 241, 0.15);
+        --arc-cyan: #06b6d4;
+        --arc-violet: #8b5cf6;
+      }
       * { font-family: 'Inter', system-ui, sans-serif; }
+
+      /* ---- Force dark DeFi palette ---- */
+      body { background: var(--arc-bg) !important; }
+
+      /* ---- Canvas background ---- */
+      #bgCanvas {
+        position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      }
+
+      /* ---- Glass nav ---- */
+      .arc-nav {
+        position: sticky; top: 0; z-index: 50;
+        background: rgba(6, 8, 15, 0.82);
+        backdrop-filter: blur(20px) saturate(1.3);
+        -webkit-backdrop-filter: blur(20px) saturate(1.3);
+        border-bottom: 1px solid var(--arc-border);
+      }
+      .arc-nav::after {
+        content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(99,102,241,0.3), rgba(6,182,212,0.2), transparent);
+      }
+
+      /* ---- Glass cards ---- */
+      .arc-card {
+        border-radius: 16px;
+        background: var(--arc-card);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--arc-border);
+        transition: border-color 0.25s, box-shadow 0.25s;
+      }
+      .arc-card:hover {
+        border-color: var(--arc-border-hover);
+        box-shadow: 0 0 30px var(--arc-glow);
+      }
+
+      /* ---- Swap card special glow ---- */
+      .swap-card {
+        position: relative;
+        overflow: hidden;
+      }
+      .swap-card::before {
+        content: '';
+        position: absolute; top: -1px; left: -1px; right: -1px; bottom: -1px;
+        background: linear-gradient(135deg, rgba(99,102,241,0.15), transparent 40%, transparent 60%, rgba(6,182,212,0.1));
+        border-radius: 16px;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      /* ---- Ticker ---- */
+      .arc-ticker {
+        background: rgba(6, 8, 15, 0.6);
+        border-bottom: 1px solid var(--arc-border);
+      }
+
+      /* ---- Modals ---- */
       .modal-overlay {
-        position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+        position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         z-index: 100; display: none; align-items: center; justify-content: center; animation: fadeIn 0.2s ease;
       }
       .modal-overlay.active { display: flex; }
-      .modal-box { width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+      .modal-box {
+        width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        background: var(--arc-card-solid);
+        border: 1px solid var(--arc-border);
+        backdrop-filter: blur(16px);
+      }
+
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-      @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes slideUp { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+      /* ---- Glow button ---- */
       .glow-btn { position: relative; overflow: hidden; }
       .glow-btn::before {
         content: ''; position: absolute; inset: -2px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
-        border-radius: inherit; z-index: -1; opacity: 0.6; filter: blur(8px); transition: opacity 0.3s;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4);
+        border-radius: inherit; z-index: -1; opacity: 0.5; filter: blur(10px); transition: opacity 0.3s;
       }
       .glow-btn:hover::before { opacity: 1; }
+      @keyframes glowPulse { 0%,100% { box-shadow: 0 0 8px rgba(99,102,241,0.3), 0 0 20px rgba(99,102,241,0.15); } 50% { box-shadow: 0 0 16px rgba(99,102,241,0.5), 0 0 40px rgba(99,102,241,0.25); } }
+      .glow-pulse { animation: glowPulse 2s ease-in-out infinite; }
+      .glow-btn::after {
+        content: ''; position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+        transition: none; pointer-events: none;
+      }
+      .glow-btn:hover::after { left: 120%; transition: left 0.6s ease; }
+
+      /* ---- Risk gauge ---- */
       .risk-gauge { width: 200px; height: 110px; position: relative; margin: 0 auto; }
       .risk-gauge svg { width: 100%; height: 100%; }
+
+      /* ---- Workflow steps ---- */
       .workflow-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 10px; transition: all 0.3s; }
-      .workflow-step.active { background: var(--color-primary-alpha10, rgba(99,102,241,0.1)); }
+      .workflow-step.active { background: rgba(99,102,241,0.08); }
       .workflow-step.done { opacity: 0.7; }
-      .step-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+      .step-icon {
+        width: 32px; height: 32px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px; font-weight: 700; flex-shrink: 0;
+        transition: all 0.3s;
+      }
       .step-connector { width: 2px; height: 16px; margin-left: 29px; border-radius: 1px; }
+
+      /* ---- Ticker tape ---- */
       .ticker-tape { display: flex; overflow: hidden; white-space: nowrap; }
       .ticker-content { display: flex; gap: 32px; animation: scroll 30s linear infinite; }
       @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+      /* ---- Pulse dot ---- */
       .pulse-dot { width: 8px; height: 8px; border-radius: 50%; animation: pulse 2s ease infinite; }
       @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.4); } }
+
+      /* ---- Exposure bars ---- */
       .exposure-bar { height: 22px; border-radius: 4px; min-width: 4px; transition: width 0.6s ease; }
+
+      /* ---- Wallet providers ---- */
       .wallet-provider-btn {
         display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px;
-        border-radius: 12px; border: 1px solid var(--border); background: var(--background);
-        cursor: pointer; transition: all 0.15s ease; color: inherit;
+        border-radius: 12px; border: 1px solid var(--arc-border); background: rgba(6,8,15,0.5);
+        cursor: pointer; transition: all 0.2s ease; color: inherit;
       }
-      .wallet-provider-btn:hover { background: var(--muted); border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+      .wallet-provider-btn:hover {
+        background: rgba(99,102,241,0.06);
+        border-color: var(--arc-border-hover);
+        box-shadow: 0 0 20px var(--arc-glow);
+        transform: translateY(-1px);
+      }
       .wallet-provider-btn .provider-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
       .wallet-provider-btn .provider-info { flex: 1; text-align: left; }
       .wallet-provider-btn .provider-name { font-size: 14px; font-weight: 600; }
       .wallet-provider-btn .provider-desc { font-size: 11px; color: var(--muted-foreground); }
-      .wallet-provider-btn .provider-arrow { color: var(--muted-foreground); transition: transform 0.15s; }
-      .wallet-provider-btn:hover .provider-arrow { transform: translateX(2px); color: var(--foreground); }
+      .wallet-provider-btn .provider-arrow { color: var(--muted-foreground); transition: transform 0.2s; }
+      .wallet-provider-btn:hover .provider-arrow { transform: translateX(3px); color: var(--foreground); }
       .provider-popular { font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 6px; }
-      /* Page views */
-      .page-view { display: none; }
+
+      /* ---- Page views ---- */
+      .page-view { display: none; position: relative; z-index: 1; }
       .page-view.active { display: block; }
-      /* Nav link active state */
-      .nav-link { cursor: pointer; }
+      .nav-link { cursor: pointer; position: relative; padding: 2px 0; }
       .nav-link.active { color: var(--foreground); font-weight: 500; }
-      /* Profile avatar */
+      .nav-link.active::after {
+        content: ''; position: absolute; bottom: -17px; left: 0; right: 0; height: 2px;
+        background: linear-gradient(90deg, #6366f1, #06b6d4);
+        border-radius: 1px;
+      }
+
+      /* ---- Profile ---- */
       .profile-avatar {
-        width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
         font-size: 13px; font-weight: 700; color: white; cursor: pointer;
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
         position: relative;
+        box-shadow: 0 0 12px rgba(99,102,241,0.3);
       }
-      /* Profile dropdown */
       .profile-dropdown-wrap { position: relative; }
       .profile-dropdown {
-        position: absolute; top: calc(100% + 8px); right: 0;
-        width: 220px; z-index: 60;
+        position: absolute; top: calc(100% + 8px); right: 0; width: 220px; z-index: 60;
         border-radius: 12px;
-        background: var(--card); color: var(--card-foreground);
-        box-shadow: 0 8px 30px rgba(0,0,0,0.18);
-        border: 1px solid var(--border);
-        padding: 6px;
-        display: none;
+        background: var(--arc-card-solid); color: var(--card-foreground);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        border: 1px solid var(--arc-border);
+        padding: 6px; display: none;
         animation: slideUp 0.15s ease;
       }
       .profile-dropdown.open { display: block; }
@@ -84,36 +198,108 @@
         color: var(--foreground);
         width: 100%; border: none; background: none; text-align: left;
       }
-      .profile-dropdown-item:hover { background: var(--muted); }
+      .profile-dropdown-item:hover { background: rgba(99,102,241,0.06); }
       .profile-dropdown-item svg { flex-shrink: 0; }
-      .profile-dropdown-sep { height: 1px; background: var(--border); margin: 4px 6px; }
-      /* Animated step transitions */
-      .kyt-step { transition: all 0.4s ease; }
+      .profile-dropdown-sep { height: 1px; background: var(--arc-border); margin: 4px 6px; }
+
+      /* ---- KYT step states ---- */
+      .kyt-step { transition: all 0.3s ease; }
       .kyt-step.pending .step-icon { background: var(--muted); color: var(--muted-foreground); }
-      .kyt-step.running .step-icon { background: rgba(99,102,241,0.1); color: var(--primary); }
-      .kyt-step.success .step-icon { background: rgba(34,197,94,0.1); color: var(--success); }
-      .kyt-step.alert .step-icon { background: rgba(239,68,68,0.1); color: var(--destructive); }
+      .kyt-step.running .step-icon { background: rgba(99,102,241,0.12); color: var(--primary); box-shadow: 0 0 12px rgba(99,102,241,0.2); }
+      .kyt-step.success .step-icon { background: rgba(34,197,94,0.12); color: var(--success); box-shadow: 0 0 10px rgba(34,197,94,0.15); }
+      .kyt-step.alert .step-icon { background: rgba(239,68,68,0.12); color: var(--destructive); box-shadow: 0 0 10px rgba(239,68,68,0.2); }
+
+      /* ---- Slippage popover ---- */
+      .slippage-popover {
+        position: absolute; top: calc(100% + 8px); right: 0; width: 240px; z-index: 20;
+        border-radius: 12px; background: var(--arc-card-solid); border: 1px solid var(--arc-border);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5); padding: 12px; display: none;
+      }
+      .slippage-popover.open { display: block; animation: slideUp 0.15s ease; }
+      .slip-btn {
+        padding: 5px 10px; border-radius: 8px; border: 1px solid var(--arc-border);
+        background: transparent; color: var(--foreground); font-size: 12px; font-weight: 600;
+        cursor: pointer; transition: all 0.15s;
+      }
+      .slip-btn:hover { border-color: var(--primary); }
+      .slip-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+      /* ---- Route visualization ---- */
+      .route-path {
+        display: flex; align-items: center; gap: 4px; padding: 6px 10px;
+        border-radius: 8px; background: rgba(99,102,241,0.04); border: 1px solid var(--arc-border);
+      }
+      .route-node {
+        display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px;
+        border-radius: 5px; background: rgba(99,102,241,0.08);
+        font-size: 10px; font-weight: 600; color: var(--foreground);
+      }
+      .route-arrow { color: var(--muted-foreground); font-size: 10px; }
+
+      /* ---- Footer ---- */
+      .arc-footer {
+        position: relative; z-index: 1;
+        border-top: 1px solid var(--arc-border);
+        padding: 32px 0;
+        background: rgba(6, 8, 15, 0.9);
+      }
+      .arc-footer::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(99,102,241,0.25), rgba(6,182,212,0.15), transparent);
+      }
+
+      /* ---- Entrance animations ---- */
+      .arc-entrance { opacity: 0; transform: translateY(20px); }
+
+      /* ---- Compliance disclaimer ---- */
+      .cove-disclaimer {
+        display:flex;align-items:flex-start;gap:8px;
+        padding:10px 14px;margin:8px 0;border-radius:8px;
+        background:rgba(26,107,106,0.08);border:1px solid rgba(26,107,106,0.2);
+        font-size:11px;line-height:1.5;color:#2d9f8f;
+      }
+      .cove-disclaimer svg{flex-shrink:0;margin-top:1px;color:#2d9f8f;}
+
+      /* ---- Scrollbar ---- */
+      ::-webkit-scrollbar { width: 6px; }
+      ::-webkit-scrollbar-track { background: transparent; }
+      ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.2); border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.4); }
+
+      /* ---- Swap input glow on focus ---- */
+      .swap-input-group:focus-within {
+        border-color: var(--arc-border-hover);
+        box-shadow: 0 0 16px var(--arc-glow);
+      }
+
+      /* ---- Table rows ---- */
+      table tbody tr { transition: background 0.15s; }
+      table tbody tr:hover { background: rgba(99,102,241,0.04) !important; }
     </style>
   </head>
   <body class="bg-background text-foreground min-h-screen">
 
+    <!-- ==================== ANIMATED BACKGROUND ==================== -->
+    <canvas id="bgCanvas"></canvas>
+
     <!-- ==================== NAV ==================== -->
-    <nav class="border-b border-border sticky" style="top:0; z-index:50; background: var(--background);">
+    <nav class="arc-nav">
       <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:56px;">
         <div class="flex items-center gap-6">
           <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('trade')">
-            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;">
+            <div style="width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#06b6d4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(99,102,241,0.3);">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>
+                <path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
               </svg>
             </div>
-            <span class="text-base font-bold tracking-tight">DemoChain</span>
+            <span class="text-base font-bold tracking-tight" style="background:linear-gradient(135deg,#e2e8f0,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">ArcSwap</span>
           </div>
           <div class="flex items-center gap-4 text-sm">
             <a class="nav-link text-muted-foreground hover:text-foreground transition-colors active" id="nav-trade" onclick="showPage('trade')">Trade</a>
             <a class="nav-link text-muted-foreground hover:text-foreground transition-colors" id="nav-account" onclick="showPage('account')" style="display:none;">Account</a>
             <a class="nav-link text-muted-foreground hover:text-foreground transition-colors">Pool</a>
             <a class="nav-link text-muted-foreground hover:text-foreground transition-colors">Stake</a>
+            <a class="nav-link text-muted-foreground hover:text-foreground transition-colors" id="nav-about" onclick="showPage('about')">About</a>
           </div>
         </div>
         <!-- Right side: Connect or Profile -->
@@ -121,7 +307,7 @@
           <!-- Disconnected state -->
           <div id="navDisconnected">
             <button onclick="openModal('connect')"
-              class="glow-btn inline-flex items-center justify-center rounded-lg h-8 gap-1.5 px-4 text-sm font-semibold text-primary-foreground transition-all"
+              class="glow-btn glow-pulse inline-flex items-center justify-center rounded-lg h-8 gap-1.5 px-4 text-sm font-semibold text-primary-foreground transition-all"
               style="background: linear-gradient(135deg,#6366f1,#8b5cf6); position:relative; z-index:1;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/>
@@ -171,7 +357,7 @@
     </nav>
 
     <!-- ==================== TICKER ==================== -->
-    <div class="border-b border-border py-2 bg-muted/50">
+    <div class="arc-ticker py-2" style="position:relative;z-index:1;">
       <div class="ticker-tape">
         <div class="ticker-content text-xs text-muted-foreground" id="ticker"></div>
       </div>
@@ -208,7 +394,7 @@
 
         <div class="grid md:grid-cols-3 gap-6">
           <!-- Chart -->
-          <div class="md:col-span-2 rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="md:col-span-2 arc-card flex flex-col gap-4 py-4 arc-entrance">
             <div class="px-4 flex items-center justify-between">
               <div>
                 <span class="text-2xl font-bold">$2,847.32</span>
@@ -225,18 +411,31 @@
           </div>
 
           <!-- Swap card -->
-          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
-            <div class="px-4 flex items-center justify-between">
+          <div class="arc-card swap-card flex flex-col gap-4 py-4 arc-entrance">
+            <div class="px-4 flex items-center justify-between" style="position:relative;">
               <h2 class="text-base font-semibold">Swap</h2>
-              <button class="text-muted-foreground hover:text-foreground transition-colors" title="Settings">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2m-9.07-3.93l1.41 1.41m12.73-12.73l1.41 1.41M1 12h2m18 0h2M4.93 4.93l1.41 1.41m12.73 12.73l1.41 1.41"/>
-                </svg>
-              </button>
+              <div style="position:relative;">
+                <button onclick="toggleSlippage(event)" class="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors" style="padding:4px 8px;border-radius:6px;border:1px solid var(--arc-border);background:transparent;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2m-9.07-3.93l1.41 1.41m12.73-12.73l1.41 1.41M1 12h2m18 0h2M4.93 4.93l1.41 1.41m12.73 12.73l1.41 1.41"/>
+                  </svg>
+                  <span id="slipDisplay">0.5%</span>
+                </button>
+                <div class="slippage-popover" id="slippagePopover">
+                  <p class="text-xs font-semibold mb-2">Max Slippage</p>
+                  <div class="flex gap-2">
+                    <button class="slip-btn" onclick="setSlippage(0.1,this)">0.1%</button>
+                    <button class="slip-btn active" onclick="setSlippage(0.5,this)">0.5%</button>
+                    <button class="slip-btn" onclick="setSlippage(1.0,this)">1.0%</button>
+                    <button class="slip-btn" onclick="setSlippage(3.0,this)">3.0%</button>
+                  </div>
+                  <p class="text-xs text-muted-foreground mt-2">Your transaction will revert if the price moves more than this percentage.</p>
+                </div>
+              </div>
             </div>
             <div class="px-4 space-y-4">
-              <div class="rounded-lg bg-muted p-3 space-y-2">
-                <div class="flex items-center justify-between text-xs text-muted-foreground"><span>From</span><span>Balance: 4.2851</span></div>
+              <div class="rounded-lg bg-muted p-3 space-y-2 swap-input-group" style="transition:all 0.2s;">
+                <div class="flex items-center justify-between text-xs text-muted-foreground"><span>From</span><span>Balance: 4.2851 · <a onclick="document.querySelector('#page-trade input[value=1.0]').value='4.2851'" style="color:var(--primary);cursor:pointer;font-weight:600;">MAX</a></span></div>
                 <div class="flex items-center justify-between">
                   <input type="text" value="1.0" class="bg-transparent text-xl font-bold outline-none" style="width:100px;" />
                   <span class="inline-flex items-center gap-1 rounded-lg bg-background px-2 py-1 text-sm font-medium ring-1 ring-foreground/10">
@@ -262,12 +461,21 @@
                 <div class="flex justify-between"><span>Rate</span><span>1 ETH = 2,847.32 USDT</span></div>
                 <div class="flex justify-between"><span>Price Impact</span><span class="text-success">&lt; 0.01%</span></div>
                 <div class="flex justify-between"><span>Network Fee</span><span>~$3.42</span></div>
-                <div class="flex justify-between"><span>Route</span><span>ETH → WETH → USDT</span></div>
+                <div class="flex justify-between"><span>Route</span><span class="text-primary text-xs font-medium">Optimal</span></div>
+              </div>
+              <div class="route-path">
+                <span class="route-node"><span style="width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,#627eea,#3b5998);display:inline-flex;align-items:center;justify-content:center;margin-right:2px;"><span style="color:white;font-size:6px;font-weight:700;">Ξ</span></span>ETH</span>
+                <span class="route-arrow">→</span>
+                <span class="route-node" style="background:rgba(6,182,212,0.08);">WETH</span>
+                <span class="route-arrow">→</span>
+                <span class="route-node" style="background:rgba(34,197,94,0.08);">Pool 0.3%</span>
+                <span class="route-arrow">→</span>
+                <span class="route-node"><span style="width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,#26a17b,#1a7a5e);display:inline-flex;align-items:center;justify-content:center;margin-right:2px;"><span style="color:white;font-size:6px;font-weight:700;">$</span></span>USDT</span>
               </div>
               <!-- STATE-DEPENDENT SWAP BUTTON -->
               <button id="swapBtn" onclick="handleSwapClick()"
-                class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all"
-                style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">
+                class="glow-btn glow-pulse w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all"
+                style="background: linear-gradient(135deg,#6366f1,#8b5cf6); position:relative; z-index:1;">
                 Connect Wallet to Swap
               </button>
             </div>
@@ -275,7 +483,7 @@
         </div>
 
         <!-- Top Pools -->
-        <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+        <div class="arc-card flex flex-col gap-4 py-4 arc-entrance">
           <div class="px-4">
             <h2 class="text-base font-semibold">Top Pools</h2>
             <p class="text-sm text-muted-foreground">Most traded pairs in the last 24 hours</p>
@@ -329,21 +537,21 @@
 
         <!-- Portfolio summary cards -->
         <div class="grid grid-cols-3 gap-4">
-          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="arc-card flex flex-col gap-4 py-4">
             <div class="px-4">
               <p class="text-xs text-muted-foreground">Total Balance</p>
               <p class="text-2xl font-bold mt-1">$48,291.07</p>
               <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success mt-1">+3.12% today</span>
             </div>
           </div>
-          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="arc-card flex flex-col gap-4 py-4">
             <div class="px-4">
               <p class="text-xs text-muted-foreground">24h P&L</p>
               <p class="text-2xl font-bold mt-1 text-success">+$1,458.32</p>
               <p class="text-xs text-muted-foreground mt-1">Across 7 assets</p>
             </div>
           </div>
-          <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+          <div class="arc-card flex flex-col gap-4 py-4">
             <div class="px-4">
               <p class="text-xs text-muted-foreground">Transactions</p>
               <p class="text-2xl font-bold mt-1">142</p>
@@ -353,7 +561,7 @@
         </div>
 
         <!-- Assets table -->
-        <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+        <div class="arc-card flex flex-col gap-4 py-4">
           <div class="px-4 flex items-center justify-between">
             <h2 class="text-base font-semibold">Your Assets</h2>
             <div class="flex gap-2">
@@ -385,7 +593,7 @@
         </div>
 
         <!-- Recent activity -->
-        <div class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4">
+        <div class="arc-card flex flex-col gap-4 py-4">
           <div class="px-4"><h2 class="text-base font-semibold">Recent Activity</h2></div>
           <div class="divide-y" id="activityList"></div>
         </div>
@@ -396,7 +604,7 @@
     <!-- MODAL: CONNECT WALLET (Address Screening)                         -->
     <!-- ================================================================ -->
     <div class="modal-overlay" id="modal-connect">
-      <div class="modal-box rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 mx-4">
+      <div class="modal-box arc-card flex flex-col gap-4 py-4 mx-4">
         <div class="px-4 flex items-center justify-between">
           <h2 class="text-base font-semibold" id="connectModalTitle">Connect Wallet</h2>
           <button onclick="closeAllModals()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;">
@@ -513,13 +721,17 @@
 
         <!-- Step 3: Results -->
         <div id="step-results" class="px-4 space-y-4" style="display:none;">
+          <div class="cove-disclaimer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span>
+          </div>
           <div class="flex flex-col items-center gap-2">
             <div class="risk-gauge"><svg viewBox="0 0 200 110"><path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="var(--muted)" stroke-width="14" stroke-linecap="round"/><path d="M 20 100 A 80 80 0 0 1 60 32" fill="none" stroke="#22c55e" stroke-width="14" stroke-linecap="round"/><path d="M 60 32 A 80 80 0 0 1 100 20" fill="none" stroke="#eab308" stroke-width="14"/><path d="M 100 20 A 80 80 0 0 1 140 32" fill="none" stroke="#f97316" stroke-width="14"/><path d="M 140 32 A 80 80 0 0 1 180 100" fill="none" stroke="#ef4444" stroke-width="14" stroke-linecap="round"/><line id="gaugeNeedle" x1="100" y1="100" x2="100" y2="30" stroke="var(--foreground)" stroke-width="2.5" stroke-linecap="round" transform="rotate(0,100,100)"/><circle cx="100" cy="100" r="6" fill="var(--foreground)"/></svg></div>
             <div class="text-center"><div id="riskBadge"></div><p class="text-xs text-muted-foreground mt-1" id="riskReason"></p></div>
           </div>
           <hr />
           <div class="space-y-3">
-            <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">Address</span><span class="text-xs font-medium" id="resultAddr" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></div>
+            <div class="flex items-center justify-between flex-wrap gap-1"><span class="text-xs text-muted-foreground">Address</span><div class="flex items-center gap-1"><span class="text-xs font-medium" id="resultAddr" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span><span id="reactorLink"></span></div></div>
             <div class="flex items-center justify-between"><span class="text-xs text-muted-foreground">Type</span><span class="text-xs font-medium" id="resultType"></span></div>
             <div class="flex items-center justify-between" id="clusterRow" style="display:none;"><span class="text-xs text-muted-foreground">Cluster</span><span class="text-xs font-medium" id="resultCluster"></span></div>
             <div class="flex items-center justify-between" id="categoryRow" style="display:none;"><span class="text-xs text-muted-foreground">Category</span><span class="text-xs font-medium" id="resultCategory"></span></div>
@@ -549,7 +761,7 @@
     <!-- MODAL: DEPOSIT (KYT Transfer Monitoring Demo)                     -->
     <!-- ================================================================ -->
     <div class="modal-overlay" id="modal-deposit">
-      <div class="modal-box rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 mx-4">
+      <div class="modal-box arc-card flex flex-col gap-4 py-4 mx-4">
         <div class="px-4 flex items-center justify-between">
           <h2 class="text-base font-semibold">Deposit Funds</h2>
           <button onclick="closeAllModals()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;">
@@ -586,6 +798,10 @@
             <input type="text" id="depositAmount" value="2.5" class="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
           </div>
 
+          <div class="cove-disclaimer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span>
+          </div>
           <div class="space-y-1">
             <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">KYT Workflow</p>
             <div class="kyt-step pending" id="dep-s1"><div class="step-icon">1</div><div><div class="text-sm font-medium">Execute Deposit</div><div class="text-xs text-muted-foreground">Transaction submitted to the blockchain</div></div></div>
@@ -597,10 +813,16 @@
             <div class="kyt-step pending" id="dep-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Alert or Clear</div><div class="text-xs text-muted-foreground">Generate alert if high-risk exposure is detected</div></div></div>
           </div>
 
-          <button onclick="simulateDeposit()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#22c55e,#16a34a);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg>
-            Simulate Deposit
-          </button>
+          <div class="flex gap-2">
+            <button onclick="simulateDeposit(false)" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#22c55e,#16a34a);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Safe Deposit
+            </button>
+            <button onclick="simulateDeposit(true)" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#ef4444,#dc2626);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              Risky Deposit
+            </button>
+          </div>
         </div>
 
         <!-- Deposit simulation result -->
@@ -612,7 +834,7 @@
     <!-- MODAL: WITHDRAW (KYT Withdrawal Pre-screening Demo)               -->
     <!-- ================================================================ -->
     <div class="modal-overlay" id="modal-withdraw">
-      <div class="modal-box rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 mx-4">
+      <div class="modal-box arc-card flex flex-col gap-4 py-4 mx-4">
         <div class="px-4 flex items-center justify-between">
           <h2 class="text-base font-semibold">Withdraw Funds</h2>
           <button onclick="closeAllModals()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;">
@@ -656,6 +878,10 @@
           </div>
 
           <div class="space-y-1">
+          <div class="cove-disclaimer">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span>
+          </div>
             <p class="text-xs font-medium text-muted-foreground uppercase tracking-wide">KYT Withdrawal Workflow</p>
             <div class="kyt-step pending" id="wd-s1"><div class="step-icon">1</div><div><div class="text-sm font-medium">User Requests Withdrawal</div><div class="text-xs text-muted-foreground">Destination address and amount submitted</div></div></div>
             <div class="step-connector bg-muted"></div>
@@ -666,10 +892,16 @@
             <div class="kyt-step pending" id="wd-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Allow or Block</div><div class="text-xs text-muted-foreground">Approve clean withdrawals, freeze suspicious ones for review</div></div></div>
           </div>
 
-          <button onclick="simulateWithdrawal()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#f97316,#ea580c);">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M12 19V5"/><path d="M5 12l7 7 7-7"/></svg>
-            Pre-Screen &amp; Withdraw
-          </button>
+          <div class="flex gap-2">
+            <button onclick="simulateWithdrawal(false)" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#22c55e,#16a34a);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              Safe Withdrawal
+            </button>
+            <button onclick="simulateWithdrawal(true)" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#ef4444,#dc2626);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Risky Withdrawal
+            </button>
+          </div>
         </div>
 
         <!-- Withdraw simulation result -->
@@ -677,8 +909,154 @@
       </div>
     </div>
 
+    
+      <!-- ==================== ABOUT ==================== -->
+      <div id="page-about" class="page-view">
+        <div class="max-w-4xl mx-auto px-4 py-8 space-y-5">
+          <div style="border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:28px 24px;color:white;">
+            <h1 style="font-size:24px;font-weight:900;letter-spacing:-0.5px;">About ArcSwap</h1>
+            <p style="font-size:14px;margin-top:6px;opacity:0.85;line-height:1.6;max-width:600px;">DeFi Trading — Compliance Cove Demo</p>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;">What This Demo Shows</h2>
+            <p class="text-sm" style="color:#94a3b8;margin-top:6px;line-height:1.7;">ArcSwap is a full DeFi exchange demo with wallet connect, token swaps, deposits, and withdrawals. It demonstrates how Chainalysis compliance products integrate seamlessly into a DEX — screening wallet addresses at connection, monitoring every transaction via KYT, and enabling Reactor investigations on flagged activity.</p>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;margin-bottom:12px;">Presenter Workflow</h2>
+            <p class="text-xs" style="color:#94a3b8;margin-bottom:14px;">Follow these steps during a customer call. Each step includes a talking point you can use.</p>
+            
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#6366f1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">1</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Connect Wallet</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Click the pulsing 'Connect Wallet' button. Select MetaMask (or any provider). Use the pre-screened address picker to select an address — try a Low Risk address first, then a Severe one to show the difference.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Notice the Chainalysis shield icon — this is where Address Screening fires in real-time. The customer never sees this check, but your compliance team sees the full risk assessment.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#6366f1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">2</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Review Screening Results</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">After screening, review the risk gauge, exposure breakdown, identifications, and triggered rules. Point out the 'Internal Compliance View' disclaimer. Click 'Investigate in Reactor' to create a live graph.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> This is what your compliance analyst sees — risk level, entity identifications, and the exact exposure breakdown. The customer just sees 'Wallet Connected' or 'Connection Denied'.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">3</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Execute a Swap</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Once connected, use the swap card to trade ETH/USDT. Point out the slippage settings, route visualization, and price chart.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> The user experience is identical to any DeFi platform. Chainalysis runs in the background — zero friction for clean users, instant blocking for sanctioned ones.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">4</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Simulate a Deposit</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Click the Deposit button in the Account page. Choose 'Safe Deposit' or 'Risky Deposit' to show both KYT outcomes. Watch the workflow steps animate.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Every incoming deposit is registered with KYT as a received transfer. KYT traces where the funds came from and generates alerts if exposure exceeds your thresholds.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#f97316;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">5</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Simulate a Withdrawal</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Click Withdraw, try a pre-screened address. Choose 'Safe' or 'Risky' to demonstrate KYT pre-screening. Show how risky withdrawals are blocked before broadcasting.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> This is the compliance gate — KYT pre-screens the destination BEFORE you send. If the destination is sanctioned, the withdrawal is frozen, not sent.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;margin-bottom:10px;">Chainalysis Products Used</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+              
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Address Screening</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Screens wallet at connection — risk level, exposure, identifications</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">KYT</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Monitors every deposit and pre-screens every withdrawal</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Reactor</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Investigate flagged addresses — creates a live Reactor graph on click</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+<!-- ==================== FOOTER ==================== -->
+    <footer class="arc-footer">
+      <div class="max-w-5xl mx-auto px-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div style="width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,#6366f1,#06b6d4);display:flex;align-items:center;justify-content:center;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+            </div>
+            <div>
+              <span class="text-sm font-semibold" style="background:linear-gradient(135deg,#e2e8f0,#94a3b8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">ArcSwap</span>
+              <span class="text-xs text-muted-foreground ml-2">DeFi Trading Demo</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2" style="padding:4px 10px;border-radius:8px;border:1px solid var(--arc-border);background:rgba(99,102,241,0.04);">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="14" height="14" style="color:#6366f1;">
+                <path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/>
+              </svg>
+              <span class="text-xs font-medium" style="color:#6366f1;">Powered by Chainalysis</span>
+            </div>
+            <div class="flex items-center gap-3 text-xs text-muted-foreground">
+              <span>Address Screening</span>
+              <span style="opacity:0.3;">·</span>
+              <span>KYT</span>
+              <span style="opacity:0.3;">·</span>
+              <span>Reactor</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
     <!-- ==================== SCRIPTS ==================== -->
     <script src="/assets/chart.min.js"></script>
+    <script src="/assets/gsap.min.js"></script>
     <script>
       // =====================================================
       // STATE
@@ -689,7 +1067,7 @@
       let lastScreeningResult = null;
 
       const providerIcons = {
-        'MetaMask': '<svg width="20" height="20" viewBox="0 0 256 240"><path d="M241.9 0L143.2 73.5L161.4 30.2L241.9 0Z" fill="#E17726"/><path d="M14.1 0L111.9 74.2L94.6 30.2L14.1 0Z" fill="#E27625"/><path d="M143.2 129.7L147.7 69.5L161.4 30.2H94.6L108.3 69.5L111.5 129.7L112.7 148.8L112.8 195H143.2L143.3 148.8L143.2 129.7Z" fill="#F5841F"/></svg>',
+        'MetaMask': '<svg width="20" height="20" viewBox="0 0 256 240"><path d="M241.9 0L143.2 73.5L161.4 30.2L241.9 0Z" fill="#E17726"/><path d="M14.1 0L111.9 74.2L94.6 30.2L14.1 0Z" fill="#E27625"/><path d="M207 172L181 214.5L236.5 229.8L252.4 172.8L207 172Z" fill="#E27625"/><path d="M3.7 172.8L19.5 229.8L75 214.5L49 172L3.7 172.8Z" fill="#E27625"/><path d="M72 104.2L56.6 127.2L111.5 129.7L109.8 70.7L72 104.2Z" fill="#E27625"/><path d="M184 104.2L145.6 70L143.2 129.7L198.1 127.2L184 104.2Z" fill="#E27625"/><path d="M75 214.5L108.3 198.2L79.5 173.2L75 214.5Z" fill="#E27625"/><path d="M147.7 198.2L181 214.5L176.5 173.2L147.7 198.2Z" fill="#E27625"/><path d="M181 214.5L147.7 198.2L150.5 221.3L150.2 229.1L181 214.5Z" fill="#D5BFB2"/><path d="M75 214.5L105.8 229.1L105.6 221.3L108.3 198.2L75 214.5Z" fill="#D5BFB2"/><path d="M106.3 160.2L78.7 152L98 143L106.3 160.2Z" fill="#233447"/><path d="M149.7 160.2L158 143L177.4 152L149.7 160.2Z" fill="#233447"/><path d="M75 214.5L79.7 172L49 172.8L75 214.5Z" fill="#CC6228"/><path d="M176.3 172L181 214.5L207 172.8L176.3 172Z" fill="#CC6228"/><path d="M198.1 127.2L143.2 129.7L149.7 160.2L158 143L177.4 152L198.1 127.2Z" fill="#CC6228"/><path d="M78.7 152L98 143L106.3 160.2L111.5 129.7L56.6 127.2L78.7 152Z" fill="#CC6228"/><path d="M56.6 127.2L79.5 173.2L78.7 152L56.6 127.2Z" fill="#E27625"/><path d="M177.4 152L176.5 173.2L198.1 127.2L177.4 152Z" fill="#E27625"/><path d="M111.5 129.7L106.3 160.2L112.8 195L114.3 148.7L111.5 129.7Z" fill="#E27625"/><path d="M143.2 129.7L141.5 148.6L143.2 195L149.7 160.2L143.2 129.7Z" fill="#E27625"/><path d="M149.7 160.2L143.2 195L147.7 198.2L176.5 173.2L177.4 152L149.7 160.2Z" fill="#F5841F"/><path d="M78.7 152L79.5 173.2L108.3 198.2L112.8 195L106.3 160.2L78.7 152Z" fill="#F5841F"/><path d="M150.2 229.1L150.5 221.3L147.9 219H108.1L105.6 221.3L105.8 229.1L75 214.5L86.2 223.7L107.8 239.3H148.3L169.9 223.7L181 214.5L150.2 229.1Z" fill="#C0AC9D"/><path d="M147.7 198.2L143.2 195H112.8L108.3 198.2L105.6 221.3L108.1 219H147.9L150.5 221.3L147.7 198.2Z" fill="#161616"/><path d="M246.1 78.1L254.8 37.5L241.9 0L147.7 69.5L184 104.2L235.1 119.7L246.6 106.2L241.5 102.5L249.5 95.2L243.3 90.5L251.3 84.3L246.1 78.1Z" fill="#763E1A"/><path d="M1.2 37.5L9.9 78.1L4.6 84.3L12.7 90.5L6.5 95.2L14.5 102.5L9.4 106.2L20.9 119.7L72 104.2L108.3 69.5L14.1 0L1.2 37.5Z" fill="#763E1A"/><path d="M235.1 119.7L184 104.2L198.1 127.2L176.5 173.2L207 172.8H252.4L235.1 119.7Z" fill="#F5841F"/><path d="M72 104.2L20.9 119.7L3.7 172.8H49L79.5 173.2L56.6 127.2L72 104.2Z" fill="#F5841F"/><path d="M143.2 129.7L147.7 69.5L161.4 30.2H94.6L108.3 69.5L111.5 129.7L112.7 148.8L112.8 195H143.2L143.3 148.8L143.2 129.7Z" fill="#F5841F"/></svg>',
         'Coinbase Wallet': '<svg width="20" height="20" viewBox="0 0 256 256"><rect width="256" height="256" rx="50" fill="#0052FF"/><circle cx="128" cy="128" r="80" fill="white"/><rect x="104" y="104" width="48" height="48" rx="8" fill="#0052FF"/></svg>',
         'WalletConnect': '<svg width="20" height="20" viewBox="0 0 300 185"><path d="M61.4 36.3C111.9-12.1 188.1-12.1 238.6 36.3L244.6 42.1C247.1 44.5 247.1 48.4 244.6 50.8L224.3 70.3C223 71.5 221 71.5 219.7 70.3L211.5 62.4C176.3 28.5 123.7 28.5 88.5 62.4L79.7 70.9C78.4 72.1 76.4 72.1 75.1 70.9L54.8 51.4C52.3 49 52.3 45.1 54.8 42.7L61.4 36.3ZM282.1 78.3L300.2 95.8C302.7 98.2 302.7 102.1 300.2 104.5L218.9 183.1C216.4 185.5 212.4 185.5 209.9 183.1L152.5 127.8C151.9 127.2 150.9 127.2 150.2 127.8L92.8 183.1C90.3 185.5 86.3 185.5 83.8 183.1L2.5 104.5C0 102.1 0 98.2 2.5 95.8L20.6 78.3C23.1 75.9 27.1 75.9 29.6 78.3L87 133.6C87.7 134.2 88.7 134.2 89.3 133.6L146.7 78.3C149.2 75.9 153.2 75.9 155.7 78.3L213.1 133.6C213.8 134.2 214.8 134.2 215.4 133.6L272.8 78.3C275.3 75.9 279.3 75.9 281.8 78.3L282.1 78.3Z" fill="#3B99FC"/></svg>',
         'Phantom': '<svg width="20" height="20" viewBox="0 0 128 128"><rect width="128" height="128" rx="26" fill="url(#pG2)"/><path d="M110.5 64.7C110.5 89.5 93.8 99.5 72.6 99.5H69.2C67.6 99.5 66.3 100.9 66.2 102.5L64.5 115.2C64.4 116.5 63.3 117.5 62 117.5H49.1C47.5 117.5 46.3 116 46.5 114.4L56.5 38.5C56.7 36.8 58.2 35.5 59.9 35.5H82.2C99 35.5 110.5 45.8 110.5 64.7Z" fill="white"/><defs><linearGradient id="pG2" x1="0" y1="0" x2="128" y2="128"><stop stop-color="#534BB1"/><stop offset="1" stop-color="#551BF9"/></linearGradient></defs></svg>',
@@ -790,7 +1168,7 @@
       const labels = Array.from({length:priceData.length},(_,i)=>`${Math.floor(i*24/priceData.length).toString().padStart(2,'0')}:00`);
       const ctx = document.getElementById('priceChart').getContext('2d');
       const gradient = ctx.createLinearGradient(0,0,0,220);
-      gradient.addColorStop(0,'rgba(99,102,241,0.25)'); gradient.addColorStop(1,'rgba(99,102,241,0)');
+      gradient.addColorStop(0,'rgba(99,102,241,0.20)'); gradient.addColorStop(1,'rgba(6,182,212,0)');
       new Chart(ctx,{type:'line',data:{labels,datasets:[{data:priceData,borderColor:'#6366f1',backgroundColor:gradient,borderWidth:2,fill:true,tension:0.4,pointRadius:0,pointHitRadius:10}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:c=>`$${c.parsed.y.toFixed(2)}`}}},scales:{x:{display:true,grid:{display:false},ticks:{maxTicksLimit:8,font:{size:10}}},y:{display:true,grid:{color:'rgba(128,128,128,0.1)'},ticks:{callback:v=>'$'+v.toFixed(0),font:{size:10}}}},interaction:{mode:'nearest',axis:'x',intersect:false}}});
 
       // =====================================================
@@ -818,6 +1196,7 @@
           document.getElementById('nav-account').style.display = '';
           document.getElementById('accountAddrDisplay').textContent = connectedAddress;
           btn.textContent = 'Execute Swap';
+          btn.classList.remove('glow-pulse');
           btn.onclick = () => alert('Swap executed! (Demo)');
         } else {
           document.getElementById('navDisconnected').style.display = '';
@@ -825,6 +1204,7 @@
           document.getElementById('nav-account').style.display = 'none';
           document.getElementById('profileDropdown').classList.remove('open');
           btn.textContent = 'Connect Wallet to Swap';
+          btn.classList.add('glow-pulse');
           showPage('trade');
           btn.onclick = () => openModal('connect');
         }
@@ -956,6 +1336,7 @@
         document.getElementById('riskBadge').innerHTML = `<span class="inline-flex h-6 items-center rounded-full border border-transparent px-3 py-0.5 text-sm font-semibold ${riskBgClass[risk]||'bg-muted text-foreground'}">${risk} Risk</span>`;
         document.getElementById('riskReason').textContent = r.riskReason || 'No additional risk information';
         document.getElementById('resultAddr').textContent = r.address;
+        document.getElementById('reactorLink').innerHTML = reactorLinkHtml(r.address, 'ETH');
         document.getElementById('resultType').textContent = r.addressType === 'PRIVATE_WALLET' ? 'Private Wallet' : r.addressType === 'LIQUIDITY_POOL' ? 'Liquidity Pool' : (r.addressType || '—');
         document.getElementById('clusterRow').style.display = r.cluster?.name || r.cluster?.category ? '' : 'none';
         document.getElementById('resultCluster').textContent = r.cluster?.name || '—';
@@ -965,7 +1346,14 @@
         const idSection = document.getElementById('idSection');
         if (r.identifications?.length > 0) {
           idSection.style.display = '';
-          idSection.innerHTML = `<p class="text-sm font-medium mb-2">Identifications</p>` + r.identifications.map(id => `<div class="rounded-lg bg-destructive/10 p-2 mb-1"><span class="text-xs font-semibold text-destructive">${id.category||''}</span>${id.name?` <span class="text-xs text-foreground ml-2">${id.name}</span>`:''}</div>`).join('');
+          const riskyCategories = ['sanctions','sanctioned entity','darknet marketplace','darknet market','ransomware','scam','fraud shop','stolen funds','terrorist financing','child abuse material','mixer'];
+          idSection.innerHTML = `<p class="text-sm font-medium mb-2">Identifications</p>` + r.identifications.map(id => {
+            const cat = (id.category||'').toLowerCase();
+            const isRisky = riskyCategories.some(r => cat.includes(r));
+            const bg = isRisky ? 'background:rgba(239,68,68,0.1)' : 'background:rgba(99,102,241,0.06)';
+            const color = isRisky ? 'color:#ef4444' : 'color:#818cf8';
+            return `<div class="rounded-lg p-2 mb-1" style="${bg}"><span class="text-xs font-semibold" style="${color}">${id.category||''}</span>${id.name?` <span class="text-xs text-foreground ml-2">${id.name}</span>`:''}</div>`;
+          }).join('');
         } else idSection.style.display = 'none';
 
         const expSection = document.getElementById('exposureSection');
@@ -1010,7 +1398,7 @@
       // =====================================================
       // DEPOSIT SIMULATION (KYT Transfer Monitoring)
       // =====================================================
-      async function simulateDeposit() {
+      async function simulateDeposit(isRisky) {
         const asset = document.getElementById('depositAsset').value;
         const amount = document.getElementById('depositAmount').value;
         const steps = ['dep-s1','dep-s2','dep-s3','dep-s4'];
@@ -1018,26 +1406,23 @@
         // Reset
         steps.forEach(id => { const s = document.getElementById(id); s.className = 'kyt-step pending workflow-step'; s.querySelector('.step-icon').textContent = steps.indexOf(id)+1; });
 
-        // Determine if "risky" — random for demo
-        const isRisky = Math.random() < 0.3;
-
         // Step 1: Execute
-        await animateStep('dep-s1', 'running', 600);
+        await animateStep('dep-s1', 'running', 300);
         await animateStep('dep-s1', 'success', 0);
         document.getElementById('dep-s1').querySelector('.step-icon').textContent = '✓';
 
         // Step 2: Register
-        await animateStep('dep-s2', 'running', 900);
+        await animateStep('dep-s2', 'running', 450);
         await animateStep('dep-s2', 'success', 0);
         document.getElementById('dep-s2').querySelector('.step-icon').textContent = '✓';
 
         // Step 3: Monitor
-        await animateStep('dep-s3', 'running', 1200);
+        await animateStep('dep-s3', 'running', 600);
         await animateStep('dep-s3', 'success', 0);
         document.getElementById('dep-s3').querySelector('.step-icon').textContent = '✓';
 
         // Step 4: Alert or Clear
-        await animateStep('dep-s4', 'running', 600);
+        await animateStep('dep-s4', 'running', 300);
         if (isRisky) {
           await animateStep('dep-s4', 'alert', 0);
           document.getElementById('dep-s4').querySelector('.step-icon').textContent = '!';
@@ -1092,10 +1477,8 @@
       // =====================================================
       // WITHDRAWAL SIMULATION (KYT Pre-screening)
       // =====================================================
-      async function simulateWithdrawal() {
-        const address = document.getElementById('withdrawAddress').value.trim();
-        if (!address) { document.getElementById('withdrawAddress').style.borderColor = 'var(--destructive)'; return; }
-        document.getElementById('withdrawAddress').style.borderColor = '';
+      async function simulateWithdrawal(forceRisky) {
+        const address = document.getElementById('withdrawAddress').value.trim() || '0x7a2B…c4f1';
         const asset = document.getElementById('withdrawAsset').value;
         const amount = document.getElementById('withdrawAmount').value;
         const steps = ['wd-s1','wd-s2','wd-s3','wd-s4'];
@@ -1103,39 +1486,30 @@
         // Reset
         steps.forEach((id,i) => { const s = document.getElementById(id); s.className = 'kyt-step pending workflow-step'; s.querySelector('.step-icon').textContent = i+1; });
 
-        // Use address screening API for real risk data
-        let riskLevel = 'Low';
-        let riskData = null;
+        // Risk is determined by button choice
+        let riskLevel = forceRisky ? 'Severe' : 'Low';
+        let riskData = forceRisky
+          ? { risk: 'Severe', riskReason: 'Destination address is associated with a sanctioned entity (OFAC SDN list). Funds trace to darknet marketplace activity.', cluster: { category: 'sanctioned entity' } }
+          : { risk: 'Low', riskReason: 'Clean destination — identified as a major exchange hot wallet with no high-risk exposure.' };
 
         // Step 1
-        await animateStep('wd-s1', 'running', 500);
+        await animateStep('wd-s1', 'running', 250);
         await animateStep('wd-s1', 'success', 0);
         document.getElementById('wd-s1').querySelector('.step-icon').textContent = '✓';
 
         // Step 2: Pre-screen
-        await animateStep('wd-s2', 'running', 400);
-        try {
-          const res = await fetch(`/api/workflow/${SLUG}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:{address}}) });
-          if (res.ok) {
-            const data = await res.json();
-            riskData = data.output ?? data;
-            riskLevel = riskData.risk || 'Low';
-          }
-        } catch(e) {
-          // Sandbox or error — use simulated data
-          riskLevel = Math.random() < 0.3 ? 'High' : 'Low';
-        }
+        await animateStep('wd-s2', 'running', 300);
         await animateStep('wd-s2', 'success', 0);
         document.getElementById('wd-s2').querySelector('.step-icon').textContent = '✓';
 
         // Step 3: Analyze
-        await animateStep('wd-s3', 'running', 800);
+        await animateStep('wd-s3', 'running', 400);
         await animateStep('wd-s3', 'success', 0);
         document.getElementById('wd-s3').querySelector('.step-icon').textContent = '✓';
 
         // Step 4: Decision
         const isBlocked = (riskLevel === 'High' || riskLevel === 'Severe');
-        await animateStep('wd-s4', 'running', 500);
+        await animateStep('wd-s4', 'running', 250);
         if (isBlocked) {
           await animateStep('wd-s4', 'alert', 0);
           document.getElementById('wd-s4').querySelector('.step-icon').textContent = '✗';
@@ -1198,6 +1572,9 @@
       }
 
       // =====================================================
+      // DISCLAIMER
+      const DISCLAIMER_HTML = '<div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span></div>';
+
       // HELPERS
       // =====================================================
       function animateStep(id, state, delay) {
@@ -1231,14 +1608,37 @@
       {id:'vitalik',label:'🔴 Vitalik Buterin',address:'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',risk:'Severe',story:'Surprise! Severe from dust attacks — shows why context matters.',category:'severe'},
     ];
     
-    // Reactor deep link helper
-    function openInReactor(address, network) {
-      const net = (network || 'ETH').toUpperCase();
-      window.open('https://reactor.chainalysis.com/graphs/reactor/' + net + '/' + address, '_blank');
+    // Reactor deep link helpers
+    // Creates a Reactor graph on-the-fly via workflow, then opens it.
+    // Graph URL pattern: https://reactor.chainalysis.com/graph-v2/{graphId}
+    const REACTOR_GRAPH_SLUG = 'arcswap-reactor-graph';
+
+    async function openInReactor(address, network) {
+      try {
+        const res = await fetch(`/api/workflow/${REACTOR_GRAPH_SLUG}/invoke/sync`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input: { address, network: network || 'ETH' } }),
+        });
+        if (!res.ok) throw new Error('Workflow error');
+        const data = await res.json();
+        const result = data.output ?? data;
+        if (result.graphUrl) {
+          window.open(result.graphUrl, '_blank');
+        } else {
+          window.open('https://reactor.chainalysis.com', '_blank');
+        }
+      } catch (e) {
+        // Fallback — open Reactor home
+        window.open('https://reactor.chainalysis.com', '_blank');
+      }
     }
+
     function reactorLinkHtml(address, network) {
       const net = (network || 'ETH').toUpperCase();
-      return '<a href="https://reactor.chainalysis.com/graphs/reactor/' + net + '/' + address + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;color:#a855f7;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.12);text-decoration:none;transition:all .15s;margin-left:4px;" onmouseover="this.style.background=\'rgba(168,85,247,.15)\';this.style.borderColor=\'#a855f7\';" onmouseout="this.style.background=\'rgba(168,85,247,.08)\';this.style.borderColor=\'rgba(168,85,247,.12)\';"><svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 30 30\' fill=\'#a855f7\' width=\'10\' height=\'10\'><path d=\'M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0Z\'/></svg>Open in Reactor →</a>';
+      const shortAddr = address.length > 12 ? address.slice(0,8) + '…' + address.slice(-4) : address;
+      // Use onclick to call the async workflow-backed function instead of a static href
+      return '<button onclick="event.preventDefault();event.stopPropagation();openInReactor(\'' + address + '\',\'' + net + '\')" title="Create Reactor graph for ' + shortAddr + '" style="display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:10px;font-weight:600;color:#a78bfa;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.15);cursor:pointer;transition:all .2s;margin-left:4px;backdrop-filter:blur(4px);" onmouseover="this.style.background=\'rgba(139,92,246,.12)\';this.style.borderColor=\'#8b5cf6\';this.style.boxShadow=\'0 0 12px rgba(139,92,246,.15)\';" onmouseout="this.style.background=\'rgba(139,92,246,.06)\';this.style.borderColor=\'rgba(139,92,246,.15)\';this.style.boxShadow=\'none\';"><svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 30 30\' fill=\'#a78bfa\' width=\'11\' height=\'11\'><path d=\'M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z\'/></svg>Investigate in Reactor →</button>';
     }
     function renderAddressPicker(inputId){
       const input=document.getElementById(inputId);if(!input||input.parentNode.querySelector('.addr-picker'))return;
@@ -1272,6 +1672,7 @@
     }).observe(document.body,{childList:true,subtree:true,attributes:true});
     // Also try immediately
     setTimeout(()=>renderAddressPicker('addressInput'),100);
+    setTimeout(()=>renderAddressPicker('withdrawAddress'),200);
     </script>
   
     
@@ -1280,26 +1681,220 @@
   
     
   
-    <!-- Brand customization (brand-swap) -->
+    <!-- Brand customization (brand-swap) — supports ?brand=, ?color=, ?domain= from Branding Studio -->
     <script>
     (function(){
       var p=new URLSearchParams(window.location.search);
       var brand=p.get('brand');
-      if(!brand||brand==='DemoChain')return;
-      // Wait for DOM then replace all visible instances
-      function swap(){
-        var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-        while(walker.nextNode()){
-          if(walker.currentNode.textContent.includes('DemoChain')){
-            walker.currentNode.textContent=walker.currentNode.textContent.split('DemoChain').join(brand);
+      var color=p.get('color');
+      var domain=p.get('domain');
+
+      function applyBrand(){
+        if(brand && brand!=='ArcSwap'){
+          var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+          while(walker.nextNode()){
+            if(walker.currentNode.textContent.includes('ArcSwap')){
+              walker.currentNode.textContent=walker.currentNode.textContent.split('ArcSwap').join(brand);
+            }
+          }
+          document.title=document.title.split('ArcSwap').join(brand);
+        }
+
+        if(color){
+          document.documentElement.style.setProperty('--primary',color);
+          var dc=color+'cc';
+          var s=document.createElement('style');
+          s.textContent='.accent{color:'+color+' !important}.accent-bg{background:linear-gradient(135deg,'+color+','+dc+') !important}.glow-btn::before{background:linear-gradient(135deg,'+color+','+dc+','+color+'99) !important}.ob-step.active .ob-num{background:'+color+' !important}.wallet-provider-btn:hover{border-color:'+color+' !important;box-shadow:0 0 0 1px '+color+' !important}.kyt-step.running .step-icon{background:'+color+'1a !important;color:'+color+' !important}.upload-zone:hover{border-color:'+color+' !important;background:'+color+'08 !important}';
+          document.head.appendChild(s);
+          var defaults=['#6366f1','#4f46e5','#8b5cf6','#818cf8','#a78bfa','#7c3aed','#a855f7','#e11d48','#be123c','#f43f5e','#f093fb'];
+          document.querySelectorAll('[style]').forEach(function(el){
+            var st=el.getAttribute('style');var ch=false;
+            defaults.forEach(function(d){if(st.indexOf(d)!==-1){st=st.split(d).join(color);ch=true;}var ld=d.toLowerCase();if(st.toLowerCase().indexOf(ld)!==-1&&st.indexOf(d)===-1){st=st.replace(new RegExp(ld,'gi'),color);ch=true;}});
+            if(ch)el.setAttribute('style',st);
+          });
+          defaults.forEach(function(d){
+            document.querySelectorAll('[fill="'+d+'"]').forEach(function(el){el.setAttribute('fill',color);});
+          });
+          document.querySelectorAll('[style*="99,102,241"]').forEach(function(el){
+            var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
+            var st=el.getAttribute('style');st=st.replace(/99,\s*102,\s*241/g,r+','+g+','+b);el.setAttribute('style',st);
+          });
+          // Also replace rgba patterns for rose/red accents
+          document.querySelectorAll('[style*="225,29,72"],[style*="190,18,60"],[style*="244,63,94"]').forEach(function(el){
+            var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
+            var st=el.getAttribute('style');
+            st=st.replace(/225,\s*29,\s*72/g,r+','+g+','+b);
+            st=st.replace(/190,\s*18,\s*60/g,r+','+g+','+b);
+            st=st.replace(/244,\s*63,\s*94/g,r+','+g+','+b);
+            el.setAttribute('style',st);
+          });
+        }
+
+        if(domain){
+          domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();
+          var els=document.querySelectorAll('[style*="linear-gradient"]');
+          for(var i=0;i<els.length;i++){
+            var el=els[i],sv=el.querySelector('svg');
+            if(sv&&el.offsetWidth<60){
+              var img=document.createElement('img');
+              img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';
+              img.style.cssText='width:18px;height:18px;object-fit:contain;border-radius:3px;';
+              img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};
+              sv.parentNode.replaceChild(img,sv);break;
+            }
           }
         }
-        // Also update <title>
-        document.title=document.title.split('DemoChain').join(brand);
       }
-      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',swap);
-      else swap();
+
+      if(!brand&&!color&&!domain)return;
+      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyBrand);
+      else applyBrand();
     })();
+    </script>
+
+    <!-- ==================== ANIMATED BACKGROUND + ENTRANCE ==================== -->
+    <script>
+    // =====================================================
+    // PARTICLE NETWORK BACKGROUND
+    // =====================================================
+    (function() {
+      const canvas = document.getElementById('bgCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let w, h, particles = [], mouse = { x: -1000, y: -1000 };
+
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+      document.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+
+      // Create particles
+      const COUNT = Math.min(60, Math.floor(window.innerWidth / 25));
+      for (let i = 0; i < COUNT; i++) {
+        particles.push({
+          x: Math.random() * w,
+          y: Math.random() * h,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          r: Math.random() * 1.5 + 0.5,
+          color: Math.random() > 0.6 ? 'rgba(99,102,241,' : (Math.random() > 0.5 ? 'rgba(6,182,212,' : 'rgba(139,92,246,'),
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+
+        // Subtle radial gradients
+        const g1 = ctx.createRadialGradient(w * 0.2, h * 0.3, 0, w * 0.2, h * 0.3, w * 0.5);
+        g1.addColorStop(0, 'rgba(99,102,241,0.03)');
+        g1.addColorStop(1, 'transparent');
+        ctx.fillStyle = g1;
+        ctx.fillRect(0, 0, w, h);
+
+        const g2 = ctx.createRadialGradient(w * 0.8, h * 0.7, 0, w * 0.8, h * 0.7, w * 0.4);
+        g2.addColorStop(0, 'rgba(6,182,212,0.02)');
+        g2.addColorStop(1, 'transparent');
+        ctx.fillStyle = g2;
+        ctx.fillRect(0, 0, w, h);
+
+        // Update and draw particles
+        particles.forEach((p, i) => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.x < 0) p.x = w;
+          if (p.x > w) p.x = 0;
+          if (p.y < 0) p.y = h;
+          if (p.y > h) p.y = 0;
+
+          // Draw particle
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = p.color + '0.4)';
+          ctx.fill();
+
+          // Draw connections
+          for (let j = i + 1; j < particles.length; j++) {
+            const q = particles[j];
+            const dx = p.x - q.x;
+            const dy = p.y - q.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 150) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(q.x, q.y);
+              const alpha = (1 - dist / 150) * 0.08;
+              ctx.strokeStyle = 'rgba(99,102,241,' + alpha + ')';
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+
+          // Mouse interaction — subtle glow near cursor
+          const mdx = p.x - mouse.x;
+          const mdy = p.y - mouse.y;
+          const mDist = Math.sqrt(mdx * mdx + mdy * mdy);
+          if (mDist < 200) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r + 2, 0, Math.PI * 2);
+            ctx.fillStyle = p.color + ((1 - mDist / 200) * 0.3) + ')';
+            ctx.fill();
+          }
+        });
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // =====================================================
+    // GSAP ENTRANCE ANIMATIONS
+    // =====================================================
+    if (typeof gsap !== 'undefined') {
+      gsap.set('.arc-entrance', { opacity: 0, y: 20 });
+      gsap.to('.arc-entrance', {
+        opacity: 1, y: 0,
+        duration: 0.6,
+        ease: 'power2.out',
+        stagger: 0.1,
+        delay: 0.2,
+      });
+    }
+
+    // =====================================================
+    // SLIPPAGE POPOVER
+    // =====================================================
+    function toggleSlippage(e) {
+      e.stopPropagation();
+      document.getElementById('slippagePopover').classList.toggle('open');
+    }
+    function setSlippage(val, btn) {
+      document.getElementById('slipDisplay').textContent = val + '%';
+      document.querySelectorAll('.slip-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('slippagePopover').classList.remove('open');
+    }
+    document.addEventListener('click', e => {
+      const pop = document.getElementById('slippagePopover');
+      if (pop && !pop.contains(e.target)) pop.classList.remove('open');
+    });
+    </script>
+  
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';
+    var M=document.querySelector('meta[name="cove-demo"]');
+    var D=M?M.getAttribute('content'):(document.title.split('\u2014')[0].trim()||'unknown');
+    var P=new URLSearchParams(location.search);
+    var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
+    window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,
+    demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,
+    domain:d.domain||DM,address:d.address||'',filter:d.filter||'',
+    viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};
+    addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
     </script>
   </body>
 </html>

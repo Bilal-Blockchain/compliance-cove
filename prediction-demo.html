@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Prediction Markets" />
+    <title>ForecastX — Prediction Markets</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root{color-scheme:light;--background:#ffffff;--foreground:#0f1729;--card:#ffffff;--card-foreground:#0f1729;--muted:#f4f5f7;--muted-foreground:#6b7280;--border:#e5e7eb;--primary:#0891b2;--primary-foreground:#fff;--destructive:#ef4444;--success:#16a34a;--warning:#d97706;--fx-cyan:#0891b2;--fx-dark:#0e7490;--fx-navy:#0c1e3a;}
+      *{font-family:'Inter',system-ui,sans-serif;} body{background:#fff!important;color:#0f1729!important;}
+      .mono{font-family:'JetBrains Mono',monospace;}
+
+      /* Nav */
+      .fx-nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);}
+      .fx-nav-link{padding:6px 0;font-size:13px;font-weight:500;color:var(--muted-foreground);cursor:pointer;transition:color .15s;position:relative;}
+      .fx-nav-link:hover{color:var(--foreground);}
+      .fx-nav-link.active{color:var(--foreground);font-weight:600;}
+      .fx-nav-link.active::after{content:'';position:absolute;bottom:-13px;left:0;right:0;height:2px;background:var(--fx-cyan);border-radius:1px;}
+
+      /* Cards */
+      .fx-card{border-radius:12px;background:#fff;border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all .2s;}
+      .fx-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.07);}
+      .fx-card-clickable{cursor:pointer;}
+      .fx-card-clickable:hover{border-color:#d1d5db;transform:translateY(-2px);}
+
+      /* Market cards */
+      .market-card{padding:16px;display:flex;flex-direction:column;gap:10px;}
+      .market-title{font-size:14px;font-weight:700;line-height:1.4;}
+      .market-meta{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted-foreground);}
+      .market-odds{display:flex;gap:6px;}
+      .odds-btn{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);text-align:center;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;}
+      .odds-yes{color:#16a34a;background:rgba(22,163,106,0.04);}
+      .odds-yes:hover{background:rgba(22,163,106,0.1);border-color:#16a34a;}
+      .odds-no{color:#dc2626;background:rgba(220,38,38,0.04);}
+      .odds-no:hover{background:rgba(220,38,38,0.1);border-color:#dc2626;}
+      .volume-bar{height:4px;border-radius:2px;background:var(--muted);overflow:hidden;}
+      .volume-fill{height:100%;border-radius:2px;background:var(--fx-cyan);}
+
+      /* Tabs */
+      .fx-tabs{display:flex;gap:2px;padding:3px;border-radius:8px;background:var(--muted);border:1px solid var(--border);}
+      .fx-tab{padding:6px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;color:var(--muted-foreground);border:none;background:none;}
+      .fx-tab:hover{color:var(--foreground);}
+      .fx-tab.active{background:#fff;color:var(--foreground);box-shadow:0 1px 3px rgba(0,0,0,0.08);}
+
+      /* Wash trade patterns */
+      .pattern-card{padding:16px;border-radius:10px;border:1px solid var(--border);transition:all .15s;}
+      .pattern-card:hover{border-color:var(--fx-cyan);box-shadow:0 0 0 1px var(--fx-cyan);}
+      .pattern-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+      .pattern-diagram{margin-top:10px;padding:10px;border-radius:8px;background:var(--muted);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.6;color:var(--muted-foreground);}
+      .graph-canvas{margin-top:10px;border-radius:10px;background:#0f1729;border:1px solid rgba(14,165,233,0.1);}
+
+      /* Alert badge */
+      .alert-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;text-transform:uppercase;}
+
+      /* Sections */
+      .section-head{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+      .section-head-line{flex:1;height:1px;background:var(--border);}
+
+      /* Page panels */
+      .page-panel{display:none;} .page-panel.active{display:block;}
+
+      /* Footer */
+      .fx-footer{border-top:1px solid var(--border);padding:24px 0;margin-top:40px;}
+
+      /* Suspicious highlight */
+      .suspicious{border-left:3px solid #ef4444;background:rgba(239,68,68,0.02);}
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+
+    <!-- Nav -->
+    <nav class="fx-nav">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:52px;">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-2">
+            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#0891b2,#0e7490);display:flex;align-items:center;justify-content:center;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+            <span class="text-base font-bold">ForecastX</span>
+          </div>
+          <div class="flex items-center gap-4">
+            <a class="fx-nav-link active" onclick="showPanel('markets')">Markets</a>
+            <a class="fx-nav-link" onclick="showPanel('surveillance')">Surveillance</a>
+            <a class="fx-nav-link" onclick="showPanel('methodology')">Methodology</a>
+            <a class="fx-nav-link" onclick="showPanel('about')">About</a>
+          </div>
+        </div>
+        <div class="flex items-center gap-2" style="padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:rgba(8,145,178,0.04);">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#0891b2" width="13" height="13"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span class="text-xs font-medium" style="color:#0891b2;">Powered by Data Solutions</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-6">
+
+      <!-- ==================== MARKETS ==================== -->
+      <div class="page-panel active" id="panel-markets">
+        <!-- Stats bar -->
+        <div class="flex items-center gap-6 mb-5 text-sm">
+          <div><span class="text-muted-foreground">Total Volume</span> <span class="font-bold">$2.4B</span></div>
+          <div><span class="text-muted-foreground">Active Markets</span> <span class="font-bold">847</span></div>
+          <div><span class="text-muted-foreground">Traders</span> <span class="font-bold">312K</span></div>
+          <div style="margin-left:auto;">
+            <div class="fx-tabs">
+              <button class="fx-tab active">Trending</button>
+              <button class="fx-tab">New</button>
+              <button class="fx-tab">Closing Soon</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Market grid -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="marketGrid"></div>
+      </div>
+
+      <!-- ==================== SURVEILLANCE ==================== -->
+      <div class="page-panel" id="panel-surveillance">
+        <div class="fx-card" style="padding:16px 20px;margin-bottom:16px;border-left:3px solid var(--fx-cyan);display:flex;align-items:center;gap:12px;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#0891b2" width="20" height="20"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <div style="flex:1;">
+            <h2 class="text-base font-bold">Market Surveillance — Powered by Data Solutions</h2>
+            <p class="text-xs text-muted-foreground" style="margin-top:2px;">On-chain transaction tracing, cluster analysis, and behavioral pattern detection across all event contracts.</p>
+          </div>
+        </div>
+
+        <!-- Row 1: Stats -->
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;">
+          <div class="fx-card" style="padding:12px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#ef4444;">23</div><div style="font-size:9px;color:var(--muted-foreground);margin-top:1px;text-transform:uppercase;letter-spacing:0.5px;">Flagged Accounts</div></div>
+          <div class="fx-card" style="padding:12px;text-align:center;"><div style="font-size:20px;font-weight:800;color:var(--fx-cyan);">$4.2M</div><div style="font-size:9px;color:var(--muted-foreground);margin-top:1px;text-transform:uppercase;letter-spacing:0.5px;">Suspicious Volume</div></div>
+          <div class="fx-card" style="padding:12px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#d97706;">8</div><div style="font-size:9px;color:var(--muted-foreground);margin-top:1px;text-transform:uppercase;letter-spacing:0.5px;">Wash Clusters</div></div>
+          <div class="fx-card" style="padding:12px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#8b5cf6;">14</div><div style="font-size:9px;color:var(--muted-foreground);margin-top:1px;text-transform:uppercase;letter-spacing:0.5px;">Sybil Wallets</div></div>
+          <div class="fx-card" style="padding:12px;text-align:center;"><div style="font-size:20px;font-weight:800;color:#16a34a;">99.2%</div><div style="font-size:9px;color:var(--muted-foreground);margin-top:1px;text-transform:uppercase;letter-spacing:0.5px;">Clean Rate</div></div>
+        </div>
+
+        <!-- Row 2: Volume chart + Wash type breakdown -->
+        <div style="display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:16px;">
+          <div class="fx-card" style="padding:16px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--fx-cyan);">Volume — Legitimate vs Suspicious (30d)</span><div class="section-head-line"></div></div>
+            <canvas id="volumeChart" height="180"></canvas>
+          </div>
+          <div class="fx-card" style="padding:16px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--fx-cyan);">Wash Trade by Pattern</span><div class="section-head-line"></div></div>
+            <canvas id="washChart" height="180"></canvas>
+          </div>
+        </div>
+
+        <!-- Row 3: Flagged traders + Most targeted markets -->
+        <div style="display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:16px;">
+          <!-- Flagged trader profiles -->
+          <div class="fx-card" style="padding:16px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--fx-cyan);">Flagged Trader Profiles</span><span class="alert-badge" style="background:rgba(239,68,68,0.08);color:#ef4444;">23 accounts</span><div class="section-head-line"></div></div>
+            <div style="overflow-x:auto;">
+              <table style="width:100%;border-collapse:collapse;font-size:11px;">
+                <thead><tr style="border-bottom:2px solid var(--border);">
+                  <th style="text-align:left;padding:6px 8px;font-weight:600;color:var(--muted-foreground);font-size:10px;text-transform:uppercase;">Wallet</th>
+                  <th style="text-align:left;padding:6px 8px;font-weight:600;color:var(--muted-foreground);font-size:10px;text-transform:uppercase;">Pattern</th>
+                  <th style="text-align:right;padding:6px 8px;font-weight:600;color:var(--muted-foreground);font-size:10px;text-transform:uppercase;">Volume</th>
+                  <th style="text-align:right;padding:6px 8px;font-weight:600;color:var(--muted-foreground);font-size:10px;text-transform:uppercase;">Trades</th>
+                  <th style="text-align:left;padding:6px 8px;font-weight:600;color:var(--muted-foreground);font-size:10px;text-transform:uppercase;">Linked Wallets</th>
+                  <th style="text-align:left;padding:6px 8px;font-weight:600;color:var(--muted-foreground);font-size:10px;text-transform:uppercase;">Funding</th>
+                  <th style="text-align:left;padding:6px 8px;font-weight:600;color:var(--muted-foreground);font-size:10px;text-transform:uppercase;">Severity</th>
+                </tr></thead>
+                <tbody id="traderTable"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Most targeted markets -->
+          <div class="fx-card" style="padding:16px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--fx-cyan);">Most Targeted Markets</span><div class="section-head-line"></div></div>
+            <canvas id="marketChart" height="170"></canvas>
+          </div>
+        </div>
+
+        <!-- Row 4: Transaction flow + Timing analysis -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <!-- Transaction flow patterns -->
+          <div class="fx-card" style="padding:16px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--fx-cyan);">Detected Fund Flows</span><div class="section-head-line"></div></div>
+            <div class="space-y-2" id="flowList"></div>
+          </div>
+
+          <!-- Trading timing analysis -->
+          <div class="fx-card" style="padding:16px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--fx-cyan);">Trade Timing Correlation</span><div class="section-head-line"></div></div>
+            <canvas id="timingChart" height="170"></canvas>
+            <p class="text-xs text-muted-foreground" style="margin-top:8px;">Coordinated wallets show trade clustering within 2-3 blocks. Normal traders have random distribution.</p>
+          </div>
+        </div>
+
+        <!-- Row 5: Flagged activity feed -->
+        <div class="fx-card" style="padding:16px;">
+          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--fx-cyan);">Recent Flagged Activity</span><div class="section-head-line"></div></div>
+          <div class="space-y-2" id="flaggedList" style="max-height:280px;overflow-y:auto;"></div>
+        </div>
+      </div>
+
+      <!-- ==================== METHODOLOGY ==================== -->
+      <div class="page-panel" id="panel-methodology">
+        <div class="fx-card" style="padding:24px;margin-bottom:20px;border-left:3px solid var(--fx-cyan);">
+          <div class="flex items-center gap-3 mb-2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#0891b2" width="22" height="22"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+            <h2 class="text-lg font-bold">Wash Trading Detection Methodology</h2>
+          </div>
+          <p class="text-sm text-muted-foreground" style="line-height:1.7;">Chainalysis Data Solutions uses on-chain transaction tracing to identify wash trading patterns in prediction markets. By analyzing wallet clusters, transaction timing, and fund flows, we detect six distinct patterns of artificial volume generation.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-4">
+
+          <!-- Self-Trades -->
+          <div class="pattern-card">
+            <div class="flex items-start gap-3">
+              <div class="pattern-icon" style="background:rgba(239,68,68,0.08);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold">Self-Trades</h3>
+                <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">The simplest form — a trader buys and sells the same contract position using the same wallet or wallets within the same cluster. Creates artificial volume with zero actual market risk.</p>
+              </div>
+            </div>
+            <canvas class="graph-canvas" id="graph-self" width="400" height="140"></canvas>
+            <p class="text-xs text-muted-foreground" style="margin-top:8px;"><strong>Detection:</strong> Cluster analysis links wallets to the same entity. Data Solutions identifies when the same cluster holds both YES and NO positions.</p>
+          </div>
+
+          <!-- Round Trips -->
+          <div class="pattern-card">
+            <div class="flex items-start gap-3">
+              <div class="pattern-icon" style="background:rgba(249,115,22,0.08);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold">Round Trips</h3>
+                <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Funds move in a circle: Wallet A sends to Wallet B, which trades, then sends proceeds back to Wallet A. The net position is zero but volume is inflated.</p>
+              </div>
+            </div>
+            <canvas class="graph-canvas" id="graph-round" width="400" height="140"></canvas>
+            <p class="text-xs text-muted-foreground" style="margin-top:8px;"><strong>Detection:</strong> Transaction tracing shows funds returning to the originating wallet within a configurable time window.</p>
+          </div>
+
+          <!-- Pass-Through -->
+          <div class="pattern-card">
+            <div class="flex items-start gap-3">
+              <div class="pattern-icon" style="background:rgba(234,179,8,0.08);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold">Pass-Through</h3>
+                <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">An intermediary wallet is used to obscure the relationship. Wallet A sends to Wallet C (the pass-through), which then trades on the market. C is controlled by the same entity as A.</p>
+              </div>
+            </div>
+            <canvas class="graph-canvas" id="graph-pass" width="400" height="140"></canvas>
+            <p class="text-xs text-muted-foreground" style="margin-top:8px;"><strong>Detection:</strong> Chainalysis cluster attribution links the intermediary to the original entity despite the extra hop.</p>
+          </div>
+
+          <!-- A-B-A Wash Trades -->
+          <div class="pattern-card">
+            <div class="flex items-start gap-3">
+              <div class="pattern-icon" style="background:rgba(139,92,246,0.08);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold">A-B-A Wash Trades</h3>
+                <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Two wallets controlled by the same entity trade with each other. A sells YES to B, B sells NO to A — both sides of the trade are the same person, generating fake volume and manipulating the odds.</p>
+              </div>
+            </div>
+            <canvas class="graph-canvas" id="graph-aba" width="400" height="140"></canvas>
+            <p class="text-xs text-muted-foreground" style="margin-top:8px;"><strong>Detection:</strong> On-chain funding analysis reveals both wallets were funded from the same source or share the same withdrawal destination.</p>
+          </div>
+
+          <!-- Circular Currency Pair -->
+          <div class="pattern-card">
+            <div class="flex items-start gap-3">
+              <div class="pattern-icon" style="background:rgba(8,145,178,0.08);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 18V6"/></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold">Circular Currency Pair</h3>
+                <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">A trader exploits correlated markets — buying YES on "BTC > $100K" while selling YES on "BTC > $95K" across different wallets, creating synthetic hedges that inflate volume in both markets.</p>
+              </div>
+            </div>
+            <canvas class="graph-canvas" id="graph-circular" width="400" height="160"></canvas>
+            <p class="text-xs text-muted-foreground" style="margin-top:8px;"><strong>Detection:</strong> Cross-market correlation analysis identifies offsetting positions held by the same cluster across multiple event contracts.</p>
+          </div>
+
+          <!-- Multi-trade Wash -->
+          <div class="pattern-card">
+            <div class="flex items-start gap-3">
+              <div class="pattern-icon" style="background:rgba(220,38,38,0.08);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold">Multi-trade Wash</h3>
+                <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">The most sophisticated pattern — a coordinated network of 5+ wallets execute a series of trades designed to look organic. Each individual trade appears legitimate, but the network analysis reveals coordinated behavior and volume inflation.</p>
+              </div>
+            </div>
+            <canvas class="graph-canvas" id="graph-multi" width="400" height="180"></canvas>
+            <p class="text-xs text-muted-foreground" style="margin-top:8px;"><strong>Detection:</strong> Graph analysis + timing correlation. Chainalysis traces the funding source of all participants and identifies coordinated transaction timing.</p>
+          </div>
+        </div>
+
+        <!-- Chainalysis callout -->
+        <div class="fx-card" style="padding:20px;margin-top:20px;display:flex;align-items:center;gap:14px;border-color:rgba(8,145,178,0.2);">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#0891b2" width="24" height="24"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <div style="flex:1;">
+            <p class="text-sm font-bold">Chainalysis Data Solutions — Market Integrity</p>
+            <p class="text-xs text-muted-foreground" style="margin-top:2px;line-height:1.6;">Data Solutions provides the on-chain analytics engine that powers wash trading detection. By combining cluster attribution, transaction tracing, and behavioral analysis, prediction market platforms can identify and remove artificial volume — protecting market integrity and meeting regulatory requirements.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== ABOUT ==================== -->
+      <div id="panel-about" class="page-panel">
+        <div class="max-w-4xl mx-auto px-4 py-8 space-y-5">
+          <div style="border-radius:14px;background:linear-gradient(135deg,#0891b2,#0e7490);padding:28px 24px;color:white;">
+            <h1 style="font-size:24px;font-weight:900;letter-spacing:-0.5px;">About ForecastX</h1>
+            <p style="font-size:14px;margin-top:6px;opacity:0.85;line-height:1.6;max-width:600px;">Prediction Markets — Compliance Cove Demo</p>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:var(--foreground);">What This Demo Shows</h2>
+            <p class="text-sm" style="color:var(--muted-foreground);margin-top:6px;line-height:1.7;">ForecastX is a Polymarket/Kalshi-style prediction market platform. It demonstrates how Chainalysis Data Solutions detects wash trading, insider trading, and market manipulation across event contracts. The Methodology tab details 6 specific wash trade patterns with visual graph diagrams.</p>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:var(--foreground);margin-bottom:12px;">Presenter Workflow</h2>
+            <p class="text-xs" style="color:var(--muted-foreground);margin-bottom:14px;">Follow these steps during a customer call. Each step includes a talking point you can use.</p>
+            
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#0891b2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">1</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Browse Markets</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Start on the Markets tab. Show the event contracts with YES/NO odds, volume, and trader counts. Highlight trending markets.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> These look like real prediction markets. The compliance challenge: how do you detect fake volume, insider trading, and wash trading on-chain?</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#0891b2;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">2</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Surveillance Dashboard</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Surveillance. Walk through the exchange flows, flagged trader profiles, and wash trade breakdown chart.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Data Solutions monitors every on-chain trade. It identifies wash trade clusters, insider accumulation patterns, and coordinated manipulation — automatically.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#0e7490;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">3</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Methodology Deep-Dive</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Methodology. Walk through each of the 6 wash trade patterns. Show the graph visualizations — especially the Multi-trade ring.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> We detect 6 distinct patterns: self-trades, round trips, pass-through, A-B-A, circular pairs, and multi-trade rings. The graph shows exactly how Chainalysis traces these patterns on-chain.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:var(--foreground);margin-bottom:10px;">Chainalysis Products Used</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+              
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Data Solutions</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">On-chain analytics for wash trading detection, volume attribution, and market surveillance</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="fx-footer">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div style="width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#0891b2,#0e7490);display:flex;align-items:center;justify-content:center;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          </div>
+          <span class="text-sm font-semibold" style="color:var(--muted-foreground);">ForecastX</span>
+          <span class="text-xs" style="color:var(--muted-foreground);">Prediction Markets Demo</span>
+        </div>
+        <div class="flex items-center gap-3 text-xs" style="color:var(--muted-foreground);">
+          <span>Data Solutions</span><span style="opacity:0.3;">·</span>
+          <span>Wash Trading Detection</span><span style="opacity:0.3;">·</span>
+          <span>Market Surveillance</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="/assets/chart.min.js"></script>
+    <script>
+    // Panel nav
+    function showPanel(id){
+      document.querySelectorAll('.page-panel').forEach(p=>p.classList.remove('active'));
+      document.getElementById('panel-'+id).classList.add('active');
+      document.querySelectorAll('.fx-nav-link').forEach(l=>l.classList.remove('active'));
+      document.querySelectorAll('.fx-nav-link').forEach(l=>{if(l.textContent.toLowerCase().includes(id.slice(0,4)))l.classList.add('active');});
+    }
+
+    // Market data
+    const markets=[
+      {title:'Will Bitcoin exceed $150K by Dec 31, 2026?',category:'Crypto',volume:'$42.1M',traders:'18.2K',yes:62,no:38,closing:'Dec 31',hot:true},
+      {title:'Will the Fed cut rates in July 2026?',category:'Economics',volume:'$28.7M',traders:'12.4K',yes:71,no:29,closing:'Jul 31',hot:true},
+      {title:'Will Ethereum flip Bitcoin market cap by 2027?',category:'Crypto',volume:'$18.4M',traders:'9.1K',yes:12,no:88,closing:'Dec 31'},
+      {title:'Will a US spot Solana ETF be approved in 2026?',category:'Regulation',volume:'$14.2M',traders:'7.8K',yes:45,no:55,closing:'Dec 31'},
+      {title:'Will global stablecoin supply exceed $500B?',category:'Crypto',volume:'$8.9M',traders:'4.2K',yes:78,no:22,closing:'Dec 31'},
+      {title:'Will OpenAI IPO in 2026?',category:'Tech',volume:'$22.3M',traders:'15.1K',yes:34,no:66,closing:'Dec 31',hot:true},
+      {title:'Will the EU ban proof-of-work mining?',category:'Regulation',volume:'$6.1M',traders:'3.4K',yes:8,no:92,closing:'Dec 31'},
+      {title:'Will a prediction market exceed $10B TVL?',category:'DeFi',volume:'$11.8M',traders:'5.6K',yes:29,no:71,closing:'Dec 31'},
+    ];
+
+    document.getElementById('marketGrid').innerHTML=markets.map((m,i)=>`
+      <div class="fx-card fx-card-clickable market-card">
+        <div class="flex items-center justify-between">
+          <div class="market-meta">
+            <span style="padding:2px 6px;border-radius:4px;background:var(--muted);font-weight:600;">${m.category}</span>
+            ${m.hot?'<span style="color:#ef4444;font-weight:600;">🔥 Trending</span>':''}
+          </div>
+          <span class="text-xs text-muted-foreground">Closes ${m.closing}</span>
+        </div>
+        <div class="market-title">${m.title}</div>
+        <div class="market-odds">
+          <div class="odds-btn odds-yes">Yes ${m.yes}¢</div>
+          <div class="odds-btn odds-no">No ${m.no}¢</div>
+        </div>
+        <div class="flex items-center justify-between text-xs text-muted-foreground">
+          <span>${m.volume} vol</span><span>${m.traders} traders</span>
+        </div>
+        <div class="volume-bar"><div class="volume-fill" style="width:${Math.min(100,parseInt(m.volume)*2)}%;"></div></div>
+      </div>
+    `).join('');
+
+    // =====================================================
+    // SURVEILLANCE DASHBOARD DATA
+    // =====================================================
+    const sevColors={critical:'#ef4444',high:'#f97316',medium:'#eab308',low:'#16a34a'};
+    const sevBg={critical:'rgba(239,68,68,0.08)',high:'rgba(249,115,22,0.08)',medium:'rgba(234,179,8,0.08)',low:'rgba(22,163,106,0.08)'};
+
+    // Trader profiles table
+    const traders=[
+      {wallet:'0x7a2b…c4f1',pattern:'A-B-A Wash',volume:'$312K',trades:89,linked:'0x9f1c…e823, 0x4b8d…a102',funding:'Tornado Cash',sev:'critical'},
+      {wallet:'0x3dd…5296',pattern:'Insider Trading',volume:'$890K',trades:12,linked:'—',funding:'Binance.com',sev:'critical'},
+      {wallet:'0x8ae0…Ca73',pattern:'Round Trip',volume:'$145K',trades:34,linked:'0x28C6…2f60',funding:'Same CEX deposit',sev:'high'},
+      {wallet:'0x0038…9f1',pattern:'Multi-trade Ring',volume:'$1.2M',trades:156,linked:'5 wallets in cluster',funding:'Mixer → bridge',sev:'critical'},
+      {wallet:'0xf4c2…b891',pattern:'Self-Trade',volume:'$67K',trades:44,linked:'Same cluster',funding:'Coinbase',sev:'medium'},
+      {wallet:'0xd8dA…6045',pattern:'Pass-Through',volume:'$203K',trades:28,linked:'0xa1b2…c3d4',funding:'DEX aggregator',sev:'high'},
+      {wallet:'0x1234…ef01',pattern:'Circular Pair',volume:'$89K',trades:62,linked:'0x5678…ab02',funding:'Unknown service',sev:'medium'},
+    ];
+    document.getElementById('traderTable').innerHTML=traders.map(t=>`
+      <tr style="border-bottom:1px solid var(--muted);${t.sev==='critical'?'background:rgba(239,68,68,0.02);':''}" class="hover:bg-muted">
+        <td style="padding:8px;"><span class="mono" style="font-size:10px;">${t.wallet}</span></td>
+        <td style="padding:8px;font-weight:600;font-size:11px;">${t.pattern}</td>
+        <td style="padding:8px;text-align:right;font-weight:600;">${t.volume}</td>
+        <td style="padding:8px;text-align:right;">${t.trades}</td>
+        <td style="padding:8px;"><span class="mono" style="font-size:9px;color:var(--muted-foreground);">${t.linked}</span></td>
+        <td style="padding:8px;font-size:10px;">${t.funding}</td>
+        <td style="padding:8px;"><span class="alert-badge" style="background:${sevBg[t.sev]};color:${sevColors[t.sev]};">${t.sev}</span></td>
+      </tr>
+    `).join('');
+
+    // Fund flow patterns
+    const flows=[
+      {label:'A-B-A Wash Ring',flow:'0x7a2b → 0x9f1c → Contract → 0x9f1c → 0x7a2b',amount:'$312K',blocks:'2-3 blocks apart',sev:'critical'},
+      {label:'Mixer-funded Multi-trade',flow:'Tornado Cash → 0x0038 → 0xa1b2 → 0xc3d4 → 0xe5f6 → 0x0038',amount:'$1.2M',blocks:'Same block',sev:'critical'},
+      {label:'CEX Round Trip',flow:'Binance → 0x8ae0 → BUY YES → SELL YES → 0x28C6 → Binance',amount:'$145K',blocks:'Within 10 blocks',sev:'high'},
+      {label:'Cross-market Hedge',flow:'0x1234 buys YES "BTC>150K" + 0x5678 buys NO "BTC>150K"',amount:'$89K',blocks:'Same block',sev:'medium'},
+      {label:'Pre-announcement Position',flow:'0x3dd accumulates YES "Fed Rate Cut" 4hrs before FOMC leak',amount:'$890K',blocks:'12 blocks',sev:'critical'},
+    ];
+    document.getElementById('flowList').innerHTML=flows.map(f=>`
+      <div style="padding:10px 12px;border-radius:8px;border:1px solid var(--border);${f.sev==='critical'?'border-left:3px solid #ef4444;background:rgba(239,68,68,0.015);':''}">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="alert-badge" style="background:${sevBg[f.sev]};color:${sevColors[f.sev]};">${f.sev}</span>
+          <span class="text-xs font-bold">${f.label}</span>
+          <span class="mono text-xs text-muted-foreground" style="margin-left:auto;">${f.amount}</span>
+        </div>
+        <div class="mono" style="font-size:10px;color:var(--muted-foreground);line-height:1.5;margin-top:4px;">${f.flow}</div>
+        <div class="text-xs text-muted-foreground" style="margin-top:3px;">Timing: <strong>${f.blocks}</strong></div>
+      </div>
+    `).join('');
+
+    // Flagged activity feed
+    const flagged=[
+      {time:'2 min ago',type:'Wash Trade',pattern:'A-B-A',market:'BTC > $150K',wallets:'0x7a2b…c4f1 ↔ 0x9f1c…e823',volume:'$312K',sev:'critical'},
+      {time:'8 min ago',type:'Insider Trading',pattern:'Pre-event accumulation',market:'Fed Rate Cut',wallets:'0x3dd…5296',volume:'$890K',sev:'critical'},
+      {time:'14 min ago',type:'Wash Trade',pattern:'Round Trip via CEX',market:'Solana ETF',wallets:'0x8ae0…Ca73 → Binance → 0x8ae0…Ca73',volume:'$145K',sev:'high'},
+      {time:'22 min ago',type:'Sybil Detection',pattern:'Same funding source',market:'OpenAI IPO',wallets:'4 wallets from 0x0038…9f1 cluster',volume:'$67K',sev:'medium'},
+      {time:'31 min ago',type:'Wash Trade',pattern:'Multi-trade ring',market:'BTC > $150K',wallets:'Ring of 6 wallets via Tornado Cash',volume:'$1.2M',sev:'critical'},
+      {time:'45 min ago',type:'Volume Anomaly',pattern:'10x avg in 1hr',market:'EU Mining Ban',wallets:'12 unique wallets, correlated timing',volume:'$340K',sev:'high'},
+      {time:'1 hr ago',type:'Wash Trade',pattern:'Self-trade',market:'Stablecoin $500B',wallets:'0xf4c2…b891 (buy+sell same block)',volume:'$67K',sev:'medium'},
+      {time:'2 hr ago',type:'Pass-Through',pattern:'Intermediary detected',market:'Prediction $10B TVL',wallets:'0xd8dA…6045 → 0xa1b2…c3d4 → trade',volume:'$203K',sev:'high'},
+    ];
+    document.getElementById('flaggedList').innerHTML=flagged.map(f=>`
+      <div style="padding:10px 12px;border-radius:8px;border:1px solid var(--border);${f.sev==='critical'?'border-left:3px solid #ef4444;background:rgba(239,68,68,0.015);':''}" class="fx-card" >
+        <div class="flex items-center gap-2 mb-1">
+          <span class="alert-badge" style="background:${sevBg[f.sev]};color:${sevColors[f.sev]};">${f.sev}</span>
+          <span class="text-xs font-bold">${f.type}</span>
+          <span class="text-xs text-muted-foreground">· ${f.pattern}</span>
+          <span class="mono text-xs text-muted-foreground" style="margin-left:auto;">${f.volume}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>Market: <strong style="color:var(--foreground);">${f.market}</strong></span>
+          <span>· <span class="mono" style="font-size:10px;">${f.wallets}</span></span>
+          <span style="margin-left:auto;">${f.time}</span>
+        </div>
+      </div>
+    `).join('');
+
+    // =====================================================
+    // SURVEILLANCE CHARTS
+    // =====================================================
+
+    // Volume chart — legitimate vs suspicious over 30 days
+    const days=Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});});
+    const legit=Array.from({length:30},()=>60+Math.random()*40);
+    const suspicious=Array.from({length:30},()=>Math.random()*3+0.5);
+    // Spike on day 18 and 25
+    suspicious[17]=8.2;suspicious[24]=6.1;
+    new Chart(document.getElementById('volumeChart'),{
+      type:'bar',
+      data:{labels:days,datasets:[
+        {label:'Legitimate ($M)',data:legit,backgroundColor:'rgba(8,145,178,0.15)',borderColor:'#0891b2',borderWidth:1,borderRadius:3},
+        {label:'Suspicious ($M)',data:suspicious,backgroundColor:'rgba(239,68,68,0.25)',borderColor:'#ef4444',borderWidth:1,borderRadius:3}
+      ]},
+      options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{usePointStyle:true,pointStyle:'circle',padding:10,font:{size:10}}}},scales:{x:{stacked:true,grid:{display:false},ticks:{font:{size:9},maxTicksLimit:10}},y:{stacked:true,grid:{color:'#f0f0f0'},ticks:{callback:v=>'$'+v+'M',font:{size:9}}}}}
+    });
+
+    // Wash trade type breakdown
+    new Chart(document.getElementById('washChart'),{
+      type:'doughnut',
+      data:{
+        labels:['Self-Trades','Round Trips','A-B-A','Pass-Through','Multi-trade','Circular'],
+        datasets:[{data:[34,22,18,12,9,5],backgroundColor:['#ef4444','#f97316','#8b5cf6','#eab308','#dc2626','#0891b2'],borderWidth:0,spacing:2}]
+      },
+      options:{responsive:true,cutout:'55%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,pointStyle:'circle',padding:8,font:{size:9}}}}}
+    });
+
+    // Most targeted markets
+    new Chart(document.getElementById('marketChart'),{
+      type:'bar',
+      data:{
+        labels:['BTC > $150K','Fed Rate Cut','OpenAI IPO','Solana ETF','ETH Flip','EU Mining'],
+        datasets:[{data:[1512,890,340,234,145,89],backgroundColor:['#ef4444','#ef4444','#f97316','#eab308','#eab308','#16a34a'],borderRadius:4,borderSkipped:false}]
+      },
+      options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'#f0f0f0'},ticks:{callback:v=>'$'+v+'K',font:{size:9}}},y:{grid:{display:false},ticks:{font:{size:10}}}}}
+    });
+
+    // Trading timing heatmap (as scatter)
+    const timingData=[];
+    // Suspicious cluster — trades within 2-3 blocks
+    for(let i=0;i<25;i++) timingData.push({x:14+Math.random()*3,y:Math.random()*5,r:3+Math.random()*4});
+    // Normal distribution
+    for(let i=0;i<40;i++) timingData.push({x:Math.random()*24,y:5+Math.random()*20,r:2+Math.random()*2});
+    new Chart(document.getElementById('timingChart'),{
+      type:'bubble',
+      data:{datasets:[
+        {label:'Suspicious (clustered)',data:timingData.slice(0,25),backgroundColor:'rgba(239,68,68,0.4)',borderColor:'#ef4444',borderWidth:1},
+        {label:'Normal (random)',data:timingData.slice(25),backgroundColor:'rgba(8,145,178,0.15)',borderColor:'#0891b2',borderWidth:1}
+      ]},
+      options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{usePointStyle:true,pointStyle:'circle',padding:8,font:{size:9}}}},scales:{x:{title:{display:true,text:'Hour of Day',font:{size:9}},grid:{color:'#f0f0f0'},ticks:{font:{size:9}}},y:{title:{display:true,text:'Block Spread',font:{size:9}},grid:{color:'#f0f0f0'},ticks:{font:{size:9}}}}}
+    });
+    </script>
+
+    <!-- Wash Trade Pattern Graphs -->
+    <script>
+    (function(){
+      // Shared drawing helpers
+      function drawNode(ctx,x,y,label,color,radius){
+        radius=radius||22;
+        // Glow
+        ctx.shadowColor=color;ctx.shadowBlur=12;
+        ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);
+        ctx.fillStyle=color+'18';ctx.fill();
+        ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.stroke();
+        ctx.shadowBlur=0;
+        // Label
+        ctx.fillStyle='#e2e8f0';ctx.font='bold 10px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText(label,x,y);
+      }
+      function drawArrow(ctx,x1,y1,x2,y2,color,label,dashed){
+        const a=Math.atan2(y2-y1,x2-x1);
+        const nr=24; // node radius offset
+        const sx=x1+Math.cos(a)*nr, sy=y1+Math.sin(a)*nr;
+        const ex=x2-Math.cos(a)*nr, ey=y2-Math.sin(a)*nr;
+        ctx.beginPath();
+        if(dashed)ctx.setLineDash([4,4]);else ctx.setLineDash([]);
+        ctx.moveTo(sx,sy);ctx.lineTo(ex,ey);
+        ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.stroke();
+        ctx.setLineDash([]);
+        // Arrowhead
+        const hl=8;
+        ctx.beginPath();
+        ctx.moveTo(ex,ey);
+        ctx.lineTo(ex-hl*Math.cos(a-0.4),ey-hl*Math.sin(a-0.4));
+        ctx.moveTo(ex,ey);
+        ctx.lineTo(ex-hl*Math.cos(a+0.4),ey-hl*Math.sin(a+0.4));
+        ctx.stroke();
+        // Label
+        if(label){
+          const mx=(sx+ex)/2, my=(sy+ey)/2;
+          ctx.fillStyle=color;ctx.font='600 9px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';
+          ctx.fillText(label,mx,my-4);
+        }
+      }
+      function drawBiArrow(ctx,x1,y1,x2,y2,color1,color2,label1,label2){
+        const a=Math.atan2(y2-y1,x2-x1);
+        const nr=24,off=12;
+        // Top arrow (forward)
+        const sx1=x1+Math.cos(a)*nr+Math.cos(a+Math.PI/2)*off;
+        const sy1=y1+Math.sin(a)*nr+Math.sin(a+Math.PI/2)*off;
+        const ex1=x2-Math.cos(a)*nr+Math.cos(a+Math.PI/2)*off;
+        const ey1=y2-Math.sin(a)*nr+Math.sin(a+Math.PI/2)*off;
+        ctx.beginPath();ctx.moveTo(sx1,sy1);ctx.lineTo(ex1,ey1);ctx.strokeStyle=color1;ctx.lineWidth=1.5;ctx.stroke();
+        const hl=7;ctx.beginPath();ctx.moveTo(ex1,ey1);ctx.lineTo(ex1-hl*Math.cos(a-0.4),ey1-hl*Math.sin(a-0.4));ctx.moveTo(ex1,ey1);ctx.lineTo(ex1-hl*Math.cos(a+0.4),ey1-hl*Math.sin(a+0.4));ctx.stroke();
+        if(label1){ctx.fillStyle=color1;ctx.font='600 9px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='bottom';ctx.fillText(label1,(sx1+ex1)/2,(sy1+ey1)/2-4);}
+        // Bottom arrow (return)
+        const sx2=x2-Math.cos(a)*nr-Math.cos(a+Math.PI/2)*off;
+        const sy2=y2-Math.sin(a)*nr-Math.sin(a+Math.PI/2)*off;
+        const ex2=x1+Math.cos(a)*nr-Math.cos(a+Math.PI/2)*off;
+        const ey2=y1+Math.sin(a)*nr-Math.sin(a+Math.PI/2)*off;
+        ctx.beginPath();ctx.moveTo(sx2,sy2);ctx.lineTo(ex2,ey2);ctx.strokeStyle=color2;ctx.lineWidth=1.5;ctx.stroke();
+        ctx.beginPath();const a2=Math.atan2(ey2-sy2,ex2-sx2);ctx.moveTo(ex2,ey2);ctx.lineTo(ex2-hl*Math.cos(a2-0.4),ey2-hl*Math.sin(a2-0.4));ctx.moveTo(ex2,ey2);ctx.lineTo(ex2-hl*Math.cos(a2+0.4),ey2-hl*Math.sin(a2+0.4));ctx.stroke();
+        if(label2){ctx.fillStyle=color2;ctx.font='600 9px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(label2,(sx2+ex2)/2,(sy2+ey2)/2+6);}
+      }
+      function drawCluster(ctx,x,y,w,h,color,label){
+        ctx.setLineDash([3,3]);ctx.strokeStyle=color;ctx.lineWidth=1;
+        ctx.strokeRect(x-w/2,y-h/2,w,h);ctx.setLineDash([]);
+        ctx.fillStyle=color;ctx.font='600 8px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='top';
+        ctx.fillText(label,x,y+h/2+4);
+      }
+      function drawWarning(ctx,x,y,text){
+        ctx.fillStyle='#ef4444';ctx.font='600 9px Inter,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('⚠ '+text,x,y);
+      }
+
+      // 1. Self-Trades: Suspect ↔ Contract
+      (function(){
+        const c=document.getElementById('graph-self');if(!c)return;const ctx=c.getContext('2d');
+        drawNode(ctx,100,65,'Suspect','#ef4444',26);
+        drawNode(ctx,300,65,'Contract','#0891b2',26);
+        drawBiArrow(ctx,100,65,300,65,'#22c55e','#ef4444','BUY YES','SELL YES');
+        drawWarning(ctx,200,128,'Same entity, opposite positions');
+      })();
+
+      // 2. Round Trips: A → B → Contract, B → A
+      (function(){
+        const c=document.getElementById('graph-round');if(!c)return;const ctx=c.getContext('2d');
+        drawNode(ctx,60,55,'Wallet A','#0891b2',24);
+        drawNode(ctx,200,35,'Wallet B','#f97316',24);
+        drawNode(ctx,340,35,'Contract','#64748b',24);
+        drawArrow(ctx,60,55,200,35,'#0891b2','$50K');
+        drawArrow(ctx,200,35,340,35,'#f97316','TRADE');
+        // Return arrow curves below
+        ctx.beginPath();ctx.setLineDash([4,4]);ctx.strokeStyle='#ef4444';ctx.lineWidth=1.5;
+        ctx.moveTo(176,55);ctx.quadraticCurveTo(120,100,84,70);ctx.stroke();ctx.setLineDash([]);
+        const hl=7;ctx.beginPath();ctx.moveTo(84,70);ctx.lineTo(84+hl*Math.cos(-2.5),70+hl*Math.sin(-2.5));ctx.moveTo(84,70);ctx.lineTo(84+hl*Math.cos(-1.7),70+hl*Math.sin(-1.7));ctx.strokeStyle='#ef4444';ctx.stroke();
+        ctx.fillStyle='#ef4444';ctx.font='600 9px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('$50K return',135,105);
+        drawWarning(ctx,200,128,'Funds return to origin within 24hrs');
+      })();
+
+      // 3. Pass-Through: A → C (intermediary) → Market
+      (function(){
+        const c=document.getElementById('graph-pass');if(!c)return;const ctx=c.getContext('2d');
+        drawNode(ctx,60,50,'Wallet A','#0891b2',24);
+        drawNode(ctx,200,50,'C (proxy)','#eab308',24);
+        drawNode(ctx,340,50,'Market','#64748b',24);
+        drawArrow(ctx,60,50,200,50,'#0891b2','$100K');
+        drawArrow(ctx,200,50,340,50,'#eab308','TRADE');
+        drawCluster(ctx,130,50,200,75,'#ef444480','Same Cluster');
+        drawWarning(ctx,200,120,'A and C are the same entity');
+      })();
+
+      // 4. A-B-A: A ↔ B (sells YES / sells NO)
+      (function(){
+        const c=document.getElementById('graph-aba');if(!c)return;const ctx=c.getContext('2d');
+        drawCluster(ctx,200,65,280,90,'#ef444440','Same Entity (Sybil)');
+        drawNode(ctx,100,65,'Wallet A','#0891b2',26);
+        drawNode(ctx,300,65,'Wallet B','#8b5cf6',26);
+        drawBiArrow(ctx,100,65,300,65,'#22c55e','#f97316','Sells YES','Sells NO');
+        drawWarning(ctx,200,128,'Both funded from same source');
+      })();
+
+      // 5. Circular Currency Pair: A → Market1, B → Market2
+      (function(){
+        const c=document.getElementById('graph-circular');if(!c)return;const ctx=c.getContext('2d');
+        drawNode(ctx,60,80,'Suspect','#ef4444',24);
+        drawNode(ctx,200,35,'Market A','#0891b2',22);
+        drawNode(ctx,200,125,'Market B','#0891b2',22);
+        drawNode(ctx,340,35,'YES','#22c55e',18);
+        drawNode(ctx,340,125,'YES','#22c55e',18);
+        drawArrow(ctx,60,80,200,35,'#0891b2','Wallet 1');
+        drawArrow(ctx,60,80,200,125,'#f97316','Wallet 2');
+        drawArrow(ctx,200,35,340,35,'#22c55e','BUY');
+        drawArrow(ctx,200,125,340,125,'#22c55e','BUY');
+        ctx.fillStyle='#64748b';ctx.font='600 8px Inter,sans-serif';ctx.textAlign='right';
+        ctx.fillText('"BTC > $100K"',195,18);ctx.fillText('"BTC < $100K"',195,148);
+        drawWarning(ctx,290,80,'Net zero risk');
+      })();
+
+      // 6. Multi-trade: Ring of A→B→C→D→E→A
+      (function(){
+        const c=document.getElementById('graph-multi');if(!c)return;const ctx=c.getContext('2d');
+        const cx=200,cy=80,r=60;
+        const colors=['#0891b2','#f97316','#8b5cf6','#eab308','#dc2626'];
+        const labels=['A','B','C','D','E'];
+        const nodes=[];
+        for(let i=0;i<5;i++){
+          const a=-Math.PI/2+i*(Math.PI*2/5);
+          nodes.push({x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)});
+        }
+        // Draw edges first (ring)
+        for(let i=0;i<5;i++){
+          const j=(i+1)%5;
+          drawArrow(ctx,nodes[i].x,nodes[i].y,nodes[j].x,nodes[j].y,colors[i]+'90','');
+        }
+        // Draw nodes on top
+        for(let i=0;i<5;i++){
+          drawNode(ctx,nodes[i].x,nodes[i].y,labels[i],colors[i],20);
+        }
+        // Mixer node
+        drawNode(ctx,350,80,'Mixer','#ef4444',22);
+        for(let i=0;i<5;i++){
+          ctx.beginPath();ctx.setLineDash([2,3]);ctx.moveTo(350-22,80);ctx.lineTo(nodes[i].x+(nodes[i].x<cx?20:-20),nodes[i].y);
+          ctx.strokeStyle='#ef444440';ctx.lineWidth=0.8;ctx.stroke();ctx.setLineDash([]);
+        }
+        drawWarning(ctx,200,165,'Ring funded from same mixer — coordinated timing');
+      })();
+    })();
+    </script>
+
+    <!-- Brand customization (brand-swap) — supports ?brand=, ?color=, ?domain= from Branding Studio -->
+    <script>
+    (function(){
+      var p=new URLSearchParams(window.location.search);
+      var brand=p.get('brand');
+      var color=p.get('color');
+      var domain=p.get('domain');
+
+      function applyBrand(){
+        if(brand && brand!=='ForecastX'){
+          var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+          while(walker.nextNode()){
+            if(walker.currentNode.textContent.includes('ForecastX')){
+              walker.currentNode.textContent=walker.currentNode.textContent.split('ForecastX').join(brand);
+            }
+          }
+          document.title=document.title.split('ForecastX').join(brand);
+        }
+        if(color){
+          document.documentElement.style.setProperty('--primary',color);
+          document.documentElement.style.setProperty('--fx-cyan',color);
+          var dc=color+'cc';
+          var s=document.createElement('style');
+          s.textContent='.fx-nav-link.active::after{background:'+color+' !important}.fx-tab.active{box-shadow:0 1px 3px rgba(0,0,0,0.08)}.accent{color:'+color+' !important}.accent-bg{background:linear-gradient(135deg,'+color+','+dc+') !important}';
+          document.head.appendChild(s);
+          var defaults=['#0891b2','#0e7490','#6366f1','#4f46e5','#8b5cf6','#818cf8','#a78bfa','#7c3aed','#a855f7','#e11d48','#be123c','#f43f5e','#f093fb'];
+          document.querySelectorAll('[style]').forEach(function(el){
+            var st=el.getAttribute('style');var ch=false;
+            defaults.forEach(function(d){if(st.indexOf(d)!==-1){st=st.split(d).join(color);ch=true;}});
+            if(ch)el.setAttribute('style',st);
+          });
+          defaults.forEach(function(d){
+            document.querySelectorAll('[fill="'+d+'"]').forEach(function(el){el.setAttribute('fill',color);});
+          });
+        }
+        if(domain){
+          domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();
+          var els=document.querySelectorAll('[style*="linear-gradient"]');
+          for(var i=0;i<els.length;i++){
+            var el=els[i],sv=el.querySelector('svg');
+            if(sv&&el.offsetWidth<60){
+              var img=document.createElement('img');
+              img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';
+              img.style.cssText='width:18px;height:18px;object-fit:contain;border-radius:3px;';
+              img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};
+              sv.parentNode.replaceChild(img,sv);break;
+            }
+          }
+        }
+      }
+      if(!brand&&!color&&!domain)return;
+      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyBrand);
+      else applyBrand();
+    })();
+    </script>
+
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';
+    var M=document.querySelector('meta[name="cove-demo"]');
+    var D=M?M.getAttribute('content'):(document.title.split('\u2014')[0].trim()||'unknown');
+    var P=new URLSearchParams(location.search);
+    var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
+    window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,
+    demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,
+    domain:d.domain||DM,address:d.address||'',filter:d.filter||'',
+    viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};
+    addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
+    </script>
+  </body>
+</html>

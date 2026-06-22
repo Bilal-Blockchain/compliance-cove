@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Trading Firm / Market Maker" />
+    <title>QuantDesk — Institutional Trading</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+    <style>
+      :root{color-scheme:dark;--qd-bg:#080b14;--qd-card:rgba(13,17,30,0.85);--qd-border:rgba(51,65,85,0.3);--qd-green:#22c55e;--qd-red:#ef4444;--qd-blue:#3b82f6;--qd-cyan:#06b6d4;--qd-yellow:#eab308;}
+      *{font-family:'Inter',system-ui,sans-serif;}
+      body{background:var(--qd-bg)!important;color:#e2e8f0!important;}
+      .mono{font-family:'JetBrains Mono',monospace;}
+
+      .qd-nav{position:sticky;top:0;z-index:50;background:rgba(8,11,20,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--qd-border);}
+      .qd-card{border-radius:10px;background:var(--qd-card);border:1px solid var(--qd-border);transition:border-color .2s;}
+      .qd-card:hover{border-color:rgba(51,65,85,0.5);}
+
+      .qd-tab{padding:6px 14px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;color:#64748b;border:none;background:none;}
+      .qd-tab:hover{color:#e2e8f0;}
+      .qd-tab.active{background:rgba(59,130,246,0.1);color:#3b82f6;}
+
+      .qd-stat{padding:12px;text-align:center;}
+      .qd-stat-val{font-size:20px;font-weight:800;letter-spacing:-0.5px;font-family:'JetBrains Mono',monospace;}
+      .qd-stat-label{font-size:9px;color:#475569;margin-top:2px;text-transform:uppercase;letter-spacing:0.5px;font-weight:500;}
+
+      .qd-up{color:#22c55e;} .qd-down{color:#ef4444;}
+      .qd-badge{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;}
+
+      .page-panel{display:none;} .page-panel.active{display:block;}
+      .section-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+      .section-head-line{flex:1;height:1px;background:var(--qd-border);}
+
+      .pos-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;transition:background .1s;}
+      .pos-row:hover{background:rgba(59,130,246,0.04);}
+
+      .cove-disclaimer{display:flex;align-items:flex-start;gap:8px;padding:10px 14px;margin:8px 0;border-radius:8px;background:rgba(26,107,106,0.08);border:1px solid rgba(26,107,106,0.2);font-size:11px;line-height:1.5;color:#2d9f8f;}
+      .cove-disclaimer svg{flex-shrink:0;margin-top:1px;color:#2d9f8f;}
+
+      .alert-row{padding:10px 12px;border-radius:8px;border:1px solid var(--qd-border);margin-bottom:6px;transition:all .15s;}
+      .alert-row:hover{border-color:rgba(59,130,246,0.2);}
+
+      .qd-footer{border-top:1px solid var(--qd-border);padding:24px 0;background:rgba(8,11,20,0.9);}
+      .risk-bar{height:6px;border-radius:3px;background:#1e293b;overflow:hidden;flex:1;}
+      .risk-fill{height:100%;border-radius:3px;}
+    </style>
+  </head>
+  <body class="bg-background text-foreground min-h-screen">
+
+    <!-- Nav -->
+    <nav class="qd-nav">
+      <div class="max-w-6xl mx-auto px-4 flex items-center justify-between" style="height:48px;">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <div style="width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            </div>
+            <span class="text-sm font-bold" style="letter-spacing:-0.3px;">QuantDesk</span>
+          </div>
+          <div class="flex gap-1">
+            <button class="qd-tab active" onclick="showPanel('desk')">Trading Desk</button>
+            <button class="qd-tab" onclick="showPanel('risk')">Protocol Risk</button>
+            <button class="qd-tab" onclick="showPanel('exposure')">Market Intel</button>
+            <button class="qd-tab" onclick="showPanel('screening')">Counterparty</button>
+            <button class="qd-tab" onclick="showPanel('compliance')">Compliance</button>
+          <button class="qd-tab" onclick="showPanel('about')">About</button>
+          </div>
+        </div>
+        <div class="flex items-center gap-2" style="padding:3px 8px;border-radius:6px;border:1px solid var(--qd-border);">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#3b82f6" width="12" height="12"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span class="text-xs font-medium" style="color:#3b82f6;">Chainalysis</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-4">
+
+      <!-- ==================== TRADING DESK ==================== -->
+      <div class="page-panel active" id="panel-desk">
+        <!-- Stats bar -->
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:12px;">
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val qd-up">$1.24B</div><div class="qd-stat-label">AUM</div></div></div>
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val qd-up">+$4.2M</div><div class="qd-stat-label">24h P&L</div></div></div>
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val">$892M</div><div class="qd-stat-label">24h Volume</div></div></div>
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val">342</div><div class="qd-stat-label">Active Pairs</div></div></div>
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val qd-up">12</div><div class="qd-stat-label">Venues</div></div></div>
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val" style="color:#3b82f6;">0</div><div class="qd-stat-label">Compliance Alerts</div></div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:3fr 2fr;gap:12px;">
+          <!-- Positions -->
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Active Positions</span><div class="section-head-line"></div></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:4px;padding:4px 10px;font-size:9px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--qd-border);margin-bottom:4px;">
+              <span>Asset</span><span style="text-align:right;">Size</span><span style="text-align:right;">Entry</span><span style="text-align:right;">Mark</span><span style="text-align:right;">P&L</span><span style="text-align:right;">Venue</span>
+            </div>
+            <div id="positionsTable"></div>
+          </div>
+          <!-- Venue distribution + recent transfers -->
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="qd-card" style="padding:14px;">
+              <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Volume by Venue</span><div class="section-head-line"></div></div>
+              <canvas id="venueChart" height="150"></canvas>
+            </div>
+            <div class="qd-card" style="padding:14px;">
+              <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Recent Cross-Venue Transfers</span><div class="section-head-line"></div></div>
+              <div id="transferList" style="max-height:160px;overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== PROTOCOL RISK (Hexagate) ==================== -->
+      <div class="page-panel" id="panel-risk">
+        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Protocols We LP Into — Hexagate Monitoring</span><div class="section-head-line"></div></div>
+            <div id="protocolList"></div>
+          </div>
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Hexagate Alerts (24h)</span><div class="section-head-line"></div></div>
+            <div id="hexAlerts"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== MARKET INTELLIGENCE ==================== -->
+      <div class="page-panel" id="panel-exposure">
+        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong> — Powered by Chainalysis Data Solutions, Hexagate, and KYT. This intelligence is for your trading and compliance teams only.</span></div>
+
+        <!-- Row 1: Exchange Flows + Cross-Chain -->
+        <div style="display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-bottom:12px;">
+          <!-- Exchange Inflows/Outflows -->
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Exchange Net Flows (24h) — Data Solutions</span><div class="section-head-line"></div></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;padding:4px 10px;font-size:9px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--qd-border);margin-bottom:4px;">
+              <span>Exchange</span><span style="text-align:right;">Inflow</span><span style="text-align:right;">Outflow</span><span style="text-align:right;">Net</span><span style="text-align:right;">Signal</span>
+            </div>
+            <div id="exchangeFlows"></div>
+          </div>
+          <!-- Cross-chain flows -->
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Cross-Chain Bridge Volume (7d)</span><div class="section-head-line"></div></div>
+            <canvas id="bridgeChart" height="160"></canvas>
+          </div>
+        </div>
+
+        <!-- Row 2: Liquidity Pool Monitor + Whale Tracker -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <!-- LP Monitor (Hexagate + Data Solutions) -->
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head">
+              <span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Liquidity Pool Monitor — Hexagate + Data Solutions</span>
+              <div class="section-head-line"></div>
+            </div>
+            <div id="lpMonitor"></div>
+          </div>
+          <!-- Whale Tracker -->
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Whale Wallet Tracker (48h)</span><div class="section-head-line"></div></div>
+            <div id="whaleTracker"></div>
+          </div>
+        </div>
+
+        <!-- Row 3: Token Risk + Stablecoin Activity + Prediction Markets -->
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;">
+          <!-- Token Risk Profiles -->
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Token Risk Profiles — Data Solutions</span><div class="section-head-line"></div></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;padding:4px 10px;font-size:9px;color:#475569;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--qd-border);margin-bottom:4px;">
+              <span>Token</span><span style="text-align:right;">Vol 24h</span><span style="text-align:right;">Sanctions</span><span style="text-align:right;">Mixer</span><span style="text-align:right;">Risk</span>
+            </div>
+            <div id="tokenTable"></div>
+          </div>
+          <!-- Stablecoin Activity -->
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#22c55e;">Stablecoin Supply</span><div class="section-head-line"></div></div>
+            <div id="stablecoinActivity"></div>
+          </div>
+          <!-- Prediction Market Signals -->
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#8b5cf6;">Prediction Market Signals</span><div class="section-head-line"></div></div>
+            <div id="predictionSignals"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== COUNTERPARTY SCREENING ==================== -->
+      <div class="page-panel" id="panel-screening">
+        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span></div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#8b5cf6;">Auto-Screened Counterparties (24h)</span><div class="section-head-line"></div></div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;">
+              <div style="text-align:center;padding:10px;border-radius:8px;background:rgba(34,197,94,0.06);"><div class="mono" style="font-size:18px;font-weight:800;color:#22c55e;">847</div><div style="font-size:9px;color:#475569;">Cleared</div></div>
+              <div style="text-align:center;padding:10px;border-radius:8px;background:rgba(234,179,8,0.06);"><div class="mono" style="font-size:18px;font-weight:800;color:#eab308;">12</div><div style="font-size:9px;color:#475569;">Review</div></div>
+              <div style="text-align:center;padding:10px;border-radius:8px;background:rgba(239,68,68,0.06);"><div class="mono" style="font-size:18px;font-weight:800;color:#ef4444;">3</div><div style="font-size:9px;color:#475569;">Blocked</div></div>
+            </div>
+            <div id="counterpartyList"></div>
+          </div>
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#8b5cf6;">Screen New Counterparty</span><div class="section-head-line"></div></div>
+            <p class="text-xs" style="color:#64748b;margin-bottom:10px;">Every new on-chain counterparty is auto-screened via Address Screening before the firm can trade with them.</p>
+            <input id="cpAddress" type="text" placeholder="0x... counterparty wallet address" style="width:100%;box-sizing:border-box;height:40px;border-radius:8px;border:1px solid var(--qd-border);background:rgba(8,11,20,0.6);padding:0 12px;font-size:12px;font-family:'JetBrains Mono',monospace;color:#e2e8f0;outline:none;" />
+            <button onclick="alert('Screening... (Demo)')" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:12px;font-weight:700;cursor:pointer;">Screen Counterparty</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== COMPLIANCE REPORTING ==================== -->
+      <div class="page-panel" id="panel-compliance">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val" style="color:#22c55e;">862</div><div class="qd-stat-label">Addresses Screened (30d)</div></div></div>
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val" style="color:#eab308;">8</div><div class="qd-stat-label">KYT Alerts (30d)</div></div></div>
+          <div class="qd-card"><div class="qd-stat"><div class="qd-stat-val" style="color:#3b82f6;">100%</div><div class="qd-stat-label">Resolution Rate</div></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:3fr 2fr;gap:12px;">
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Compliance Activity Log</span><div class="section-head-line"></div></div>
+            <div id="complianceLog" style="max-height:320px;overflow-y:auto;"></div>
+          </div>
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Screening Volume (30d)</span><div class="section-head-line"></div></div>
+            <canvas id="complianceChart" height="200"></canvas>
+            <div style="margin-top:12px;padding:10px;border-radius:8px;background:rgba(59,130,246,0.04);border:1px solid var(--qd-border);">
+              <p class="text-xs" style="color:#64748b;">Chainalysis products used:</p>
+              <div class="flex items-center gap-2" style="margin-top:4px;flex-wrap:wrap;">
+                <span class="qd-badge" style="background:rgba(6,182,212,0.1);color:#06b6d4;">Hexagate</span>
+                <span class="qd-badge" style="background:rgba(234,179,8,0.1);color:#eab308;">Data Solutions</span>
+                <span class="qd-badge" style="background:rgba(59,130,246,0.1);color:#3b82f6;">KYT</span>
+                <span class="qd-badge" style="background:rgba(139,92,246,0.1);color:#8b5cf6;">Address Screening</span>
+                <span class="qd-badge" style="background:rgba(168,85,247,0.1);color:#a855f7;">Reactor</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== ABOUT ==================== -->
+      <div id="panel-about" class="page-panel">
+        <div class="max-w-4xl mx-auto px-4 py-8 space-y-5">
+          <div style="border-radius:14px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);padding:28px 24px;color:white;">
+            <h1 style="font-size:24px;font-weight:900;letter-spacing:-0.5px;">About QuantDesk</h1>
+            <p style="font-size:14px;margin-top:6px;opacity:0.85;line-height:1.6;max-width:600px;">Trading Firm / Market Maker — Compliance Cove Demo</p>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;">What This Demo Shows</h2>
+            <p class="text-sm" style="color:#94a3b8;margin-top:6px;line-height:1.7;">QuantDesk is a Bloomberg-style institutional trading desk dashboard built for crypto market makers like Cumberland, Jump, and Jane Street. It demonstrates how ALL Chainalysis products work together — Hexagate for smart contract risk, Data Solutions for market intelligence, KYT for transfer monitoring, Address Screening for counterparty risk, and Reactor for investigations.</p>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;margin-bottom:12px;">Presenter Workflow</h2>
+            <p class="text-xs" style="color:#94a3b8;margin-bottom:14px;">Follow these steps during a customer call. Each step includes a talking point you can use.</p>
+            
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#3b82f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">1</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Trading Desk — Portfolio Overview</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Start on Trading Desk. Show active positions across venues, P&L, and recent cross-venue transfers with KYT status badges.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> This is your trading desk. Every position, every venue, every transfer — all monitored. Notice the KYT status on each transfer: cleared or under review.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#06b6d4;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">2</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Protocol Risk — Hexagate</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Protocol Risk. Show the protocols the firm provides liquidity to, each with a Hexagate risk badge and monitoring status.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> You're providing $500M+ in liquidity across these protocols. Hexagate monitors every smart contract you interact with — if an exploit pattern is detected, you know before it hits.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#eab308;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">3</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Market Intel — Data Solutions</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Market Intel. Walk through exchange flows, LP monitoring, whale tracking, stablecoin activity, and prediction market signals.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> This is where Data Solutions shines. Exchange inflows tell you where capital is moving. Whale tracking shows who's accumulating. LP monitoring shows which pools are safe to provide liquidity to.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#8b5cf6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">4</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Counterparty Screening</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Counterparty. Show the auto-screened counterparties and the 'Screen New Counterparty' form.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Every wallet your firm trades with on-chain is auto-screened via Address Screening. 847 cleared, 12 under review, 3 blocked — this is your compliance gate for OTC deals and LP partnerships.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#3b82f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">5</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Compliance Reporting</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Compliance. Show the activity log, screening volume chart, and the products used badge row.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> This is what your compliance officer shows to regulators. 862 addresses screened, 8 alerts generated, 100% resolved. Five Chainalysis products, one compliance program.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;margin-bottom:10px;">Chainalysis Products Used</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+              
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Hexagate</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Smart contract monitoring for LP positions</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Data Solutions</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Market intelligence — exchange flows, whale tracking, token risk</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">KYT</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Transfer monitoring across all venues</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Address Screening</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Auto-screen every on-chain counterparty</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Reactor</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Deep investigation when alerts fire</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="qd-footer">
+      <div class="max-w-6xl mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2"><span class="text-sm font-semibold" style="color:#475569;">QuantDesk</span><span class="text-xs" style="color:#334155;">Trading Firm Demo</span></div>
+        <div class="flex items-center gap-3 text-xs" style="color:#475569;"><span>Hexagate</span><span style="opacity:0.3;">·</span><span>Data Solutions</span><span style="opacity:0.3;">·</span><span>KYT</span><span style="opacity:0.3;">·</span><span>Address Screening</span><span style="opacity:0.3;">·</span><span>Reactor</span></div>
+      </div>
+    </footer>
+
+    <script src="/assets/chart.min.js"></script>
+    <script>
+    // Panel nav
+    function showPanel(id){
+      document.querySelectorAll('.page-panel').forEach(p=>p.classList.remove('active'));
+      document.getElementById('panel-'+id).classList.add('active');
+      document.querySelectorAll('.qd-tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.qd-tab').forEach(t=>{if(t.textContent.toLowerCase().includes(id.slice(0,4)))t.classList.add('active');});
+    }
+
+    // =====================================================
+    // TRADING DESK DATA
+    // =====================================================
+    const positions=[
+      {asset:'ETH/USDT',icon:'Ξ',bg:'#627eea',size:'4,200 ETH',entry:'$2,812',mark:'$2,847',pnl:'+$146.7K',up:true,venue:'Binance'},
+      {asset:'BTC/USDT',icon:'₿',bg:'#f7931a',size:'312 BTC',entry:'$68,100',mark:'$68,421',pnl:'+$100.2K',up:true,venue:'Coinbase'},
+      {asset:'SOL/USDC',icon:'◎',bg:'#9945FF',size:'82,400 SOL',entry:'$176.20',mark:'$178.54',pnl:'+$192.8K',up:true,venue:'Uniswap V3'},
+      {asset:'ARB/ETH',icon:'⬡',bg:'#28a0f0',size:'1.2M ARB',entry:'$1.26',mark:'$1.24',pnl:'-$24.0K',up:false,venue:'Arbitrum'},
+      {asset:'AVAX/USDC',icon:'▲',bg:'#E84142',size:'45,200 AVAX',entry:'$37.80',mark:'$38.91',pnl:'+$50.1K',up:true,venue:'Aave'},
+      {asset:'MATIC/USDT',icon:'◆',bg:'#8247E5',size:'2.8M MATIC',entry:'$0.74',mark:'$0.72',pnl:'-$56.0K',up:false,venue:'Kraken'},
+      {asset:'LINK/USDT',icon:'⬢',bg:'#2A5ADA',size:'120K LINK',entry:'$18.10',mark:'$18.43',pnl:'+$39.6K',up:true,venue:'Binance'},
+      {asset:'UNI/ETH',icon:'🦄',bg:'#FF007A',size:'85K UNI',entry:'$12.20',mark:'$11.87',pnl:'-$28.1K',up:false,venue:'Uniswap V3'},
+    ];
+    document.getElementById('positionsTable').innerHTML=positions.map(p=>`
+      <div class="pos-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:4px;font-size:11px;">
+        <div class="flex items-center gap-2"><div style="width:18px;height:18px;border-radius:4px;background:${p.bg};display:flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:700;">${p.icon}</div><span class="font-semibold">${p.asset}</span></div>
+        <span class="mono" style="text-align:right;color:#94a3b8;">${p.size}</span>
+        <span class="mono" style="text-align:right;color:#64748b;">${p.entry}</span>
+        <span class="mono" style="text-align:right;">${p.mark}</span>
+        <span class="mono" style="text-align:right;${p.up?'color:#22c55e':'color:#ef4444'}">${p.pnl}</span>
+        <span style="text-align:right;font-size:10px;color:#64748b;">${p.venue}</span>
+      </div>`).join('');
+
+    // Transfers
+    const transfers=[
+      {from:'Binance',to:'Uniswap V3',asset:'500 ETH',val:'$1.42M',time:'2 min ago',status:'✓ KYT Clear'},
+      {from:'Coinbase',to:'Aave',asset:'100 BTC',val:'$6.84M',time:'18 min ago',status:'✓ KYT Clear'},
+      {from:'Kraken',to:'Binance',asset:'1.5M MATIC',val:'$1.08M',time:'1 hr ago',status:'✓ KYT Clear'},
+      {from:'Uniswap V3',to:'Coinbase',asset:'200K USDC',val:'$200K',time:'3 hr ago',status:'⚠ Review'},
+    ];
+    document.getElementById('transferList').innerHTML=transfers.map(t=>`
+      <div style="padding:6px 0;border-bottom:1px solid rgba(51,65,85,0.15);font-size:11px;">
+        <div class="flex items-center justify-between"><span>${t.from} → ${t.to}</span><span class="mono" style="color:#64748b;">${t.val}</span></div>
+        <div class="flex items-center justify-between" style="margin-top:2px;"><span style="color:#64748b;">${t.asset}</span><span style="font-size:10px;color:${t.status.includes('Review')?'#eab308':'#22c55e'}">${t.status}</span></div>
+      </div>`).join('');
+
+    // Venue chart
+    new Chart(document.getElementById('venueChart'),{type:'doughnut',data:{labels:['Binance','Uniswap V3','Coinbase','Aave','Kraken','Arbitrum'],datasets:[{data:[320,210,180,95,52,35],backgroundColor:['#f7931a','#FF007A','#0052FF','#B6509E','#5741d9','#28a0f0'],borderWidth:0,spacing:2}]},options:{responsive:true,cutout:'55%',plugins:{legend:{position:'right',labels:{usePointStyle:true,pointStyle:'circle',padding:6,font:{size:9},color:'#94a3b8'}}}}});
+
+    // =====================================================
+    // PROTOCOL RISK DATA (Hexagate)
+    // =====================================================
+    const protocols=[
+      {name:'Aave V3',chain:'Ethereum',tvl:'$12.4B',ourLp:'$95M',risk:'Low',monitors:8,pct:5},
+      {name:'Uniswap V3',chain:'Ethereum',tvl:'$4.2B',ourLp:'$210M',risk:'Low',monitors:6,pct:10},
+      {name:'Compound V3',chain:'Ethereum',tvl:'$2.1B',ourLp:'$45M',risk:'Low',monitors:5,pct:8},
+      {name:'GMX',chain:'Arbitrum',tvl:'$890M',ourLp:'$32M',risk:'Medium',monitors:7,pct:35},
+      {name:'Curve Finance',chain:'Ethereum',tvl:'$1.8B',ourLp:'$68M',risk:'Low',monitors:9,pct:12},
+      {name:'Lido',chain:'Ethereum',tvl:'$14.2B',ourLp:'$120M',risk:'Low',monitors:4,pct:3},
+    ];
+    const riskColors={Low:'#22c55e',Medium:'#eab308',High:'#f97316'};
+    document.getElementById('protocolList').innerHTML=protocols.map(p=>`
+      <div style="padding:8px 10px;border-radius:6px;border-bottom:1px solid rgba(51,65,85,0.15);">
+        <div class="flex items-center justify-between"><span class="text-xs font-semibold">${p.name}</span><span class="qd-badge" style="background:${riskColors[p.risk]}15;color:${riskColors[p.risk]};">${p.risk}</span></div>
+        <div class="flex items-center gap-4" style="margin-top:4px;font-size:10px;color:#64748b;">
+          <span>${p.chain}</span><span>TVL: ${p.tvl}</span><span>Our LP: ${p.ourLp}</span><span>${p.monitors} monitors</span>
+        </div>
+        <div class="flex items-center gap-2" style="margin-top:4px;"><div class="risk-bar"><div class="risk-fill" style="width:${p.pct}%;background:${riskColors[p.risk]};"></div></div><span class="mono" style="font-size:9px;color:#475569;">${p.pct}%</span></div>
+      </div>`).join('');
+
+    const hexAlerts=[
+      {sev:'medium',title:'Price Oracle Deviation',protocol:'GMX',desc:'Chainlink price feed for ARB/USD deviated >2% from TWAP.',time:'34 min ago'},
+      {sev:'low',title:'Large Withdrawal',protocol:'Aave V3',desc:'Single withdrawal of $4.2M USDC. Within normal range for the pool.',time:'2 hr ago'},
+      {sev:'low',title:'New Governance Proposal',protocol:'Compound V3',desc:'Proposal #147: Update interest rate model. 48hr voting period.',time:'5 hr ago'},
+    ];
+    const sevC={critical:'#ef4444',high:'#f97316',medium:'#eab308',low:'#22c55e'};
+    document.getElementById('hexAlerts').innerHTML=hexAlerts.map(a=>`
+      <div class="alert-row"><div class="flex items-center gap-2 mb-1"><span class="qd-badge" style="background:${sevC[a.sev]}15;color:${sevC[a.sev]};">${a.sev}</span><span class="text-xs font-semibold">${a.title}</span><span class="text-xs" style="color:#475569;margin-left:auto;">${a.time}</span></div><div class="text-xs" style="color:#64748b;">${a.protocol} — ${a.desc}</div></div>`).join('');
+
+    // =====================================================
+    // MARKET INTELLIGENCE
+    // =====================================================
+
+    // Exchange Inflows/Outflows
+    const exchFlows=[
+      {name:'Binance',inflow:'$1.42B',outflow:'$1.38B',net:'+$40M',signal:'Accumulation',color:'#22c55e'},
+      {name:'Coinbase',inflow:'$890M',outflow:'$920M',net:'-$30M',signal:'Distribution',color:'#ef4444'},
+      {name:'Kraken',inflow:'$310M',outflow:'$295M',net:'+$15M',signal:'Neutral',color:'#64748b'},
+      {name:'OKX',inflow:'$780M',outflow:'$812M',net:'-$32M',signal:'Distribution',color:'#ef4444'},
+      {name:'Bybit',inflow:'$420M',outflow:'$398M',net:'+$22M',signal:'Accumulation',color:'#22c55e'},
+      {name:'Uniswap',inflow:'$2.1B',outflow:'$2.08B',net:'+$20M',signal:'Stable',color:'#3b82f6'},
+    ];
+    document.getElementById('exchangeFlows').innerHTML=exchFlows.map(e=>`
+      <div class="pos-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;font-size:11px;">
+        <span class="font-semibold">${e.name}</span>
+        <span class="mono" style="text-align:right;color:#22c55e;">${e.inflow}</span>
+        <span class="mono" style="text-align:right;color:#ef4444;">${e.outflow}</span>
+        <span class="mono" style="text-align:right;color:${e.net.startsWith('+')?'#22c55e':'#ef4444'};">${e.net}</span>
+        <span style="text-align:right;font-size:10px;color:${e.color};font-weight:600;">${e.signal}</span>
+      </div>`).join('');
+
+    // Bridge chart
+    new Chart(document.getElementById('bridgeChart'),{type:'bar',data:{
+      labels:['ETH→ARB','ETH→OP','ETH→BASE','ETH→POLY','SOL→ETH','BTC→ETH'],
+      datasets:[{label:'Volume ($M)',data:[420,310,280,180,95,62],backgroundColor:['#28a0f0','#ff0420','#0052FF','#8247E5','#9945FF','#f7931a'],borderRadius:4,borderSkipped:false}]
+    },options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(51,65,85,0.1)'},ticks:{callback:v=>'$'+v+'M',font:{size:9},color:'#64748b'}},y:{grid:{display:false},ticks:{font:{size:9},color:'#94a3b8'}}}}});
+
+    // LP Monitor
+    const lpData=[
+      {pool:'ETH/USDC 0.3%',protocol:'Uniswap V3',tvl:'$412M',change:'+2.1%',up:true,hex:'Low',ourLp:'$18M',apy:'14.2%'},
+      {pool:'ETH/USDT 0.05%',protocol:'Uniswap V3',tvl:'$289M',change:'-0.8%',up:false,hex:'Low',ourLp:'$12M',apy:'8.7%'},
+      {pool:'WBTC/ETH',protocol:'Curve',tvl:'$180M',change:'+0.3%',up:true,hex:'Low',ourLp:'$24M',apy:'5.1%'},
+      {pool:'stETH/ETH',protocol:'Lido/Curve',tvl:'$1.2B',change:'-3.2%',up:false,hex:'Medium',ourLp:'$45M',apy:'4.8%'},
+      {pool:'ARB/ETH',protocol:'Camelot',tvl:'$42M',change:'+12.4%',up:true,hex:'Medium',ourLp:'$8M',apy:'31.2%'},
+      {pool:'GLP',protocol:'GMX',tvl:'$410M',change:'-1.1%',up:false,hex:'Medium',ourLp:'$32M',apy:'18.5%'},
+    ];
+    document.getElementById('lpMonitor').innerHTML=lpData.map(l=>`
+      <div style="padding:7px 8px;border-bottom:1px solid rgba(51,65,85,0.15);font-size:11px;">
+        <div class="flex items-center justify-between">
+          <div><span class="font-semibold">${l.pool}</span> <span style="color:#475569;font-size:10px;">${l.protocol}</span></div>
+          <span class="qd-badge" style="background:${riskColors[l.hex]}15;color:${riskColors[l.hex]};">Hexagate: ${l.hex}</span>
+        </div>
+        <div class="flex items-center gap-4" style="margin-top:3px;font-size:10px;color:#64748b;">
+          <span>TVL: <strong style="color:#94a3b8;">${l.tvl}</strong></span>
+          <span style="color:${l.up?'#22c55e':'#ef4444'};">${l.change}</span>
+          <span>Our LP: <strong style="color:#94a3b8;">${l.ourLp}</strong></span>
+          <span>APY: <strong style="color:#22c55e;">${l.apy}</strong></span>
+        </div>
+      </div>`).join('');
+
+    // Whale tracker
+    const whales=[
+      {label:'🐋 Whale #1',action:'Accumulated',asset:'ETH',amount:'12,400 ETH',val:'$35.3M',time:'4h ago',up:true},
+      {label:'🐋 Whale #2',action:'Sold',asset:'SOL',amount:'420K SOL',val:'$75.0M',time:'8h ago',up:false},
+      {label:'🏦 Jump Trading',action:'Withdrew',asset:'USDC',amount:'$89M',val:'from Binance',time:'12h ago',up:false},
+      {label:'🐋 Whale #4',action:'Bridged',asset:'ETH→ARB',amount:'8,200 ETH',val:'$23.3M',time:'18h ago',up:true},
+      {label:'🏦 Cumberland',action:'Deposited',asset:'BTC',amount:'1,200 BTC',val:'$82.1M',time:'24h ago',up:true},
+      {label:'🐋 Whale #6',action:'LP Added',asset:'ETH/USDC',amount:'$14.2M',val:'Uniswap V3',time:'36h ago',up:true},
+    ];
+    document.getElementById('whaleTracker').innerHTML=whales.map(w=>`
+      <div style="padding:6px 8px;border-bottom:1px solid rgba(51,65,85,0.15);font-size:11px;">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold">${w.label}</span>
+          <span class="mono" style="font-size:10px;color:#475569;">${w.time}</span>
+        </div>
+        <div style="margin-top:2px;color:#64748b;font-size:10px;">
+          <span style="color:${w.up?'#22c55e':'#ef4444'};font-weight:600;">${w.action}</span>
+          ${w.amount} <span style="color:#475569;">(${w.val})</span>
+        </div>
+      </div>`).join('');
+
+    // Token Risk Profiles (kept from original)
+    const tokens=[
+      {name:'ETH',vol:'$2.4B',sanctions:'0.02%',mixer:'0.31%',risk:'Low',riskPct:5},
+      {name:'BTC',vol:'$4.1B',sanctions:'0.01%',mixer:'0.18%',risk:'Low',riskPct:3},
+      {name:'USDT',vol:'$8.2B',sanctions:'0.08%',mixer:'0.42%',risk:'Low',riskPct:8},
+      {name:'USDC',vol:'$5.6B',sanctions:'0.01%',mixer:'0.05%',risk:'Low',riskPct:2},
+      {name:'SOL',vol:'$1.8B',sanctions:'0.04%',mixer:'0.22%',risk:'Low',riskPct:6},
+      {name:'ARB',vol:'$420M',sanctions:'0.12%',mixer:'0.89%',risk:'Medium',riskPct:22},
+    ];
+    document.getElementById('tokenTable').innerHTML=tokens.map(t=>`
+      <div class="pos-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:4px;font-size:11px;">
+        <span class="font-semibold">${t.name}</span>
+        <span class="mono" style="text-align:right;color:#94a3b8;">${t.vol}</span>
+        <span class="mono" style="text-align:right;color:${parseFloat(t.sanctions)>0.05?'#eab308':'#64748b'}">${t.sanctions}</span>
+        <span class="mono" style="text-align:right;color:${parseFloat(t.mixer)>0.5?'#eab308':'#64748b'}">${t.mixer}</span>
+        <div style="text-align:right;display:flex;align-items:center;justify-content:flex-end;gap:4px;"><div class="risk-bar" style="width:40px;"><div class="risk-fill" style="width:${t.riskPct*2}%;background:${riskColors[t.risk]};"></div></div><span style="font-size:9px;color:${riskColors[t.risk]};">${t.risk}</span></div>
+      </div>`).join('');
+
+    // Stablecoin supply activity
+    const stables=[
+      {name:'USDT',supply:'$112.4B',change:'+$420M',direction:'Mint',color:'#22c55e',icon:'💵'},
+      {name:'USDC',supply:'$34.2B',change:'+$180M',direction:'Mint',color:'#22c55e',icon:'💵'},
+      {name:'DAI',supply:'$5.3B',change:'-$12M',direction:'Burn',color:'#ef4444',icon:'🔥'},
+      {name:'FDUSD',supply:'$2.8B',change:'+$340M',direction:'Mint',color:'#22c55e',icon:'💵'},
+    ];
+    document.getElementById('stablecoinActivity').innerHTML=stables.map(s=>`
+      <div style="padding:7px 0;border-bottom:1px solid rgba(51,65,85,0.1);font-size:11px;">
+        <div class="flex items-center justify-between"><span class="font-semibold">${s.name}</span><span class="mono" style="font-size:10px;color:#94a3b8;">${s.supply}</span></div>
+        <div style="margin-top:2px;font-size:10px;"><span style="color:${s.color};">${s.icon} ${s.direction} ${s.change}</span> <span style="color:#475569;font-size:9px;">24h</span></div>
+      </div>`).join('');
+
+    // Prediction market signals
+    const predSignals=[
+      {market:'BTC > $150K',odds:'62¢',change:'+8¢',vol:'$42M',signal:'Bullish shift',color:'#22c55e'},
+      {market:'Fed Rate Cut Jul',odds:'71¢',change:'+3¢',vol:'$29M',signal:'Priced in',color:'#64748b'},
+      {market:'ETH Flip BTC',odds:'12¢',change:'-2¢',vol:'$18M',signal:'Fading',color:'#ef4444'},
+      {market:'SOL ETF 2026',odds:'45¢',change:'+12¢',vol:'$14M',signal:'Momentum',color:'#22c55e'},
+    ];
+    document.getElementById('predictionSignals').innerHTML=predSignals.map(p=>`
+      <div style="padding:7px 0;border-bottom:1px solid rgba(51,65,85,0.1);font-size:11px;">
+        <div class="font-semibold" style="font-size:10px;line-height:1.3;">${p.market}</div>
+        <div class="flex items-center justify-between" style="margin-top:3px;">
+          <span class="mono" style="font-size:12px;font-weight:800;">${p.odds}</span>
+          <span style="font-size:10px;color:${p.color};">${p.change}</span>
+        </div>
+        <div style="margin-top:2px;font-size:9px;color:#475569;">${p.vol} vol · <span style="color:${p.color};font-weight:600;">${p.signal}</span></div>
+      </div>`).join('');
+
+    // =====================================================
+    // COUNTERPARTY SCREENING
+    // =====================================================
+    const counterparties=[
+      {addr:'0x7a2b…c4f1',name:'Unknown Wallet',risk:'Severe',category:'sanctioned entity',action:'Blocked',color:'#ef4444'},
+      {addr:'0x28C6…2f60',name:'Binance.com',risk:'Low',category:'exchange',action:'Cleared',color:'#22c55e'},
+      {addr:'0x3dd…5296',name:'Justin Sun',risk:'Medium',category:'unnamed service',action:'Review',color:'#eab308'},
+      {addr:'0x5b5b…C2b0',name:'DeFi User',risk:'Low',category:'private wallet',action:'Cleared',color:'#22c55e'},
+      {addr:'0x098B…2f96',name:'Lazarus Group',risk:'Severe',category:'sanctioned entity',action:'Blocked',color:'#ef4444'},
+    ];
+    document.getElementById('counterpartyList').innerHTML=counterparties.map(c=>`
+      <div class="alert-row"><div class="flex items-center justify-between"><div class="flex items-center gap-2"><span class="mono text-xs">${c.addr}</span><span class="text-xs font-semibold">${c.name}</span></div><span class="qd-badge" style="background:${c.color}15;color:${c.color};">${c.action}</span></div><div class="text-xs" style="color:#64748b;margin-top:2px;">${c.risk} Risk · ${c.category}</div></div>`).join('');
+
+    // =====================================================
+    // COMPLIANCE LOG
+    // =====================================================
+    const compLog=[
+      {time:'10:42 AM',action:'Address Screened',detail:'0x7a2b…c4f1 — BLOCKED (sanctioned entity)',color:'#ef4444'},
+      {time:'10:38 AM',action:'KYT Transfer',detail:'500 ETH Binance → Uniswap V3 — Cleared',color:'#22c55e'},
+      {time:'10:15 AM',action:'Hexagate Alert',detail:'GMX price oracle deviation — Under review',color:'#eab308'},
+      {time:'9:52 AM',action:'Address Screened',detail:'0x28C6…2f60 (Binance.com) — Cleared',color:'#22c55e'},
+      {time:'9:30 AM',action:'KYT Transfer',detail:'100 BTC Coinbase → Aave — Cleared',color:'#22c55e'},
+      {time:'9:12 AM',action:'Token Risk Update',detail:'ARB sanctions exposure increased to 0.12% — Monitoring',color:'#eab308'},
+      {time:'8:45 AM',action:'Address Screened',detail:'0x098B…2f96 (Lazarus Group) — BLOCKED',color:'#ef4444'},
+      {time:'8:30 AM',action:'Compliance Report',detail:'Daily summary generated — 862 screens, 8 alerts, 100% resolved',color:'#3b82f6'},
+    ];
+    document.getElementById('complianceLog').innerHTML=compLog.map(c=>`
+      <div style="padding:6px 0;border-bottom:1px solid rgba(51,65,85,0.1);font-size:11px;display:flex;align-items:flex-start;gap:8px;">
+        <span class="mono" style="font-size:10px;color:#475569;min-width:55px;">${c.time}</span>
+        <div style="width:6px;height:6px;border-radius:50%;background:${c.color};margin-top:4px;flex-shrink:0;"></div>
+        <div><span class="font-semibold">${c.action}</span><span style="color:#64748b;margin-left:4px;">${c.detail}</span></div>
+      </div>`).join('');
+
+    // Compliance chart
+    const days=Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});});
+    new Chart(document.getElementById('complianceChart'),{type:'line',data:{labels:days,datasets:[{label:'Screens',data:Array.from({length:30},()=>20+Math.random()*20),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.05)',fill:true,tension:0.3,borderWidth:1.5,pointRadius:0},{label:'Alerts',data:Array.from({length:30},()=>Math.random()*2),borderColor:'#eab308',backgroundColor:'rgba(234,179,8,0.05)',fill:true,tension:0.3,borderWidth:1.5,pointRadius:0}]},options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{usePointStyle:true,pointStyle:'circle',padding:8,font:{size:9},color:'#94a3b8'}}},scales:{x:{grid:{display:false},ticks:{font:{size:8},color:'#475569',maxTicksLimit:8}},y:{grid:{color:'rgba(51,65,85,0.1)'},ticks:{font:{size:9},color:'#475569'}}}}});
+    </script>
+
+    <!-- Brand customization -->
+    <script>
+    (function(){
+      var p=new URLSearchParams(window.location.search);var brand=p.get('brand');var color=p.get('color');var domain=p.get('domain');
+      function applyBrand(){
+        if(brand&&brand!=='QuantDesk'){var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);while(w.nextNode()){if(w.currentNode.textContent.includes('QuantDesk'))w.currentNode.textContent=w.currentNode.textContent.split('QuantDesk').join(brand);}document.title=document.title.split('QuantDesk').join(brand);}
+        if(color){document.documentElement.style.setProperty('--primary',color);var dc=color+'cc';var s=document.createElement('style');s.textContent='.qd-tab.active{background:'+color+'18 !important;color:'+color+' !important}';document.head.appendChild(s);var defaults=['#3b82f6','#1d4ed8','#6366f1','#4f46e5','#8b5cf6'];document.querySelectorAll('[style]').forEach(function(el){var st=el.getAttribute('style');var ch=false;defaults.forEach(function(d){if(st.indexOf(d)!==-1){st=st.split(d).join(color);ch=true;}});if(ch)el.setAttribute('style',st);});defaults.forEach(function(d){document.querySelectorAll('[fill="'+d+'"]').forEach(function(el){el.setAttribute('fill',color);});});}
+        if(domain){domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var els=document.querySelectorAll('[style*="linear-gradient"]');for(var i=0;i<els.length;i++){var el=els[i],sv=el.querySelector('svg');if(sv&&el.offsetWidth<40){var img=document.createElement('img');img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';img.style.cssText='width:14px;height:14px;object-fit:contain;border-radius:2px;';img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};sv.parentNode.replaceChild(img,sv);break;}}}
+      }
+      if(!brand&&!color&&!domain)return;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyBrand);else applyBrand();
+    })();
+    </script>
+
+    <!-- Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';var M=document.querySelector('meta[name="cove-demo"]');var D=M?M.getAttribute('content'):'unknown';var P=new URLSearchParams(location.search);var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,domain:d.domain||DM,address:d.address||'',filter:d.filter||'',viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
+    </script>
+  </body>
+</html>

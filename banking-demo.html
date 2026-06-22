@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Banking" />
     <meta name="color-scheme" content="light only" />
     <title>Chainalysis for Banking — The Crypto Readiness Journey</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
@@ -733,7 +734,7 @@
                 <div style="padding:10px 14px;background:#fafbfc;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;gap:6px;">
                   <div style="width:8px;height:8px;border-radius:50%;background:#0f3057;"></div>
                   <span style="font-size:11px;font-weight:600;color:#0f1729;">Reactor — Fund Flow Graph</span>
-                  <a href="https://reactor.chainalysis.com/graphs/reactor/BTC/bc1q7x9f4a2k8m3n5p6r7s8t9u0v1w2x3y4z5k3m2" target="_blank" rel="noopener" style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:4px;font-size:8px;font-weight:600;color:#0f3057;background:rgba(15,48,87,.06);border:1px solid rgba(15,48,87,.1);text-decoration:none;" onmouseover="this.style.background='rgba(15,48,87,.12)'" onmouseout="this.style.background='rgba(15,48,87,.06)'">Open in Reactor ↗</a>
+                  <a href="https://reactor.chainalysis.com" target="_blank" rel="noopener" style="margin-left:auto;display:inline-flex;align-items:center;gap:3px;padding:1px 6px;border-radius:4px;font-size:8px;font-weight:600;color:#0f3057;background:rgba(15,48,87,.06);border:1px solid rgba(15,48,87,.1);text-decoration:none;" onmouseover="this.style.background='rgba(15,48,87,.12)'" onmouseout="this.style.background='rgba(15,48,87,.06)'">Investigate in Reactor ↗</a>
                 </div>
                 <div style="padding:20px;background:linear-gradient(135deg,#fafbfc,#f5f6f8);">
                   <!-- Horizontal graph layout -->
@@ -1224,6 +1225,21 @@
         fetch(SLACK_WEBHOOK,{method:'POST',mode:'no-cors',body:JSON.stringify({text:'📊 *Compliance Cove — Demo View*\n>*Demo:* '+demo+'\n>*Time:* '+ts+'\n>*Session:* `'+sid+'`\n>*Screen:* '+window.innerWidth+'×'+window.innerHeight})});
       }catch(e){}
     })();
+    </script>
+  
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';
+    var M=document.querySelector('meta[name="cove-demo"]');
+    var D=M?M.getAttribute('content'):(document.title.split('\u2014')[0].trim()||'unknown');
+    var P=new URLSearchParams(location.search);
+    var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
+    window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,
+    demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,
+    domain:d.domain||DM,address:d.address||'',filter:d.filter||'',
+    viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};
+    addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
     </script>
   </body>
 </html>

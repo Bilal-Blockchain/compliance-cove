@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Remittance" />
     <meta name="color-scheme" content="light only" />
     <title>SwiftBridge — Send Money Anywhere</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
@@ -85,6 +86,14 @@
 
       /* Corridor risk */
       .corridor-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;}
+    
+      .cove-disclaimer {
+        display:flex;align-items:flex-start;gap:8px;
+        padding:10px 14px;margin:8px 0;border-radius:8px;
+        background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.15);
+        font-size:11px;line-height:1.5;color:#1a6b6a;
+      }
+      .cove-disclaimer svg{flex-shrink:0;margin-top:1px;color:#1a6b6a;}
     </style>
   </head>
   <body class="bg-background text-foreground" style="min-height:100vh;">
@@ -184,6 +193,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#f43f5e" width="12" height="12"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
             <span style="font-size:10px;font-weight:600;color:#f43f5e;">Fully compliant — powered by Chainalysis</span>
           </div>
+          <div style="margin-top:10px;text-align:center;"><a onclick="showScreen('about')" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:#64748b;cursor:pointer;transition:color .15s;text-decoration:none;" onmouseover="this.style.color='#f43f5e'" onmouseout="this.style.color='#64748b'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>About this demo</a>
+          </div>
         </div>
       </div>
     </div>
@@ -269,6 +280,7 @@
               <div class="animate-spin" style="animation-duration:1.5s;margin:0 auto;width:fit-content;"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#f43f5e" width="36" height="36"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg></div>
               <p class="text-sm font-semibold" style="margin-top:8px;">Processing compliance checks…</p>
             </div>
+            <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span></div>
             <div class="kyt-step pending workflow-step" id="t-s1"><div class="step-icon">1</div><div><div class="text-sm font-medium">Screen recipient address</div><div class="text-xs text-muted-foreground">Chainalysis Address Screening API</div></div></div>
             <div class="step-connector bg-muted"></div>
             <div class="kyt-step pending workflow-step" id="t-s2"><div class="step-icon">2</div><div><div class="text-sm font-medium">Register transfer with KYT</div><div class="text-xs text-muted-foreground">POST /v2/users/{userId}/transfers — sent</div></div></div>
@@ -283,6 +295,89 @@
         </div>
       </div>
     </div>
+
+      <!-- ==================== ABOUT ==================== -->
+      <div id="screen-about" class="screen">
+        <div class="max-w-4xl mx-auto px-4 py-8 space-y-5">
+          <button onclick="showScreen('send')" style="display:inline-flex;align-items:center;gap:4px;padding:6px 14px;border-radius:8px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);font-size:12px;font-weight:600;cursor:pointer;margin-bottom:4px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            ← Back to Demo
+          </button>
+          <div style="border-radius:14px;background:linear-gradient(135deg,#dc2626,#f43f5e);padding:28px 24px;color:white;">
+            <h1 style="font-size:24px;font-weight:900;letter-spacing:-0.5px;">About SwiftBridge</h1>
+            <p style="font-size:14px;margin-top:6px;opacity:0.85;line-height:1.6;max-width:600px;">Remittance / Money Transfer — Compliance Cove Demo</p>
+          </div>
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold">What This Demo Shows</h2>
+            <p class="text-sm text-muted-foreground" style="margin-top:6px;line-height:1.7;">SwiftBridge is a cross-border payment app with crypto rails. It demonstrates how Chainalysis screens transfer corridors for sanctions, verifies recipient wallets, and enforces travel rule compliance on every send.</p>
+          </div>
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="margin-bottom:12px;">Presenter Workflow</h2>
+            <p class="text-xs text-muted-foreground" style="margin-bottom:14px;">Follow these steps during a customer call. Each step includes a talking point.</p>
+            
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#dc2626;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">1</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Select Corridor</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Choose the sending and receiving countries. Enter the amount to transfer.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Cross-border crypto transfers face complex regulatory requirements. Chainalysis automates compliance checks across jurisdictions.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#dc2626;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">2</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Enter Recipient Wallet</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Enter the recipient's wallet address. Use the pre-screened picker to demonstrate different risk outcomes.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> The recipient's address is screened via Address Screening before the transfer can proceed.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#22c55e;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">3</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Watch Compliance Checks</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">After confirming, watch the 4-step compliance workflow — address screening, KYT registration, travel rule exchange, and final decision.</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Three Chainalysis products fire simultaneously: Address Screening checks the recipient, KYT monitors source of funds, and Travel Rule data is exchanged.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="border-radius:12px;border:1px solid var(--border);padding:18px;">
+            <h2 class="text-base font-semibold" style="margin-bottom:10px;">Chainalysis Products Used</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;">
+              
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Address Screening</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Screens recipient wallets</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">KYT</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Monitors transfers and traces source of funds</p>
+              </div>
+              <div style="padding:10px;border-radius:8px;background:var(--muted);">
+                <p class="text-sm font-semibold">Travel Rule</p>
+                <p class="text-xs text-muted-foreground" style="margin-top:2px;">Exchanges originator/beneficiary data</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <script>
     // =======================================================
@@ -390,7 +485,9 @@
       ['t-s1','t-s2','t-s3','t-s4'].forEach((id,i)=>{const s=document.getElementById(id);s.className='kyt-step pending workflow-step';s.querySelector('.step-icon').textContent=i+1;});
     }
 
-    function animateStep(id,state,delay){return new Promise(r=>{setTimeout(()=>{const el=document.getElementById(id);el.className=`kyt-step ${state} workflow-step`;if(state==='running')el.classList.add('active');r();},delay);});}
+    
+      const DISCLAIMER_HTML = '<div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span></div>';
+      function animateStep(id,state,delay){return new Promise(r=>{setTimeout(()=>{const el=document.getElementById(id);el.className=`kyt-step ${state} workflow-step`;if(state==='running')el.classList.add('active');r();},delay);});}
     </script>
   
   
@@ -412,11 +509,11 @@
     // Reactor deep link helper
     function openInReactor(address, network) {
       const net = (network || 'ETH').toUpperCase();
-      window.open('https://reactor.chainalysis.com/graphs/reactor/' + net + '/' + address, '_blank');
+      window.open('https://reactor.chainalysis.com, '_blank');
     }
     function reactorLinkHtml(address, network) {
       const net = (network || 'ETH').toUpperCase();
-      return '<a href="https://reactor.chainalysis.com/graphs/reactor/' + net + '/' + address + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;color:#a855f7;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.12);text-decoration:none;transition:all .15s;margin-left:4px;" onmouseover="this.style.background=\'rgba(168,85,247,.15)\';this.style.borderColor=\'#a855f7\';" onmouseout="this.style.background=\'rgba(168,85,247,.08)\';this.style.borderColor=\'rgba(168,85,247,.12)\';"><svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 30 30\' fill=\'#a855f7\' width=\'10\' height=\'10\'><path d=\'M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0Z\'/></svg>Open in Reactor →</a>';
+      return '<a href="https://reactor.chainalysis.com" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;color:#a855f7;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.12);text-decoration:none;transition:all .15s;margin-left:4px;" onmouseover="this.style.background=\'rgba(168,85,247,.15)\';this.style.borderColor=\'#a855f7\';" onmouseout="this.style.background=\'rgba(168,85,247,.08)\';this.style.borderColor=\'rgba(168,85,247,.12)\';"><svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 30 30\' fill=\'#a855f7\' width=\'10\' height=\'10\'><path d=\'M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z\'/></svg>Investigate in Reactor →</a>';
     }
     function renderAddressPicker(inputId){
       const input=document.getElementById(inputId);if(!input||input.parentNode.querySelector('.addr-picker'))return;
@@ -458,26 +555,90 @@
   
     
   
-    <!-- Brand customization (brand-swap) -->
+    <!-- Brand customization (brand-swap) — supports ?brand=, ?color=, ?domain= from Branding Studio -->
     <script>
     (function(){
       var p=new URLSearchParams(window.location.search);
       var brand=p.get('brand');
-      if(!brand||brand==='SwiftBridge')return;
-      // Wait for DOM then replace all visible instances
-      function swap(){
-        var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-        while(walker.nextNode()){
-          if(walker.currentNode.textContent.includes('SwiftBridge')){
-            walker.currentNode.textContent=walker.currentNode.textContent.split('SwiftBridge').join(brand);
+      var color=p.get('color');
+      var domain=p.get('domain');
+
+      function applyBrand(){
+        if(brand && brand!=='SwiftBridge'){
+          var walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+          while(walker.nextNode()){
+            if(walker.currentNode.textContent.includes('SwiftBridge')){
+              walker.currentNode.textContent=walker.currentNode.textContent.split('SwiftBridge').join(brand);
+            }
+          }
+          document.title=document.title.split('SwiftBridge').join(brand);
+        }
+
+        if(color){
+          document.documentElement.style.setProperty('--primary',color);
+          var dc=color+'cc';
+          var s=document.createElement('style');
+          s.textContent='.accent{color:'+color+' !important}.accent-bg{background:linear-gradient(135deg,'+color+','+dc+') !important}.glow-btn::before{background:linear-gradient(135deg,'+color+','+dc+','+color+'99) !important}.ob-step.active .ob-num{background:'+color+' !important}.wallet-provider-btn:hover{border-color:'+color+' !important;box-shadow:0 0 0 1px '+color+' !important}.kyt-step.running .step-icon{background:'+color+'1a !important;color:'+color+' !important}.upload-zone:hover{border-color:'+color+' !important;background:'+color+'08 !important}';
+          document.head.appendChild(s);
+          var defaults=['#6366f1','#4f46e5','#8b5cf6','#818cf8','#a78bfa','#7c3aed','#a855f7','#e11d48','#be123c','#f43f5e','#f093fb'];
+          document.querySelectorAll('[style]').forEach(function(el){
+            var st=el.getAttribute('style');var ch=false;
+            defaults.forEach(function(d){if(st.indexOf(d)!==-1){st=st.split(d).join(color);ch=true;}var ld=d.toLowerCase();if(st.toLowerCase().indexOf(ld)!==-1&&st.indexOf(d)===-1){st=st.replace(new RegExp(ld,'gi'),color);ch=true;}});
+            if(ch)el.setAttribute('style',st);
+          });
+          defaults.forEach(function(d){
+            document.querySelectorAll('[fill="'+d+'"]').forEach(function(el){el.setAttribute('fill',color);});
+          });
+          document.querySelectorAll('[style*="99,102,241"]').forEach(function(el){
+            var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
+            var st=el.getAttribute('style');st=st.replace(/99,\s*102,\s*241/g,r+','+g+','+b);el.setAttribute('style',st);
+          });
+          // Also replace rgba patterns for rose/red accents
+          document.querySelectorAll('[style*="225,29,72"],[style*="190,18,60"],[style*="244,63,94"]').forEach(function(el){
+            var r=parseInt(color.slice(1,3),16),g=parseInt(color.slice(3,5),16),b=parseInt(color.slice(5,7),16);
+            var st=el.getAttribute('style');
+            st=st.replace(/225,\s*29,\s*72/g,r+','+g+','+b);
+            st=st.replace(/190,\s*18,\s*60/g,r+','+g+','+b);
+            st=st.replace(/244,\s*63,\s*94/g,r+','+g+','+b);
+            el.setAttribute('style',st);
+          });
+        }
+
+        if(domain){
+          domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();
+          var els=document.querySelectorAll('[style*="linear-gradient"]');
+          for(var i=0;i<els.length;i++){
+            var el=els[i],sv=el.querySelector('svg');
+            if(sv&&el.offsetWidth<60){
+              var img=document.createElement('img');
+              img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';
+              img.style.cssText='width:18px;height:18px;object-fit:contain;border-radius:3px;';
+              img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};
+              sv.parentNode.replaceChild(img,sv);break;
+            }
           }
         }
-        // Also update <title>
-        document.title=document.title.split('SwiftBridge').join(brand);
       }
-      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',swap);
-      else swap();
+
+      if(!brand&&!color&&!domain)return;
+      if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyBrand);
+      else applyBrand();
     })();
+    </script>
+  
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';
+    var M=document.querySelector('meta[name="cove-demo"]');
+    var D=M?M.getAttribute('content'):(document.title.split('\u2014')[0].trim()||'unknown');
+    var P=new URLSearchParams(location.search);
+    var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
+    window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,
+    demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,
+    domain:d.domain||DM,address:d.address||'',filter:d.filter||'',
+    viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};
+    addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
     </script>
   </body>
 </html>

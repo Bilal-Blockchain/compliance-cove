@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Hub" />
     <title>Compliance Cove — Chainalysis Demo Hub</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -233,6 +234,56 @@
         .demo-grid { grid-template-columns: 1fr; }
         .hero { padding: 48px 0 72px; }
       }
+
+      /* ---- Branding Studio ---- */
+      .brand-overlay {
+        position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+        z-index: 200; display: none; align-items: center; justify-content: center;
+      }
+      .brand-overlay.open { display: flex; }
+      .brand-panel {
+        width: 100%; max-width: 420px; border-radius: 16px;
+        background: var(--card); color: var(--card-foreground);
+        border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+        animation: brandSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: hidden;
+      }
+      @keyframes brandSlideUp { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      .brand-panel-header {
+        padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;
+        border-bottom: 1px solid var(--border);
+      }
+      .brand-panel-body { padding: 20px; }
+      .brand-field { margin-bottom: 16px; }
+      .brand-field label { display: block; font-size: 12px; font-weight: 600; margin-bottom: 6px; color: var(--muted-foreground); }
+      .brand-field input { width: 100%; box-sizing: border-box; }
+      .brand-color-row { display: flex; gap: 8px; align-items: center; }
+      .brand-swatch {
+        width: 36px; height: 36px; border-radius: 10px; border: 2px solid var(--border);
+        cursor: pointer; transition: all 0.15s; flex-shrink: 0; position: relative; overflow: hidden;
+      }
+      .brand-swatch:hover { border-color: var(--primary); transform: scale(1.08); }
+      .brand-swatch.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+      .brand-swatch input[type="color"] {
+        position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px);
+        border: none; cursor: pointer; padding: 0;
+      }
+      .brand-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+      .brand-preset {
+        width: 28px; height: 28px; border-radius: 8px; border: 2px solid transparent;
+        cursor: pointer; transition: all 0.15s;
+      }
+      .brand-preset:hover { transform: scale(1.12); }
+      .brand-preset.active { border-color: var(--foreground); box-shadow: 0 0 0 1px var(--foreground); }
+      .brand-preview {
+        margin-top: 16px; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--border);
+        display: flex; align-items: center; gap: 10px; background: var(--muted);
+      }
+      .brand-preview-logo {
+        width: 28px; height: 28px; border-radius: 8px; display: flex;
+        align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: white;
+      }
+      .brand-actions { display: flex; gap: 8px; margin-top: 20px; }
     </style>
   </head>
   <body class="bg-background text-foreground" style="min-height:100vh;">
@@ -350,6 +401,90 @@
     </div>
 
 
+    <!-- ====================== BRANDING STUDIO ====================== -->
+    <div class="brand-overlay" id="brandOverlay" onclick="if(event.target===this)closeBrandStudio()">
+      <div class="brand-panel">
+        <div class="brand-panel-header">
+          <div class="flex items-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><circle cx="7.5" cy="10" r="1.5" fill="var(--primary)"/><circle cx="12" cy="7" r="1.5" fill="var(--primary)"/><circle cx="16.5" cy="10" r="1.5" fill="var(--primary)"/></svg>
+            <div>
+              <h3 class="text-sm font-semibold" style="margin:0;">Branding Studio</h3>
+              <p class="text-xs text-muted-foreground" id="brandDemoTitle" style="margin:0;"></p>
+            </div>
+          </div>
+          <button onclick="closeBrandStudio()" class="text-muted-foreground hover:text-foreground transition-colors" style="line-height:0;background:none;border:none;cursor:pointer;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="brand-panel-body">
+          <!-- Company Name -->
+          <div class="brand-field">
+            <label>Company Name</label>
+            <input id="brandName" type="text" placeholder="e.g. Chase Digital, Revolut, Coinbase" class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
+          </div>
+
+          <!-- Brand Color -->
+          <div class="brand-field">
+            <label>Brand Color</label>
+            <div class="brand-color-row">
+              <div class="brand-swatch" id="brandSwatchBox">
+                <input type="color" id="brandColorPicker" value="#6366f1" oninput="setBrandColor(this.value)" />
+              </div>
+              <input id="brandColorHex" type="text" value="#6366f1" placeholder="#0052FF" class="h-10 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" style="width:100px;font-family:monospace;" oninput="setBrandColor(this.value)" />
+              <div class="brand-presets">
+                <div class="brand-preset" style="background:#0052FF;" onclick="setBrandColor('#0052FF')" title="Coinbase Blue"></div>
+                <div class="brand-preset" style="background:#2081E2;" onclick="setBrandColor('#2081E2')" title="OpenSea Blue"></div>
+                <div class="brand-preset" style="background:#627EEA;" onclick="setBrandColor('#627EEA')" title="Ethereum Blue"></div>
+                <div class="brand-preset" style="background:#F7931A;" onclick="setBrandColor('#F7931A')" title="Bitcoin Orange"></div>
+                <div class="brand-preset" style="background:#E50914;" onclick="setBrandColor('#E50914')" title="Red"></div>
+                <div class="brand-preset" style="background:#00C853;" onclick="setBrandColor('#00C853')" title="Green"></div>
+                <div class="brand-preset" style="background:#8247E5;" onclick="setBrandColor('#8247E5')" title="Polygon Purple"></div>
+                <div class="brand-preset" style="background:#DB2777;" onclick="setBrandColor('#DB2777')" title="Pink"></div>
+                <div class="brand-preset" style="background:#0891B2;" onclick="setBrandColor('#0891B2')" title="Cyan"></div>
+                <div class="brand-preset" style="background:#1E293B;" onclick="setBrandColor('#1E293B')" title="Slate"></div>
+                <div class="brand-preset" style="background:#B91C1C;" onclick="setBrandColor('#B91C1C')" title="Dark Red"></div>
+                <div class="brand-preset" style="background:#6366f1;" onclick="setBrandColor('#6366f1')" title="Indigo (Default)"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Company Domain -->
+          <div class="brand-field">
+            <label>Company Domain <span class="text-muted-foreground font-normal">(for logo)</span></label>
+            <div class="flex gap-2 items-center">
+              <input id="brandDomain" type="text" placeholder="e.g. coinbase.com, chase.com" class="h-10 flex-1 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" oninput="updateBrandPreview()" />
+              <div id="brandLogoStatus" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                <span class="text-xs text-muted-foreground">—</span>
+              </div>
+            </div>
+            <p class="text-xs text-muted-foreground" style="margin-top:4px;">Enter a domain and the logo auto-loads. Leave blank for a letter icon.</p>
+          </div>
+
+          <!-- Live Preview -->
+          <div class="brand-preview" id="brandPreviewBox">
+            <div class="brand-preview-logo" id="brandPreviewLogo" style="background:#6366f1;">A</div>
+            <div>
+              <div class="text-sm font-semibold" id="brandPreviewName">ArcSwap</div>
+              <div class="text-xs text-muted-foreground" id="brandPreviewTitle">DeFi Trading</div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="brand-actions">
+            <button onclick="applyBranding()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground transition-all" style="background:var(--primary);">
+              Apply &amp; Launch
+            </button>
+            <button onclick="resetBranding()" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">
+              Reset
+            </button>
+            <button onclick="closeBrandStudio()" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium border border-border bg-background text-muted-foreground hover:bg-muted transition-all">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
           <!-- ====================== FOOTER ====================== -->
     <div class="cove-footer">
       <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
@@ -359,7 +494,14 @@
           </svg>
           <span class="text-xs text-muted-foreground">Compliance Cove — Chainalysis Solutions Architecture</span>
         </div>
-        <span class="text-xs text-muted-foreground">Internal Use Only</span>
+        <div class="flex items-center gap-3">
+          <a onclick="window.open(buildPageUrl('analytics.html'),'_blank')" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted-foreground);cursor:pointer;text-decoration:none;opacity:0.6;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+            Analytics
+          </a>
+          <span style="opacity:0.2;" class="text-xs text-muted-foreground">·</span>
+          <span class="text-xs text-muted-foreground">Internal Use Only</span>
+        </div>
       </div>
     </div>
 
@@ -378,7 +520,7 @@
       const demos = [
         {
           id: 'defi-trading',
-          defaultBrand: 'DemoChain',
+          defaultBrand: 'ArcSwap',
           title: 'DeFi Trading',
           status: 'active',
           url: 'demochain.html',
@@ -462,10 +604,11 @@
         },
         {
           id: 'hexagate',
+          defaultBrand: 'ShieldFi',
           title: 'Smart Contract Security',
-          status: 'coming-soon',
-          url: null,
-          description: 'A DeFi protocol dashboard with real-time smart contract monitoring — detect reentrancy attacks, simulate transactions, and score wallet risk on-chain.',
+          status: 'in-dev',
+          url: 'hexagate-demo.html',
+          description: 'A DeFi protocol security dashboard — real-time smart contract monitoring, address risk analysis, transaction simulation, and threat detection alerts.',
           products: ['Hexagate'],
           industry: 'DeFi / Protocols',
           bannerGradient: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
@@ -518,14 +661,61 @@
         },
         {
           id: 'prediction-markets',
+          defaultBrand: 'ForecastX',
           title: 'Prediction Markets',
-          status: 'coming-soon',
-          url: null,
-          description: 'A prediction market platform with on-chain wager tracking — use Chainalysis Data Solutions to detect insider trading patterns, wash trading, and market manipulation across event contracts.',
+          status: 'in-dev',
+          url: 'prediction-demo.html',
+          description: 'A Polymarket-style prediction market with wash trading detection — self-trades, round trips, A-B-A patterns, and multi-trade wash identification using Chainalysis Data Solutions.',
           products: ['Data Solutions'],
           industry: 'Prediction Markets',
           bannerGradient: 'linear-gradient(135deg, #0891b2, #06b6d4)',
           icon: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+        },
+        {
+          id: 'trading-firm',
+          defaultBrand: 'QuantDesk',
+          title: 'Trading Firm / Market Maker',
+          status: 'in-dev',
+          url: 'trading-firm-demo.html',
+          description: 'A Bloomberg-style trading desk for institutional market makers — portfolio positions, protocol risk monitoring (Hexagate), token exposure analytics (Data Solutions), counterparty screening, and compliance reporting.',
+          products: ['Hexagate', 'Data Solutions', 'KYT', 'Address Screening'],
+          industry: 'Trading / Market Making',
+          bannerGradient: 'linear-gradient(135deg, #1e293b, #334155)',
+          icon: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>',
+        },
+        // ---- RESOURCES ----
+        {
+          id: 'address-screener',
+          title: 'Address Screener',
+          status: 'active',
+          url: 'screener.html',
+          description: 'Paste any blockchain address and get a full Chainalysis risk assessment — risk level, exposure breakdown, entity identifications, triggered rules, and Reactor graph link.',
+          products: ['Address Screening', 'Resources'],
+          industry: 'SA Tool',
+          bannerGradient: 'linear-gradient(135deg, #0f3057, #1a6b6a)',
+          icon: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+        },
+        {
+          id: 'screening-explainer',
+          title: 'Screening API Walkthrough',
+          status: 'active',
+          url: 'screening-explainer.html',
+          description: 'One endpoint, one call — the complete Address Screening API explained step-by-step. Risk levels, exposure analysis, entity identifications, triggered rules, and a decision matrix.',
+          products: ['Address Screening', 'Resources'],
+          industry: 'API Guide',
+          bannerGradient: 'linear-gradient(135deg, #0c1e3a, #1a6b6a)',
+          icon: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+        },
+        {
+          id: 'kyt-explainer',
+          title: 'KYT API Walkthrough',
+          status: 'active',
+          url: 'kyt-explainer.html',
+          description: 'Step-by-step visual guide to the KYT API — from creating users and registering transfers to monitoring alerts and pre-screening withdrawals. Includes code snippets.',
+          products: ['KYT', 'Resources'],
+          industry: 'API Guide',
+          bannerGradient: 'linear-gradient(135deg, #1a6b6a, #2d9f8f)',
+          icon: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
         },
       ];
 
@@ -550,7 +740,7 @@
       }
 
       demos.forEach((d, i) => {
-        const isActive = d.status === 'active';
+        const isActive = d.status === 'active' || d.status === 'in-dev';
         const card = document.createElement('div');
         card.className = `demo-card ${isActive ? 'active-demo' : 'coming-soon'}`;
         card.style.opacity = '0';
@@ -560,22 +750,34 @@
         if (isActive && d.url) {
           card.onclick = () => {
             let url = buildPageUrl(d.url);
-            const customBrand = card.dataset.customBrand;
-            if (customBrand) url += (url.includes('?') ? '&' : '?') + 'brand=' + encodeURIComponent(customBrand);
+            const cb = card.dataset.customBrand;
+            const cc = card.dataset.customColor;
+            const cd = card.dataset.customDomain;
+            const params = [];
+            if (cb) params.push('brand=' + encodeURIComponent(cb));
+            if (cc) params.push('color=' + encodeURIComponent(cc));
+            if (cd) params.push('domain=' + encodeURIComponent(cd));
+            if (params.length) url += (url.includes('?') ? '&' : '?') + params.join('&');
+            // Track the launch
+            if (typeof coveTrack === 'function') coveTrack('demo_launched', { demo: d.title, brand: cb || '(default)', domain: cd || '', color: cc || '' });
             window.open(url, '_blank');
           };
         }
 
-        const statusBadge = isActive
+        const statusBadge = d.status === 'active'
           ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--success);"><span style="width:6px;height:6px;border-radius:50%;background:var(--success);display:inline-block;"></span>Live</span>'
+          : d.status === 'in-dev'
+          ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:#f59e0b;"><span style="width:6px;height:6px;border-radius:50%;background:#f59e0b;display:inline-block;"></span>In Development</span>'
           : '<span style="font-size:11px;font-weight:600;color:var(--muted-foreground);">Coming Soon</span>';
 
-        const launchLabel = isActive
+        const launchLabel = d.status === 'active'
           ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--primary);cursor:pointer;">Launch Demo <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>'
+          : d.status === 'in-dev'
+          ? '<span style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#f59e0b;cursor:pointer;">Preview <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>'
           : '<span style="font-size:12px;color:var(--muted-foreground);">In Development</span>';
 
         const customizeBtn = (isActive && d.defaultBrand)
-          ? `<button onclick="event.stopPropagation();customizeDemo(${i})" style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--foreground)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted-foreground)'">⚙️ Customize</button>`
+          ? `<button onclick="event.stopPropagation();openBrandStudio(${i})" style="display:inline-flex;align-items:center;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);cursor:pointer;transition:all .15s;line-height:0;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--foreground)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted-foreground)'" title="Branding Studio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><circle cx="7.5" cy="10" r="1.5" fill="currentColor"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/><circle cx="16.5" cy="10" r="1.5" fill="currentColor"/></svg></button>`
           : '';
 
         card.innerHTML = `
@@ -663,27 +865,178 @@
             card.classList.toggle('filter-hidden', !products.includes(product));
           }
         });
+        if (typeof coveTrack === 'function') coveTrack('filter_used', { filter: product });
       }
 
       
-      // Customize demo branding
-      function customizeDemo(index) {
+      // =====================================================
+      // BRANDING STUDIO
+      // =====================================================
+      let brandStudioIndex = -1;
+
+      function openBrandStudio(index) {
+        brandStudioIndex = index;
         const d = demos[index];
         const card = document.querySelector(`.demo-card[data-index="${index}"]`);
-        const current = card.dataset.customBrand || d.defaultBrand;
-        const name = prompt(`Customize "${d.title}" for your prospect:\n\nEnter company name (or leave blank for default "${d.defaultBrand}"):`, current);
-        if (name === null) return; // cancelled
-        if (name.trim() && name.trim() !== d.defaultBrand) {
-          card.dataset.customBrand = name.trim();
-          // Visual indicator that this demo is customized
-          const footer = card.querySelector('.demo-card-footer span');
-          if (footer) footer.innerHTML = `⚙️ <span style="color:var(--primary);font-weight:600;">${name.trim()}</span>`;
-        } else {
-          delete card.dataset.customBrand;
-          const footer = card.querySelector('.demo-card-footer span');
-          if (footer) footer.innerHTML = `<button onclick="event.stopPropagation();customizeDemo(${index})" style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--foreground)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted-foreground)'">⚙️ Customize</button>`;
-        }
+
+        // Populate fields with existing customizations or defaults
+        document.getElementById('brandName').value = card.dataset.customBrand || d.defaultBrand || '';
+        const color = card.dataset.customColor || '#6366f1';
+        setBrandColor(color);
+        document.getElementById('brandDomain').value = card.dataset.customDomain || '';
+        document.getElementById('brandDemoTitle').textContent = d.title;
+        document.getElementById('brandPreviewTitle').textContent = d.title;
+        updateBrandPreview();
+
+        document.getElementById('brandOverlay').classList.add('open');
+        document.getElementById('brandName').focus();
       }
+
+      function closeBrandStudio() {
+        document.getElementById('brandOverlay').classList.remove('open');
+        brandStudioIndex = -1;
+      }
+
+      function setBrandColor(hex) {
+        // Normalize
+        if (hex && !hex.startsWith('#')) hex = '#' + hex;
+        if (!hex || !/^#[0-9a-fA-F]{3,8}$/.test(hex)) return;
+        document.getElementById('brandColorPicker').value = hex;
+        document.getElementById('brandColorHex').value = hex;
+        document.getElementById('brandSwatchBox').style.borderColor = hex;
+        // Update preset active states
+        document.querySelectorAll('.brand-preset').forEach(p => {
+          p.classList.toggle('active', p.style.background.toLowerCase() === hex.toLowerCase()
+            || '#' + p.style.backgroundColor.match(/\d+/g)?.map(n => (+n).toString(16).padStart(2,'0')).join('') === hex.toLowerCase());
+        });
+        updateBrandPreview();
+      }
+
+      // Build a logo URL from a company domain — Google Favicon primary, DuckDuckGo fallback
+      function getLogoUrl(domain) {
+        if (!domain) return null;
+        domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim().toLowerCase();
+        if (!domain || !domain.includes('.')) return null;
+        return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+      }
+      function getFallbackLogoUrl(domain) {
+        if (!domain) return null;
+        domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim().toLowerCase();
+        if (!domain || !domain.includes('.')) return null;
+        return `https://icons.duckduckgo.com/ip3/${domain}.ico`;
+      }
+
+      function updateBrandPreview() {
+        const name = document.getElementById('brandName').value.trim() || 'Preview';
+        const color = document.getElementById('brandColorPicker').value;
+        const domain = document.getElementById('brandDomain').value.trim();
+        const logoUrl = getLogoUrl(domain);
+
+        document.getElementById('brandPreviewName').textContent = name;
+        const logoEl = document.getElementById('brandPreviewLogo');
+        logoEl.style.background = color;
+
+        const statusEl = document.getElementById('brandLogoStatus');
+
+        if (logoUrl) {
+          const fallback = getFallbackLogoUrl(domain);
+          // Set the preview logo with fallback chain
+          logoEl.innerHTML = `<img src="${logoUrl}" style="width:22px;height:22px;object-fit:contain;border-radius:4px;"
+            onerror="this.onerror=function(){this.onerror=null;this.style.display='none';this.parentNode.textContent='${name.charAt(0).toUpperCase()}';}; this.src='${fallback || ''}';" />`;
+          // Also update the status indicator
+          statusEl.innerHTML = `<img src="${logoUrl}" style="width:24px;height:24px;object-fit:contain;border-radius:4px;"
+            onerror="this.onerror=function(){this.onerror=null;this.parentNode.innerHTML='<span class=\\'text-xs text-muted-foreground\\'>✗</span>';}; this.src='${fallback || ''}';" />`;
+        } else {
+          logoEl.textContent = name.charAt(0).toUpperCase();
+          statusEl.innerHTML = '<span class="text-xs text-muted-foreground">—</span>';
+        }
+
+        // Update the Apply button color
+        const applyBtn = document.querySelector('.brand-actions button:first-child');
+        if (applyBtn) applyBtn.style.background = color;
+      }
+
+      // Listen for live preview on name input
+      document.getElementById('brandName').addEventListener('input', updateBrandPreview);
+
+      function applyBranding() {
+        if (brandStudioIndex < 0) return;
+        const d = demos[brandStudioIndex];
+        const card = document.querySelector(`.demo-card[data-index="${brandStudioIndex}"]`);
+        const name = document.getElementById('brandName').value.trim();
+        const color = document.getElementById('brandColorPicker').value;
+        const domain = document.getElementById('brandDomain').value.trim().replace(/^https?:\/\//, '').replace(/\/.*$/, '').toLowerCase();
+
+        // Store on the card
+        if (name && name !== d.defaultBrand) card.dataset.customBrand = name;
+        else delete card.dataset.customBrand;
+        if (color && color !== '#6366f1') card.dataset.customColor = color;
+        else delete card.dataset.customColor;
+        if (domain && domain.includes('.')) card.dataset.customDomain = domain;
+        else delete card.dataset.customDomain;
+
+        // Update the card footer to show branding state
+        const footer = card.querySelector('.demo-card-footer span');
+        if (footer) {
+          if (name && name !== d.defaultBrand) {
+            footer.innerHTML = `<button onclick="event.stopPropagation();openBrandStudio(${brandStudioIndex})" style="display:inline-flex;align-items:center;gap:4px;padding:2px 6px;border-radius:6px;border:1px solid var(--border);background:var(--background);cursor:pointer;transition:all .15s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'" title="Edit branding"><span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block;"></span><span style="font-size:11px;font-weight:600;color:var(--foreground);">${name}</span></button>`;
+          } else {
+            footer.innerHTML = defaultBrandBtn(brandStudioIndex);
+          }
+        }
+
+        // Also tint the card banner slightly
+        const banner = card.querySelector('.demo-card-banner');
+        if (banner && color !== '#6366f1') {
+          banner.style.background = `linear-gradient(135deg, ${color}, ${color}cc)`;
+        } else if (banner) {
+          banner.style.background = d.bannerGradient;
+        }
+
+        // Launch the demo immediately
+        let url = buildPageUrl(d.url);
+        const params = [];
+        if (card.dataset.customBrand) params.push('brand=' + encodeURIComponent(card.dataset.customBrand));
+        if (card.dataset.customColor) params.push('color=' + encodeURIComponent(card.dataset.customColor));
+        if (card.dataset.customDomain) params.push('domain=' + encodeURIComponent(card.dataset.customDomain));
+        if (params.length) url += (url.includes('?') ? '&' : '?') + params.join('&');
+        // Track branding
+        if (typeof coveTrack === 'function') coveTrack('brand_customized', { demo: d.title, brand: name || '(default)', domain: domain || '', color: color || '' });
+        window.open(url, '_blank');
+
+        closeBrandStudio();
+      }
+
+      function resetBranding() {
+        if (brandStudioIndex < 0) return;
+        const d = demos[brandStudioIndex];
+        const card = document.querySelector(`.demo-card[data-index="${brandStudioIndex}"]`);
+        delete card.dataset.customBrand;
+        delete card.dataset.customColor;
+        delete card.dataset.customDomain;
+
+        // Reset card appearance
+        const footer = card.querySelector('.demo-card-footer span');
+        if (footer) footer.innerHTML = defaultBrandBtn(brandStudioIndex);
+        const banner = card.querySelector('.demo-card-banner');
+        if (banner) banner.style.background = d.bannerGradient;
+
+        // Reset form
+        document.getElementById('brandName').value = d.defaultBrand || '';
+        setBrandColor('#6366f1');
+        document.getElementById('brandDomain').value = '';
+        updateBrandPreview();
+      }
+
+      function defaultBrandBtn(idx) {
+        return `<button onclick="event.stopPropagation();openBrandStudio(${idx})" style="display:inline-flex;align-items:center;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);cursor:pointer;transition:all .15s;line-height:0;" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--foreground)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted-foreground)'" title="Branding Studio"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><circle cx="7.5" cy="10" r="1.5" fill="currentColor"/><circle cx="12" cy="7" r="1.5" fill="currentColor"/><circle cx="16.5" cy="10" r="1.5" fill="currentColor"/></svg></button>`;
+      }
+
+      // Keyboard: close on Escape, submit on Enter
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && brandStudioIndex >= 0) closeBrandStudio();
+        if (e.key === 'Enter' && brandStudioIndex >= 0 && document.getElementById('brandOverlay').classList.contains('open')) applyBranding();
+      });
       // Floating particles
       document.querySelectorAll('.hero-particle').forEach(p => {
         gsap.to(p, {
@@ -702,5 +1055,20 @@
     
   
     
+  
+    <!-- Compliance Cove Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';
+    var M=document.querySelector('meta[name="cove-demo"]');
+    var D=M?M.getAttribute('content'):(document.title.split('\u2014')[0].trim()||'unknown');
+    var P=new URLSearchParams(location.search);
+    var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
+    window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
+    headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,
+    demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,
+    domain:d.domain||DM,address:d.address||'',filter:d.filter||'',
+    viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};
+    addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
+    </script>
   </body>
 </html>
