@@ -393,8 +393,12 @@ Tools that make **every existing demo** more powerful during live customer calls
 ### T2. 📋 SA Presenter Mode + Guided Tour `tour.js`
 **Priority:** 🔥 HIGH — Turns every demo into a guided pitch  
 **Effort:** ~4–5 hours  
-**Status:** ⬜ Not started (placeholder saved at `tracking/tour.js`)  
+**Status:** 🟡 Hub landing tour shipped. Per-demo tours not started (placeholder saved at `tracking/tour.js`)  
 **Goal:** React Joyride-style guided walkthrough in vanilla JS. SAs/CSMs/AEs can practice the demo flow before customer calls. A "?" button in the nav triggers the tour.
+
+✅ **Hub guided tour shipped (`compliance-cove.html`):** the top-right "Solutions Architecture" text was replaced with an **(i) "How to use"** info button that launches a JoyRide-style tour (native JS/CSS, no deps). Spotlight cutout via a single `box-shadow: 0 0 0 9999px` element, a floating tooltip that auto-positions (top/right/bottom/left with viewport clamping), step dots + counter, Next/Back/Skip/Finish, and keyboard nav (→ ← Esc). Five steps walk the flow: welcome → filter the coves → pick a cove → brand it (Branding Studio icon) → launch in a new tab. The bottom "How to Use These Demos" boxes were removed and that copy was folded into the landing hero. Fires `tour_started` / `tour_ended` analytics. The engine is a good basis for the per-demo `tour.js` below.
+
+> **Copy convention:** No em-dashes in any cove copy. A sweep removed all `—` across every demo HTML + `addresses.js` + `kyt-transactions.js` (inline em-dashes → commas, decorative option placeholders stripped, value placeholders → `-`, analytics `title.split` updated). Keep new copy em-dash free.
 
 **Architecture (vanilla JS, no React needed):**
 - `tourSteps[]` array per demo — each step defines `target` (CSS selector), `title`, `text`, `position`

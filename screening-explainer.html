@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="cove-demo" content="Screening API Walkthrough" />
-    <title>Address Screening API Walkthrough — Chainalysis</title>
+    <title>Address Screening API Walkthrough, Chainalysis</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <style>
@@ -85,7 +85,7 @@
       <div class="step-card" style="padding:24px;margin-bottom:24px;border-left:4px solid var(--ch-teal);">
         <h2 class="text-base font-bold" style="color:var(--ch-navy);">What is Address Screening?</h2>
         <p class="text-sm" style="color:var(--muted-foreground);line-height:1.7;margin-top:8px;">
-          <strong>Address Screening</strong> is the simplest Chainalysis API — <strong>one endpoint, one call</strong>. Pass in any blockchain address and get back a complete risk assessment: risk level, entity identifications, on-chain exposure breakdown, and any compliance rules that triggered. Use it to gate wallet connections, onboarding, deposits, or any point where a new address enters your platform.
+          <strong>Address Screening</strong> is the simplest Chainalysis API, <strong>one endpoint, one call</strong>. Pass in any blockchain address and get back a complete risk assessment: risk level, entity identifications, on-chain exposure breakdown, and any compliance rules that triggered. Use it to gate wallet connections, onboarding, deposits, or any point where a new address enters your platform.
         </p>
         <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;padding:14px 0 4px;">
           <span style="padding:8px 14px;border-radius:8px;font-size:11px;font-weight:600;white-space:nowrap;background:rgba(15,48,87,0.06);color:var(--ch-blue);">New address appears</span>
@@ -119,7 +119,7 @@
               View API Call
             </button>
             <div class="code-block has-response" id="code-1">
-<span class="code-comment">// Screen any blockchain address — one call, full assessment</span>
+<span class="code-comment">// Screen any blockchain address, one call, full assessment</span>
 <span class="code-method">GET</span> <span class="code-url">/api/risk/v2/entities/{address}</span>
 
 <span class="code-comment">// Example</span>
@@ -134,7 +134,7 @@
               Simulate API Call
             </button>
             <div class="code-response" id="resp-code-1">
-<span class="code-comment">// Response — complete risk assessment</span>
+<span class="code-comment">// Response, complete risk assessment</span>
 {
   <span class="code-key">"address"</span>:     <span class="code-string">"0x098B716B8Aaf21512996dC57EB0615e2383E2f96"</span>,
   <span class="code-key">"risk"</span>:        <span class="code-string">"Severe"</span>,
@@ -151,7 +151,7 @@
     {
       <span class="code-key">"name"</span>:        <span class="code-string">"Lazarus Group"</span>,
       <span class="code-key">"category"</span>:    <span class="code-string">"sanctions"</span>,
-      <span class="code-key">"description"</span>: <span class="code-string">"OFAC SDN — North Korean state-sponsored hacking group. Responsible for the Ronin Bridge exploit ($625M)."</span>
+      <span class="code-key">"description"</span>: <span class="code-string">"OFAC SDN, North Korean state-sponsored hacking group. Responsible for the Ronin Bridge exploit ($625M)."</span>
     }
   ],
 
@@ -187,7 +187,7 @@
 
             <!-- Risk Level -->
             <div style="padding:14px 18px;border-radius:10px;background:var(--muted);margin-bottom:16px;">
-              <p class="text-xs font-bold" style="color:var(--ch-navy);margin-bottom:10px;">Risk Level — The top-line verdict</p>
+              <p class="text-xs font-bold" style="color:var(--ch-navy);margin-bottom:10px;">Risk Level, The top-line verdict</p>
               <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
                 <div style="padding:8px;border-radius:8px;background:rgba(22,163,106,0.06);border:1px solid rgba(22,163,106,0.15);text-align:center;">
                   <p class="text-sm font-bold" style="color:#16a34a;">Low</p>
@@ -231,7 +231,7 @@
                 </tr>
                 <tr>
                   <td><code class="mono" style="font-size:11px;padding:1px 5px;border-radius:4px;background:var(--muted);">cluster</code></td>
-                  <td class="text-muted-foreground">If Chainalysis has identified who controls this address — the entity name and category</td>
+                  <td class="text-muted-foreground">If Chainalysis has identified who controls this address, the entity name and category</td>
                   <td><span class="mono text-xs">{ "name": "Binance.com", "category": "exchange" }</span></td>
                 </tr>
                 <tr>
@@ -246,7 +246,7 @@
                 </tr>
                 <tr>
                   <td><code class="mono" style="font-size:11px;padding:1px 5px;border-radius:4px;background:var(--muted);">triggers</code></td>
-                  <td class="text-muted-foreground">Which compliance rules fired and at what threshold — drives the risk level</td>
+                  <td class="text-muted-foreground">Which compliance rules fired and at what threshold, drives the risk level</td>
                   <td><span class="mono text-xs">[{ "category": "sanctioned entity", "percentage": 100 }]</span></td>
                 </tr>
               </tbody>
@@ -254,7 +254,7 @@
 
             <div class="callout callout-prospect" style="margin-top:16px;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ch-teal)" stroke-width="2" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              <p class="text-xs" style="color:var(--ch-teal);line-height:1.6;"><strong>Direct vs Indirect exposure:</strong> <strong>Direct</strong> means the counterparty itself IS a risky entity (e.g., funds came directly from a sanctioned wallet). <strong>Indirect</strong> means funds passed through a risky entity upstream — one or more hops away. Both matter for compliance, but direct exposure is more severe.</p>
+              <p class="text-xs" style="color:var(--ch-teal);line-height:1.6;"><strong>Direct vs Indirect exposure:</strong> <strong>Direct</strong> means the counterparty itself IS a risky entity (e.g., funds came directly from a sanctioned wallet). <strong>Indirect</strong> means funds passed through a risky entity upstream, one or more hops away. Both matter for compliance, but direct exposure is more severe.</p>
             </div>
           </div>
         </div>
@@ -265,7 +265,7 @@
             <div class="step-num" style="background:linear-gradient(135deg,var(--ch-blue),var(--ch-teal));">3</div>
             <div style="flex:1;">
               <h3 class="text-base font-bold">Make a Decision</h3>
-              <p class="text-sm text-muted-foreground" style="margin-top:4px;line-height:1.6;">Based on the risk level and your compliance policy, your platform takes action. Here's a typical decision matrix — your compliance team configures the exact thresholds.</p>
+              <p class="text-sm text-muted-foreground" style="margin-top:4px;line-height:1.6;">Based on the risk level and your compliance policy, your platform takes action. Here's a typical decision matrix, your compliance team configures the exact thresholds.</p>
             </div>
           </div>
           <div class="step-body">

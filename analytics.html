@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="cove-demo" content="Analytics Dashboard" />
-    <title>Analytics — Compliance Cove</title>
+    <title>Analytics, Compliance Cove</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <style>
@@ -93,7 +93,7 @@
     }
 
     function fmtTime(ts){
-      if(!ts)return'—';
+      if(!ts)return'-';
       try{return new Date(ts).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return ts;}
     }
 
@@ -131,7 +131,7 @@
       // ===== DEMO LAUNCHES + BRANDED PROSPECTS (key value showcase) =====
       h+='<div class="grid md:grid-cols-5 gap-4" style="margin-bottom:20px;">';
 
-      // Demo launches — shows exactly which demo was opened with what branding
+      // Demo launches, shows exactly which demo was opened with what branding
       h+='<div class="a-card md:col-span-3"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-teal);">Demo Launches</span><span class="text-xs mono text-muted-foreground">'+launches.length+' total</span><div class="section-head-line"></div></div>';
       if(launches.length){
         h+='<div style="max-height:320px;overflow-y:auto;">';
@@ -157,7 +157,7 @@
       }
       h+='</div>';
 
-      // Branded prospects — which companies are being targeted
+      // Branded prospects, which companies are being targeted
       h+='<div class="a-card md:col-span-2"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:var(--ch-orange);">Prospect Pipeline</span><div class="section-head-line"></div></div>';
       if(brandNames.length){
         brandNames.forEach(function(b){

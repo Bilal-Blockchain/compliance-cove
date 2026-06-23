@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="cove-demo" content="Hub" />
-    <title>Compliance Cove — Chainalysis Demo Hub</title>
+    <title>Compliance Cove, Chainalysis Demo Hub</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
     <style>
@@ -168,23 +168,33 @@
       }
 
       /* ---- Footer ---- */
-      /* ---- How-to step cards ---- */
-      .how-step {
-        transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
-        cursor: default;
+      /* ---- Guided Tour (JoyRide-style) ---- */
+      #tourSpotlight {
+        position: absolute; z-index: 9998; border-radius: 12px;
+        box-shadow: 0 0 0 9999px rgba(8,16,30,0.74);
+        border: 2px solid rgba(45,159,143,0.95);
+        pointer-events: none;
+        transition: top .35s cubic-bezier(.16,1,.3,1), left .35s cubic-bezier(.16,1,.3,1), width .35s cubic-bezier(.16,1,.3,1), height .35s cubic-bezier(.16,1,.3,1);
       }
-      .how-step:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-        background: var(--card);
+      #tourTooltip {
+        position: absolute; z-index: 9999; width: 320px; max-width: calc(100vw - 32px);
+        background: var(--card); color: var(--card-foreground);
+        border: 1px solid var(--border); border-radius: 14px;
+        box-shadow: 0 24px 70px rgba(0,0,0,0.4); padding: 18px;
+        transition: top .35s cubic-bezier(.16,1,.3,1), left .35s cubic-bezier(.16,1,.3,1);
       }
-      .how-step:hover .how-step-icon {
-        transform: scale(1.1);
-        transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-      }
-      .how-step-icon {
-        transition: transform 0.25s ease;
-      }
+      #tourTooltip .tour-step-num { font-size: 11px; font-weight: 700; color: var(--primary); letter-spacing: .5px; text-transform: uppercase; }
+      #tourTooltip h4 { font-size: 15px; font-weight: 800; margin: 6px 0; }
+      #tourTooltip p { font-size: 13px; line-height: 1.55; color: var(--muted-foreground); margin: 0; }
+      .tour-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; gap: 8px; }
+      .tour-dots { display: flex; gap: 5px; }
+      .tour-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: all .2s; }
+      .tour-dot.active { background: var(--primary); transform: scale(1.25); }
+      .tour-btns { display: flex; gap: 6px; align-items: center; }
+      .tour-btn { font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; border: 1px solid var(--border); background: var(--background); color: var(--foreground); transition: all .15s; }
+      .tour-btn:hover { border-color: var(--primary); }
+      .tour-btn.primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+      .tour-skip { font-size: 11px; color: var(--muted-foreground); cursor: pointer; background: none; border: none; text-decoration: underline; }
 
       .cove-footer {
         border-top: 1px solid var(--border);
@@ -305,7 +315,13 @@
             </svg>
             <span style="color:white;font-size:13px;font-weight:600;opacity:0.7;">CHAINALYSIS</span>
           </div>
-          <span style="color:rgba(255,255,255,0.4);font-size:12px;">Solutions Architecture</span>
+          <button id="tourBtn" onclick="startTour()" aria-label="How to use Compliance Cove" title="Take a quick guided tour"
+            style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.28);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.88);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;backdrop-filter:blur(6px);"
+            onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.borderColor='rgba(255,255,255,0.5)'"
+            onmouseout="this.style.background='rgba(255,255,255,0.08)';this.style.borderColor='rgba(255,255,255,0.28)'">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            How to use
+          </button>
         </div>
 
         <!-- Title -->
@@ -314,7 +330,7 @@
             Compliance<br/>Cove
           </h1>
           <p class="hero-subtitle" style="opacity:0;font-size:16px;color:rgba(255,255,255,0.65);margin-top:16px;line-height:1.6;">
-            Interactive demos showing how Chainalysis compliance products integrate into real-world platforms. Each cove is a fully functional prototype — connect wallets, screen addresses, monitor transactions, and see alerts in action.
+            Interactive, industry specific demos that show how Chainalysis compliance products fit into real platforms. Each cove is a fully functional prototype where you can connect wallets, screen addresses, monitor transactions, and see alerts fire on live Chainalysis APIs. Open a cove, brand it for your prospect, and walk them through exactly how compliance fits their product experience. New here? Tap How to use for a guided tour.
           </p>
         </div>
 
@@ -361,43 +377,13 @@
       <div class="demo-grid" id="demoGrid">
         <!--
           ============================================================
-          DEMO CARD CONFIG — Edit the `demos` array in the <script>
+          DEMO CARD CONFIG, Edit the `demos` array in the <script>
           section below to add, remove, or reorder demos.
           Each card is rendered from that array automatically.
           ============================================================
         -->
       </div>
 
-      <!-- How it works -->
-      <div style="margin-top:48px;" class="rounded-xl bg-card text-card-foreground ring-1 ring-foreground/10 flex flex-col gap-4 py-4 how-section" style="opacity:0;">
-        <div class="px-4">
-          <h2 class="text-base font-semibold">How to Use These Demos</h2>
-          <p class="text-sm text-muted-foreground mt-1">Each demo is a standalone interactive prototype you can walk through with a customer.</p>
-        </div>
-        <div class="px-4 grid grid-cols-3 gap-4">
-          <div class="rounded-lg bg-muted p-3 space-y-2 how-step">
-            <div class="how-step-icon" style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;">
-              <span style="color:white;font-size:13px;font-weight:800;">1</span>
-            </div>
-            <p class="text-sm font-medium">Open the Demo</p>
-            <p class="text-xs text-muted-foreground">Click any active cove to launch the interactive prototype in a new tab.</p>
-          </div>
-          <div class="rounded-lg bg-muted p-3 space-y-2 how-step">
-            <div class="how-step-icon" style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2d9f8f,#22c55e);display:flex;align-items:center;justify-content:center;">
-              <span style="color:white;font-size:13px;font-weight:800;">2</span>
-            </div>
-            <p class="text-sm font-medium">Walk Through the Flow</p>
-            <p class="text-xs text-muted-foreground">Connect wallets, submit transactions, and trigger compliance workflows — all with real Chainalysis APIs.</p>
-          </div>
-          <div class="rounded-lg bg-muted p-3 space-y-2 how-step">
-            <div class="how-step-icon" style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;">
-              <span style="color:white;font-size:13px;font-weight:800;">3</span>
-            </div>
-            <p class="text-sm font-medium">Show the Customer</p>
-            <p class="text-xs text-muted-foreground">Use during calls to demonstrate exactly how our products fit into their platform's user experience.</p>
-          </div>
-        </div>
-      </div>
     </div>
 
 
@@ -454,7 +440,7 @@
             <div class="flex gap-2 items-center">
               <input id="brandDomain" type="text" placeholder="e.g. coinbase.com, chase.com" class="h-10 flex-1 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" oninput="updateBrandPreview()" />
               <div id="brandLogoStatus" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
-                <span class="text-xs text-muted-foreground">—</span>
+                <span class="text-xs text-muted-foreground">-</span>
               </div>
             </div>
             <p class="text-xs text-muted-foreground" style="margin-top:4px;">Enter a domain and the logo auto-loads. Leave blank for a letter icon.</p>
@@ -492,7 +478,7 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="currentColor" width="16" height="16" class="text-muted-foreground">
             <path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/>
           </svg>
-          <span class="text-xs text-muted-foreground">Compliance Cove — Chainalysis Solutions Architecture</span>
+          <span class="text-xs text-muted-foreground">Compliance Cove, Chainalysis Solutions Architecture</span>
         </div>
         <div class="flex items-center gap-3">
           <a onclick="window.open(buildPageUrl('analytics.html'),'_blank')" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--muted-foreground);cursor:pointer;text-decoration:none;opacity:0.6;transition:opacity .15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'">
@@ -509,7 +495,7 @@
     <script src="/assets/gsap.min.js"></script>
     <script>
       // ===========================================================
-      // DEMO REGISTRY — Add new demos here!
+      // DEMO REGISTRY, Add new demos here!
       //
       // Each object defines a card on the page.
       // Set status to "active" when a demo is ready, and provide
@@ -524,7 +510,7 @@
           title: 'DeFi Trading',
           status: 'active',
           url: 'demochain.html',
-          description: 'A full DeFi exchange with wallet connect, token swaps, deposits, and withdrawals — all with live Chainalysis compliance checks.',
+          description: 'A full DeFi exchange with wallet connect, token swaps, deposits, and withdrawals, all with live Chainalysis compliance checks.',
           products: ['Address Screening', 'KYT'],
           industry: 'DeFi / DEX',
           bannerGradient: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
@@ -536,7 +522,7 @@
           title: 'Banking',
           status: 'active',
           url: 'banking-demo.html',
-          description: 'The Crypto Readiness Journey — a 5-stage walkthrough showing how banks adopt crypto compliance, from training and VASP due diligence to asset monitoring, transaction screening, and fraud prevention.',
+          description: 'The Crypto Readiness Journey, a 5-stage walkthrough showing how banks adopt crypto compliance, from training and VASP due diligence to asset monitoring, transaction screening, and fraud prevention.',
           products: ['VASP Risking', 'Entity Monitoring', 'KYT', 'Data Solutions', 'Alterya'],
           industry: 'Banking / Fintech',
           bannerGradient: 'linear-gradient(135deg, #0f3057, #1a6b6a)',
@@ -548,7 +534,7 @@
           title: 'Merchant Services',
           status: 'active',
           url: 'merchant-demo.html',
-          description: 'A storefront with a crypto payment portal — showcases real-time transaction screening at checkout before order fulfillment.',
+          description: 'A storefront with a crypto payment portal, showcases real-time transaction screening at checkout before order fulfillment.',
           products: ['KYT', 'Address Screening'],
           industry: 'Payments / E-Commerce',
           bannerGradient: 'linear-gradient(135deg, #f97316, #ea580c)',
@@ -560,7 +546,7 @@
           title: 'Exchange Onboarding',
           status: 'active',
           url: 'exchange-demo.html',
-          description: 'A centralized exchange new-user onboarding flow — account creation, KYC, wallet linking, first deposit screening, and counterparty VASP risk assessment.',
+          description: 'A centralized exchange new-user onboarding flow, account creation, KYC, wallet linking, first deposit screening, and counterparty VASP risk assessment.',
           products: ['Address Screening', 'KYT', 'VASP Risking'],
           industry: 'Crypto Exchange',
           bannerGradient: 'linear-gradient(135deg, #4f46e5, #6366f1)',
@@ -572,7 +558,7 @@
           title: 'Digital Marketplace',
           status: 'active',
           url: 'nft-demo.html',
-          description: 'An NFT marketplace with wallet connect and compliance screening — flag sanctioned wallets before they can mint, buy, or list.',
+          description: 'An NFT marketplace with wallet connect and compliance screening, flag sanctioned wallets before they can mint, buy, or list.',
           products: ['Address Screening'],
           industry: 'Digital Assets / Collectibles',
           bannerGradient: 'linear-gradient(135deg, #e11d48, #be123c)',
@@ -584,7 +570,7 @@
           title: 'Crypto ATM',
           status: 'active',
           url: 'atm-demo.html',
-          description: 'A Bitcoin ATM kiosk interface — screens destination wallets on withdrawal and enforces daily limits based on risk scoring.',
+          description: 'A Bitcoin ATM kiosk interface, screens destination wallets on withdrawal and enforces daily limits based on risk scoring.',
           products: ['KYT', 'Address Screening'],
           industry: 'ATM / Kiosk',
           bannerGradient: 'linear-gradient(135deg, #eab308, #ca8a04)',
@@ -596,7 +582,7 @@
           title: 'Gaming / Creator Economy',
           status: 'active',
           url: 'gaming-demo.html',
-          description: 'A Roblox/Fortnite-style platform with crypto rewards and in-game marketplace — screen player wallets, monitor reward payouts, and detect fraudulent accounts.',
+          description: 'A Roblox/Fortnite-style platform with crypto rewards and in-game marketplace, screen player wallets, monitor reward payouts, and detect fraudulent accounts.',
           products: ['Address Screening', 'KYT'],
           industry: 'Gaming / Web3',
           bannerGradient: 'linear-gradient(135deg, #7c3aed, #a855f7)',
@@ -608,7 +594,7 @@
           title: 'Smart Contract Security',
           status: 'in-dev',
           url: 'hexagate-demo.html',
-          description: 'A DeFi protocol security dashboard — real-time smart contract monitoring, address risk analysis, transaction simulation, and threat detection alerts.',
+          description: 'A DeFi protocol security dashboard, real-time smart contract monitoring, address risk analysis, transaction simulation, and threat detection alerts.',
           products: ['Hexagate'],
           industry: 'DeFi / Protocols',
           bannerGradient: 'linear-gradient(135deg, #0ea5e9, #0284c7)',
@@ -619,7 +605,7 @@
           title: 'Insurance Claim Verification',
           status: 'coming-soon',
           url: null,
-          description: 'An insurance investigations console — trace crypto assets in claims, verify fund origins, identify fraudulent patterns, and assess policyholder risk exposure.',
+          description: 'An insurance investigations console, trace crypto assets in claims, verify fund origins, identify fraudulent patterns, and assess policyholder risk exposure.',
           products: ['Reactor', 'KYT', 'Address Screening'],
           industry: 'Insurance / Investigations',
           bannerGradient: 'linear-gradient(135deg, #0f766e, #14b8a6)',
@@ -630,7 +616,7 @@
           title: 'P2P Marketplace',
           status: 'coming-soon',
           url: null,
-          description: 'A peer-to-peer exchange where buyers and sellers trade directly — demonstrates counterparty risk screening and transfer monitoring.',
+          description: 'A peer-to-peer exchange where buyers and sellers trade directly, demonstrates counterparty risk screening and transfer monitoring.',
           products: ['Address Screening', 'KYT'],
           industry: 'P2P Exchange',
           bannerGradient: 'linear-gradient(135deg, #22c55e, #16a34a)',
@@ -642,7 +628,7 @@
           title: 'Stablecoin Issuer',
           status: 'in-dev',
           url: 'stablecoin-demo.html',
-          description: 'An issuer intelligence console for USDM — track in/out flows, cross-chain bridge & swap attribution, and whale activity with Data Solutions; gate mints with Address Screening; and run the on-chain sanctions freeze workflow.',
+          description: 'An issuer intelligence console for USDM, track in/out flows, cross-chain bridge & swap attribution, and whale activity with Data Solutions; gate mints with Address Screening; and run the on-chain sanctions freeze workflow.',
           products: ['Data Solutions', 'KYT', 'Address Screening', 'Reactor'],
           industry: 'Stablecoins / Treasury',
           bannerGradient: 'linear-gradient(135deg, #059669, #10b981)',
@@ -654,7 +640,7 @@
           title: 'Remittance / Money Transfer',
           status: 'active',
           url: 'remittance-demo.html',
-          description: 'A cross-border payment app with crypto rails — screen transfer corridors for sanctions, verify recipient wallets, and enforce travel rule compliance on every send.',
+          description: 'A cross-border payment app with crypto rails, screen transfer corridors for sanctions, verify recipient wallets, and enforce travel rule compliance on every send.',
           products: ['KYT', 'Address Screening'],
           industry: 'Payments / Fintech',
           bannerGradient: 'linear-gradient(135deg, #dc2626, #f43f5e)',
@@ -666,7 +652,7 @@
           title: 'Prediction Markets',
           status: 'in-dev',
           url: 'prediction-demo.html',
-          description: 'A Polymarket-style prediction market with wash trading detection — self-trades, round trips, A-B-A patterns, and multi-trade wash identification using Chainalysis Data Solutions.',
+          description: 'A Polymarket-style prediction market with wash trading detection, self-trades, round trips, A-B-A patterns, and multi-trade wash identification using Chainalysis Data Solutions.',
           products: ['Data Solutions'],
           industry: 'Prediction Markets',
           bannerGradient: 'linear-gradient(135deg, #0891b2, #06b6d4)',
@@ -678,7 +664,7 @@
           title: 'Trading Firm / Market Maker',
           status: 'in-dev',
           url: 'trading-firm-demo.html',
-          description: 'A Bloomberg-style trading desk for institutional market makers — portfolio positions, protocol risk monitoring (Hexagate), token exposure analytics (Data Solutions), counterparty screening, and compliance reporting.',
+          description: 'A Bloomberg-style trading desk for institutional market makers, portfolio positions, protocol risk monitoring (Hexagate), token exposure analytics (Data Solutions), counterparty screening, and compliance reporting.',
           products: ['Hexagate', 'Data Solutions', 'KYT', 'Address Screening'],
           industry: 'Trading / Market Making',
           bannerGradient: 'linear-gradient(135deg, #1e293b, #334155)',
@@ -690,7 +676,7 @@
           title: 'Address Screener',
           status: 'active',
           url: 'screener.html',
-          description: 'Paste any blockchain address and get a full Chainalysis risk assessment — risk level, exposure breakdown, entity identifications, triggered rules, and Reactor graph link.',
+          description: 'Paste any blockchain address and get a full Chainalysis risk assessment, risk level, exposure breakdown, entity identifications, triggered rules, and Reactor graph link.',
           products: ['Address Screening', 'Resources'],
           industry: 'SA Tool',
           bannerGradient: 'linear-gradient(135deg, #0f3057, #1a6b6a)',
@@ -701,7 +687,7 @@
           title: 'Screening API Walkthrough',
           status: 'active',
           url: 'screening-explainer.html',
-          description: 'One endpoint, one call — the complete Address Screening API explained step-by-step. Risk levels, exposure analysis, entity identifications, triggered rules, and a decision matrix.',
+          description: 'One endpoint, one call, the complete Address Screening API explained step-by-step. Risk levels, exposure analysis, entity identifications, triggered rules, and a decision matrix.',
           products: ['Address Screening', 'Resources'],
           industry: 'API Guide',
           bannerGradient: 'linear-gradient(135deg, #0c1e3a, #1a6b6a)',
@@ -712,7 +698,7 @@
           title: 'KYT API Walkthrough',
           status: 'active',
           url: 'kyt-explainer.html',
-          description: 'Step-by-step visual guide to the KYT API — from creating users and registering transfers to monitoring alerts and pre-screening withdrawals. Includes code snippets.',
+          description: 'Step-by-step visual guide to the KYT API, from creating users and registering transfers to monitoring alerts and pre-screening withdrawals. Includes code snippets.',
           products: ['KYT', 'Resources'],
           industry: 'API Guide',
           bannerGradient: 'linear-gradient(135deg, #1a6b6a, #2d9f8f)',
@@ -726,7 +712,7 @@
       const grid = document.getElementById('demoGrid');
 
       // ===========================================================
-      // URL BUILDER — constructs session-scoped page URLs
+      // URL BUILDER, constructs session-scoped page URLs
       // ===========================================================
       function buildPageUrl(filePath) {
        const loc = window.location;
@@ -840,9 +826,6 @@
       // Cards stagger
       tl.fromTo('.demo-card', { opacity: 0, y: 25 }, { opacity: d => demos[d].status === 'active' ? 1 : 0.65, y: 0, duration: 0.5, stagger: 0.08 }, '-=0.4');
 
-      // How section
-      tl.to('.how-section', { opacity: 1, y: 0, duration: 0.5 }, '-=0.2');
-
       // Build filter chips from all unique products
       const allProducts = [...new Set(demos.flatMap(d => d.products))].sort();
       const filterBar = document.getElementById('filterBar');
@@ -913,7 +896,7 @@
         updateBrandPreview();
       }
 
-      // Build a logo URL from a company domain — Google Favicon primary, DuckDuckGo fallback
+      // Build a logo URL from a company domain, Google Favicon primary, DuckDuckGo fallback
       function getLogoUrl(domain) {
         if (!domain) return null;
         domain = domain.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim().toLowerCase();
@@ -949,7 +932,7 @@
             onerror="this.onerror=function(){this.onerror=null;this.parentNode.innerHTML='<span class=\\'text-xs text-muted-foreground\\'>✗</span>';}; this.src='${fallback || ''}';" />`;
         } else {
           logoEl.textContent = name.charAt(0).toUpperCase();
-          statusEl.innerHTML = '<span class="text-xs text-muted-foreground">—</span>';
+          statusEl.innerHTML = '<span class="text-xs text-muted-foreground">-</span>';
         }
 
         // Update the Apply button color
@@ -1038,6 +1021,121 @@
         if (e.key === 'Escape' && brandStudioIndex >= 0) closeBrandStudio();
         if (e.key === 'Enter' && brandStudioIndex >= 0 && document.getElementById('brandOverlay').classList.contains('open')) applyBranding();
       });
+      // =====================================================
+      // GUIDED TOUR (JoyRide-style, native JS/CSS)
+      // =====================================================
+      const TOUR_STEPS = [
+        { target: null, title: 'Welcome to Compliance Cove', text: 'A suite of interactive, industry specific demos that show how Chainalysis compliance products fit into real platforms. Here is the quick way to run one on a live call.' },
+        { target: '#filterBar', placement: 'bottom', title: 'Find the right cove', text: 'Filter the coves by product or industry so you can quickly land on the demo that matches your prospect.' },
+        { target: () => document.querySelector('.demo-card.active-demo'), placement: 'right', title: 'Pick a cove', text: 'Each card is a fully functional prototype. Click any live cove to explore the end to end compliance flow.' },
+        { target: () => document.querySelector('.demo-card.active-demo .demo-card-footer button'), placement: 'top', title: 'Brand it for your prospect', text: 'Open the Branding Studio from this icon to set the company name, brand color, and logo. The demo relaunches with their look and feel.' },
+        { target: () => document.querySelector('.demo-card.active-demo .demo-card-footer'), placement: 'top', title: 'Launch in a new tab', text: 'Launching opens the demo in a new browser tab so the live Chainalysis APIs can run outside the preview sandbox.' },
+      ];
+      let tourIndex = -1, tourEls = null;
+
+      function buildTourEls() {
+        if (tourEls) return tourEls;
+        const spot = document.createElement('div'); spot.id = 'tourSpotlight'; spot.style.display = 'none';
+        const tip = document.createElement('div'); tip.id = 'tourTooltip'; tip.style.display = 'none';
+        document.body.appendChild(spot); document.body.appendChild(tip);
+        tourEls = { spot, tip };
+        return tourEls;
+      }
+      function tourTarget(step) {
+        if (!step.target) return null;
+        return (typeof step.target === 'function') ? step.target() : document.querySelector(step.target);
+      }
+      function startTour() {
+        buildTourEls();
+        tourIndex = 0;
+        if (typeof coveTrack === 'function') coveTrack('tour_started', {});
+        renderTourStep();
+        window.addEventListener('resize', positionTour);
+        window.addEventListener('scroll', positionTour, true);
+      }
+      function endTour() {
+        if (tourIndex >= 0 && typeof coveTrack === 'function') coveTrack('tour_ended', { screen: 'step ' + (tourIndex + 1) });
+        tourIndex = -1;
+        if (tourEls) { tourEls.spot.style.display = 'none'; tourEls.tip.style.display = 'none'; }
+        window.removeEventListener('resize', positionTour);
+        window.removeEventListener('scroll', positionTour, true);
+      }
+      function tourNext() { if (tourIndex < TOUR_STEPS.length - 1) { tourIndex++; renderTourStep(); } else { endTour(); } }
+      function tourPrev() { if (tourIndex > 0) { tourIndex--; renderTourStep(); } }
+
+      function renderTourStep() {
+        const { tip } = buildTourEls();
+        const step = TOUR_STEPS[tourIndex];
+        const isLast = tourIndex === TOUR_STEPS.length - 1;
+        const dots = TOUR_STEPS.map((s, i) => `<span class="tour-dot ${i === tourIndex ? 'active' : ''}"></span>`).join('');
+        tip.innerHTML = `
+          <div class="tour-step-num">Step ${tourIndex + 1} of ${TOUR_STEPS.length}</div>
+          <h4>${step.title}</h4>
+          <p>${step.text}</p>
+          <div class="tour-actions">
+            <div class="tour-dots">${dots}</div>
+            <div class="tour-btns">
+              <button class="tour-skip" onclick="endTour()">Skip</button>
+              ${tourIndex > 0 ? '<button class="tour-btn" onclick="tourPrev()">Back</button>' : ''}
+              <button class="tour-btn primary" onclick="tourNext()">${isLast ? 'Finish' : 'Next'}</button>
+            </div>
+          </div>`;
+        tip.style.display = '';
+        const el = tourTarget(step);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(positionTour, el ? 320 : 0);
+      }
+
+      function positionTour() {
+        if (tourIndex < 0) return;
+        const { spot, tip } = tourEls;
+        const step = TOUR_STEPS[tourIndex];
+        const el = tourTarget(step);
+        const pad = 8, gap = 14;
+        if (!el) {
+          spot.style.display = 'none';
+          tip.style.position = 'fixed';
+          tip.style.top = '50%'; tip.style.left = '50%';
+          tip.style.transform = 'translate(-50%,-50%)';
+          return;
+        }
+        tip.style.transform = '';
+        tip.style.position = 'absolute';
+        const r = el.getBoundingClientRect();
+        const top = r.top + window.scrollY, left = r.left + window.scrollX;
+        spot.style.display = '';
+        spot.style.top = (top - pad) + 'px';
+        spot.style.left = (left - pad) + 'px';
+        spot.style.width = (r.width + pad * 2) + 'px';
+        spot.style.height = (r.height + pad * 2) + 'px';
+        const tw = tip.offsetWidth, th = tip.offsetHeight;
+        const place = step.placement || 'bottom';
+        let tTop, tLeft;
+        if (place === 'right' && r.right + gap + tw < window.innerWidth) {
+          tTop = top + r.height / 2 - th / 2; tLeft = left + r.width + gap;
+        } else if (place === 'top' && r.top - gap - th > 0) {
+          tTop = top - th - gap; tLeft = left + r.width / 2 - tw / 2;
+        } else if (place === 'left' && r.left - gap - tw > 0) {
+          tTop = top + r.height / 2 - th / 2; tLeft = left - tw - gap;
+        } else {
+          tTop = top + r.height + gap; tLeft = left + r.width / 2 - tw / 2;
+        }
+        const maxLeft = window.scrollX + window.innerWidth - tw - 12;
+        const minLeft = window.scrollX + 12;
+        tLeft = Math.max(minLeft, Math.min(tLeft, maxLeft));
+        tTop = Math.max(window.scrollY + 12, tTop);
+        tip.style.top = tTop + 'px';
+        tip.style.left = tLeft + 'px';
+      }
+
+      // Tour keyboard navigation
+      document.addEventListener('keydown', e => {
+        if (tourIndex < 0) return;
+        if (e.key === 'ArrowRight') { e.preventDefault(); tourNext(); }
+        else if (e.key === 'ArrowLeft') { e.preventDefault(); tourPrev(); }
+        else if (e.key === 'Escape') { e.preventDefault(); endTour(); }
+      });
+
       // Floating particles
       document.querySelectorAll('.hero-particle').forEach(p => {
         gsap.to(p, {

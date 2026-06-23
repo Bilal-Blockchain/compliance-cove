@@ -1,5 +1,5 @@
 // ============================================================
-// COMPLIANCE COVE — Pre-seeded Address Library
+// COMPLIANCE COVE, Pre-seeded Address Library
 // ============================================================
 // Curated addresses with known screening results for demos.
 // Each address tells a story that resonates during customer calls.
@@ -17,7 +17,7 @@ const DEMO_ADDRESSES = [
     address: '0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',
     risk: 'Low',
     network: 'ETH',
-    story: 'A normal DeFi user — bridge activity, DEX swaps, exchange deposits. Clean profile.',
+    story: 'A normal DeFi user, bridge activity, DEX swaps, exchange deposits. Clean profile.',
     category: 'low',
   },
   {
@@ -26,7 +26,7 @@ const DEMO_ADDRESSES = [
     address: '0x28C6c06298d514Db089934071355E5743bf21d60',
     risk: 'Low',
     network: 'ETH',
-    story: 'Major exchange hot wallet — identified as Binance.com. Low risk, fully attributed.',
+    story: 'Major exchange hot wallet, identified as Binance.com. Low risk, fully attributed.',
     category: 'low',
   },
   {
@@ -35,7 +35,7 @@ const DEMO_ADDRESSES = [
     address: '0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2',
     risk: 'Low',
     network: 'ETH',
-    story: 'FTX.com exchange wallet — still shows Low risk. Great for discussing how risk scores reflect on-chain data, not headlines.',
+    story: 'FTX.com exchange wallet, still shows Low risk. Great for discussing how risk scores reflect on-chain data, not headlines.',
     category: 'low',
   },
 
@@ -46,7 +46,7 @@ const DEMO_ADDRESSES = [
     address: '0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',
     risk: 'Medium',
     network: 'ETH',
-    story: 'Categorized as an unnamed service — $4M+ exposure. Medium risk because the service isn\'t identified. Common in real-world screening.',
+    story: 'Categorized as an unnamed service, $4M+ exposure. Medium risk because the service isn\'t identified. Common in real-world screening.',
     category: 'medium',
   },
   {
@@ -55,7 +55,7 @@ const DEMO_ADDRESSES = [
     address: '0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73',
     risk: 'Medium',
     network: 'ETH',
-    story: 'Private wallet with 0.14% direct stolen funds exposure — connected to a Bored Ape Yacht Club NFT theft. Small exposure, but the rule triggers.',
+    story: 'Private wallet with 0.14% direct stolen funds exposure, connected to a Bored Ape Yacht Club NFT theft. Small exposure, but the rule triggers.',
     category: 'medium',
   },
   {
@@ -64,7 +64,7 @@ const DEMO_ADDRESSES = [
     address: '0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',
     risk: 'Medium',
     network: 'ETH',
-    story: 'Tron founder\'s wallet — $46B+ total volume, Medium risk from indirect sanctioned jurisdiction exposure. Shows how even public figures trigger compliance rules.',
+    story: 'Tron founder\'s wallet, $46B+ total volume, Medium risk from indirect sanctioned jurisdiction exposure. Shows how even public figures trigger compliance rules.',
     category: 'medium',
   },
   {
@@ -73,7 +73,7 @@ const DEMO_ADDRESSES = [
     address: '0x0000000fe6a514a32abdcdfcc076c85243de899b',
     risk: 'Medium',
     network: 'ETH',
-    story: 'Major crypto market maker — Medium risk due to >2% direct stolen funds exposure from their $160M hack in 2022.',
+    story: 'Major crypto market maker, Medium risk due to >2% direct stolen funds exposure from their $160M hack in 2022.',
     category: 'medium',
   },
 
@@ -84,7 +84,7 @@ const DEMO_ADDRESSES = [
     address: '0x098B716B8Aaf21512996dC57EB0615e2383E2f96',
     risk: 'Severe',
     network: 'ETH',
-    story: 'OFAC SDN-listed North Korean state hacking group — Ronin Bridge exploiter ($625M). Blocked by Circle, Tether, and Binance. The textbook Severe case.',
+    story: 'OFAC SDN-listed North Korean state hacking group, Ronin Bridge exploiter ($625M). Blocked by Circle, Tether, and Binance. The textbook Severe case.',
     category: 'severe',
   },
   {
@@ -93,7 +93,7 @@ const DEMO_ADDRESSES = [
     address: '0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',
     risk: 'Severe',
     network: 'ETH',
-    story: 'OFAC-sanctioned mixing service — $10B+ total volume. Sanctioned in Aug 2022. Shows how an entire protocol can be designated.',
+    story: 'OFAC-sanctioned mixing service, $10B+ total volume. Sanctioned in Aug 2022. Shows how an entire protocol can be designated.',
     category: 'severe',
   },
   {
@@ -102,7 +102,7 @@ const DEMO_ADDRESSES = [
     address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
     risk: 'Severe',
     network: 'ETH',
-    story: 'Surprise! Vitalik\'s wallet shows Severe — because anyone can send tokens to a public address, including sanctioned entities. Perfect for discussing "dust attacks" and why context matters.',
+    story: 'Surprise! Vitalik\'s wallet shows Severe, because anyone can send tokens to a public address, including sanctioned entities. Perfect for discussing "dust attacks" and why context matters.',
     category: 'severe',
   },
 ];

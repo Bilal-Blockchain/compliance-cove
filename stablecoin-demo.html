@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="cove-demo" content="Stablecoin Issuer" />
     <meta name="color-scheme" content="light only" />
-    <title>Meridian — USDM Issuer Intelligence Console</title>
+    <title>Meridian, USDM Issuer Intelligence Console</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
     <script src="/assets/chart.min.js"></script>
@@ -178,7 +178,7 @@
       <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;">
         <div>
           <h1 style="font-size:26px;font-weight:900;letter-spacing:-.8px;"><span class="brandname">Meridian</span> Issuer Intelligence Console</h1>
-          <p style="font-size:13px;color:var(--m-muted);margin-top:4px;">Real-time ecosystem monitoring for <span class="mono" style="font-weight:700;">USDM</span> — powered by Chainalysis Data Solutions, KYT &amp; Address Screening.</p>
+          <p style="font-size:13px;color:var(--m-muted);margin-top:4px;">Real-time ecosystem monitoring for <span class="mono" style="font-weight:700;">USDM</span>, powered by Chainalysis Data Solutions, KYT &amp; Address Screening.</p>
         </div>
         <span class="m-pill" style="background:rgba(22,163,74,.1);color:var(--m-low);border-color:rgba(22,163,74,.2);"><span style="width:7px;height:7px;border-radius:50%;background:var(--m-low);display:inline-block;"></span> Peg stable · $1.0001</span>
       </div>
@@ -214,7 +214,7 @@
         </div>
         <div class="card" style="margin-top:16px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-            <div><div class="card-t">Supply Exposure by Risk Category</div><div class="card-s">Share of 30-day USDM volume touching each counterparty category — the "is my coin being misused?" view every issuer needs.</div></div>
+            <div><div class="card-t">Supply Exposure by Risk Category</div><div class="card-s">Share of 30-day USDM volume touching each counterparty category, the "is my coin being misused?" view every issuer needs.</div></div>
             <span class="m-pill" style="background:rgba(22,163,74,.1);color:var(--m-low);border-color:rgba(22,163,74,.2);">99.3% clean &amp; attributable</span>
           </div>
           <div style="margin-top:16px;" id="exposureBars"></div>
@@ -230,16 +230,16 @@ WHERE  t.asset = 'USDM'
 GROUP  BY cp.category
 ORDER  BY volume_usd DESC;</pre></details>
         </div>
-        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions:</b> a single SQL query against <span class="mono">transfers_clustered</span> + <span class="mono">cross_chain.clusters</span> attributes 1.24M holders into named entities (exchanges, DeFi, bridges, market makers) — the foundation for every panel below.</div></div>
+        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions:</b> a single SQL query against <span class="mono">transfers_clustered</span> + <span class="mono">cross_chain.clusters</span> attributes 1.24M holders into named entities (exchanges, DeFi, bridges, market makers), the foundation for every panel below.</div></div>
       </div>
 
       <!-- 2. FLOWS -->
       <div class="sec" id="s-flows">
         <div class="sec-head"><div class="sec-num">2</div><div class="sec-title">In-Flows &amp; Out-Flows</div></div>
-        <p class="sec-sub">The core treasury question: <b>where is USDM coming from, and where is it going?</b> Track mints, burns, bridge movement, and DEX swaps across every chain — including stablecoin minted on one chain and bridged or swapped on another.</p>
+        <p class="sec-sub">The core treasury question: <b>where is USDM coming from, and where is it going?</b> Track mints, burns, bridge movement, and DEX swaps across every chain, including stablecoin minted on one chain and bridged or swapped on another.</p>
         <div class="card" style="margin-bottom:16px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-            <div><div class="card-t">Mint (In) vs Burn (Out) — 30 days</div><div class="card-s">Daily issuance vs redemption, with net circulating supply</div></div>
+            <div><div class="card-t">Mint (In) vs Burn (Out), 30 days</div><div class="card-s">Daily issuance vs redemption, with net circulating supply</div></div>
             <div style="display:flex;gap:14px;font-size:11px;">
               <span style="display:flex;align-items:center;gap:5px;"><span class="dot" style="background:var(--m-accent);"></span>Mint</span>
               <span style="display:flex;align-items:center;gap:5px;"><span class="dot" style="background:#dc2626;"></span>Burn</span>
@@ -250,7 +250,7 @@ ORDER  BY volume_usd DESC;</pre></details>
         </div>
 
         <div class="card" style="margin-bottom:16px;">
-          <div class="card-t" style="margin-bottom:14px;">Net Flow Map — last 24h</div>
+          <div class="card-t" style="margin-bottom:14px;">Net Flow Map, last 24h</div>
           <div class="flow">
             <div class="flow-col">
               <div style="font-size:10px;font-weight:700;color:var(--m-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Inflows</div>
@@ -274,7 +274,7 @@ ORDER  BY volume_usd DESC;</pre></details>
 
         <div class="card">
           <div class="card-t" style="margin-bottom:4px;">Cross-Chain Bridge &amp; Swap Attribution</div>
-          <div class="card-s" style="margin-bottom:12px;">USDM moving off the issuance chain — bridged to other networks or swapped into other assets.</div>
+          <div class="card-s" style="margin-bottom:12px;">USDM moving off the issuance chain, bridged to other networks or swapped into other assets.</div>
           <table class="m-tbl">
             <thead><tr><th>Venue</th><th>Type</th><th style="text-align:right;">In (24h)</th><th style="text-align:right;">Out (24h)</th><th style="text-align:right;">Net</th></tr></thead>
             <tbody>
@@ -299,13 +299,13 @@ WHERE  t.asset = 'USDM'
 GROUP  BY venue, venue_type
 ORDER  BY (in_24h + out_24h) DESC;</pre></details>
         </div>
-        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions:</b> bridge and DEX contracts are pre-attributed, so flows in/out of Wormhole, CCTP, Curve and Uniswap are categorized automatically. The issuer sees exactly how much supply is leaving the native chain and what it's being swapped into — no manual contract tagging.</div></div>
+        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions:</b> bridge and DEX contracts are pre-attributed, so flows in/out of Wormhole, CCTP, Curve and Uniswap are categorized automatically. The issuer sees exactly how much supply is leaving the native chain and what it's being swapped into, no manual contract tagging.</div></div>
       </div>
 
       <!-- 3. HOLDERS / WHALES -->
       <div class="sec" id="s-holders">
         <div class="sec-head"><div class="sec-num">3</div><div class="sec-title">Whale &amp; Top-Holder Surveillance</div></div>
-        <p class="sec-sub">Concentration is peg risk. Monitor the largest holders, who they are, and what they do — with live alerts when a whale makes a move that matters.</p>
+        <p class="sec-sub">Concentration is peg risk. Monitor the largest holders, who they are, and what they do, with live alerts when a whale makes a move that matters.</p>
         <div class="grid2" style="grid-template-columns:1.5fr 1fr;">
           <div class="card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
@@ -348,7 +348,7 @@ LIMIT  20;</pre></details>
             <div class="rule-row"><div class="rule-ic">⚡</div><div style="flex:1;"><div style="font-size:12.5px;font-weight:700;">Redemption cluster &gt; $50M in 30 min</div><div style="font-size:11px;color:var(--m-muted);">Action: peg-risk alert to treasury &amp; comms</div></div><span class="rule-on">ACTIVE</span></div>
           </div>
         </div>
-        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions + Entity Monitoring + KYT:</b> holders are ranked, attributed to known entities, and watched for risky movements. Click any holder to open full on-chain intelligence — and spin up a live <b>Reactor</b> investigation graph for that exact address in one click.</div></div>
+        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions + Entity Monitoring + KYT:</b> holders are ranked, attributed to known entities, and watched for risky movements. Click any holder to open full on-chain intelligence, and spin up a live <b>Reactor</b> investigation graph for that exact address in one click.</div></div>
       </div>
 
       <!-- 4. MARKET -->
@@ -357,7 +357,7 @@ LIMIT  20;</pre></details>
         <p class="sec-sub">Protect the peg and the brand. Watch price stability, on-chain liquidity, and anomalous trading that could signal manipulation or a redemption run.</p>
         <div class="grid2" style="grid-template-columns:1.6fr 1fr;">
           <div class="card">
-            <div class="card-t" style="margin-bottom:4px;">USDM Peg — 30 days</div>
+            <div class="card-t" style="margin-bottom:4px;">USDM Peg, 30 days</div>
             <div class="card-s" style="margin-bottom:10px;">On-chain VWAP across major pools vs $1.00 target</div>
             <div style="height:190px;"><canvas id="pegChart"></canvas></div>
           </div>
@@ -368,18 +368,18 @@ LIMIT  20;</pre></details>
             </div>
             <div class="card" style="padding:14px;">
               <div class="card-t" style="margin-bottom:10px;">Integrity Alerts</div>
-              <div class="alert-item" style="margin-bottom:8px;"><div class="alert-ic" style="background:rgba(217,119,6,.12);color:var(--m-med);">⚠</div><div><div style="font-size:12px;font-weight:700;">Wash trading suspected</div><div style="font-size:11px;color:var(--m-muted);">USDM/PEPE pool — 14 self-trades between 3 linked wallets</div></div></div>
+              <div class="alert-item" style="margin-bottom:8px;"><div class="alert-ic" style="background:rgba(217,119,6,.12);color:var(--m-med);">⚠</div><div><div style="font-size:12px;font-weight:700;">Wash trading suspected</div><div style="font-size:11px;color:var(--m-muted);">USDM/PEPE pool, 14 self-trades between 3 linked wallets</div></div></div>
               <div class="alert-item" style="margin-bottom:0;"><div class="alert-ic" style="background:rgba(220,38,38,.1);color:var(--m-high);">!</div><div><div style="font-size:12px;font-weight:700;">Large redemption cluster</div><div style="font-size:11px;color:var(--m-muted);">$118M burned by 6 correlated accounts in 22 min</div></div></div>
             </div>
           </div>
         </div>
-        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions:</b> the same wash-trading and mutual-counterparty detection used in the Prediction Markets demo applies here — surfacing self-trades, correlated redemptions, and timing anomalies that threaten the peg.</div></div>
+        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions:</b> the same wash-trading and mutual-counterparty detection used in the Prediction Markets demo applies here, surfacing self-trades, correlated redemptions, and timing anomalies that threaten the peg.</div></div>
       </div>
 
       <!-- 5. MINT GATE (LIVE) -->
       <div class="sec" id="s-mint">
         <div class="sec-head"><div class="sec-num">5</div><div class="sec-title">Mint / Burn Compliance Gate</div></div>
-        <p class="sec-sub">Before issuing new USDM to an authorized participant's destination wallet, the address is screened live. Sanctioned or high-risk destinations are blocked at issuance — this calls the real Chainalysis Address Screening API.</p>
+        <p class="sec-sub">Before issuing new USDM to an authorized participant's destination wallet, the address is screened live. Sanctioned or high-risk destinations are blocked at issuance, this calls the real Chainalysis Address Screening API.</p>
         <div class="grid2" style="grid-template-columns:1fr 1.1fr;align-items:start;">
           <div class="card">
             <div class="card-t" style="margin-bottom:14px;">New Mint Request</div>
@@ -404,7 +404,7 @@ LIMIT  20;</pre></details>
       <!-- 6. FREEZE / SANCTIONS -->
       <div class="sec" id="s-freeze">
         <div class="sec-head"><div class="sec-num">6</div><div class="sec-title">Sanctions &amp; Freeze Workflow</div></div>
-        <p class="sec-sub">The obligation that defines an issuer. When a holder appears on the OFAC SDN list, the issuer must freeze the tokens on-chain — exactly as Tether and Circle do. Chainalysis provides the detection; this is the response.</p>
+        <p class="sec-sub">The obligation that defines an issuer. When a holder appears on the OFAC SDN list, the issuer must freeze the tokens on-chain, exactly as Tether and Circle do. Chainalysis provides the detection; this is the response.</p>
         <div class="grid2" style="grid-template-columns:1.2fr 1fr;align-items:start;">
           <div class="card" id="freezeCase">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
@@ -416,7 +416,7 @@ LIMIT  20;</pre></details>
               <span class="dot" style="width:11px;height:11px;border-radius:50%;background:var(--m-high);animation:pulse 1.6s infinite;"></span>
             </div>
             <div style="font-size:12.5px;line-height:1.6;color:#374151;margin-top:12px;">
-              Address holds <b>$8.4M USDM</b> and was identified by Chainalysis as <b>Lazarus Group</b> — an OFAC-sanctioned entity. Screening triggered a Severe alert. Tokens must be frozen to remain compliant.
+              Address holds <b>$8.4M USDM</b> and was identified by Chainalysis as <b>Lazarus Group</b>, an OFAC-sanctioned entity. Screening triggered a Severe alert. Tokens must be frozen to remain compliant.
             </div>
             <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
               <button class="btn btn-ghost" style="color:#7c3aed;border-color:rgba(124,58,237,.3);" onclick="createReactorGraph('0x098B716B8Aaf21512996dC57EB0615e2383E2f96', this)">
@@ -440,7 +440,7 @@ LIMIT  20;</pre></details>
       </div>
 
       <div class="footer">
-        <span class="brandname">Meridian</span> is a fictional stablecoin issuer for demonstration purposes. Powered by Chainalysis — Data Solutions · KYT · Address Screening · Reactor.
+        <span class="brandname">Meridian</span> is a fictional stablecoin issuer for demonstration purposes. Powered by Chainalysis, Data Solutions · KYT · Address Screening · Reactor.
       </div>
     </div>
   </div>
@@ -461,18 +461,18 @@ LIMIT  20;</pre></details>
       <button class="btn btn-ghost" style="margin-bottom:16px;height:36px;font-size:12px;" onclick="showScreen('app')">← Back to Demo</button>
       <div class="about-hero">
         <h1 style="font-size:24px;font-weight:900;">About Meridian</h1>
-        <p style="font-size:14px;margin-top:6px;opacity:.9;">Stablecoin Issuer — Compliance Cove Demo</p>
+        <p style="font-size:14px;margin-top:6px;opacity:.9;">Stablecoin Issuer, Compliance Cove Demo</p>
       </div>
       <div class="card" style="margin-top:18px;">
         <div class="card-t">What This Demo Shows</div>
-        <p style="font-size:13px;color:#374151;margin-top:6px;line-height:1.7;">Meridian is a stablecoin issuer (think Circle, Tether, PayPal PYUSD). This console demonstrates how an issuer monitors its entire token ecosystem with Chainalysis — <b>Data Solutions</b> for in/out flows, cross-chain bridge &amp; swap attribution, whale tracking and market integrity; <b>Address Screening</b> &amp; <b>KYT</b> for the mint/burn compliance gate; and the on-chain <b>sanctions freeze</b> workflow every issuer is obligated to run.</p>
+        <p style="font-size:13px;color:#374151;margin-top:6px;line-height:1.7;">Meridian is a stablecoin issuer (think Circle, Tether, PayPal PYUSD). This console demonstrates how an issuer monitors its entire token ecosystem with Chainalysis, <b>Data Solutions</b> for in/out flows, cross-chain bridge &amp; swap attribution, whale tracking and market integrity; <b>Address Screening</b> &amp; <b>KYT</b> for the mint/burn compliance gate; and the on-chain <b>sanctions freeze</b> workflow every issuer is obligated to run.</p>
       </div>
       <div class="card" style="margin-top:16px;">
         <div class="card-t" style="margin-bottom:12px;">Presenter Workflow</div>
-        <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">1</div><div><div style="font-size:13px;font-weight:700;">Open on Ecosystem + Flows</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Start with where the coin lives and how it moves. Scroll through supply-by-chain, holder types, and the In/Out flow map.</div><div class="talk"><b>💬 Talking Point:</b> "Issuers are accountable for what their token does after it leaves the door. Data Solutions gives you a live map of every flow — across chains, bridges, and DEXs — from one query."</div></div></div></div>
-        <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">2</div><div><div style="font-size:13px;font-weight:700;">Show Whale Surveillance</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Walk the top-holder table and whale alert feed. Click any holder to open its Data Solutions intelligence drawer — counterparties, exposure, cluster — then build a live Reactor investigation graph for that exact address.</div><div class="talk"><b>💬 Talking Point:</b> "Concentration is peg risk. We attribute your largest holders and alert you the moment one moves funds somewhere risky."</div></div></div></div>
+        <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">1</div><div><div style="font-size:13px;font-weight:700;">Open on Ecosystem + Flows</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Start with where the coin lives and how it moves. Scroll through supply-by-chain, holder types, and the In/Out flow map.</div><div class="talk"><b>💬 Talking Point:</b> "Issuers are accountable for what their token does after it leaves the door. Data Solutions gives you a live map of every flow, across chains, bridges, and DEXs, from one query."</div></div></div></div>
+        <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">2</div><div><div style="font-size:13px;font-weight:700;">Show Whale Surveillance</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Walk the top-holder table and whale alert feed. Click any holder to open its Data Solutions intelligence drawer, counterparties, exposure, cluster, then build a live Reactor investigation graph for that exact address.</div><div class="talk"><b>💬 Talking Point:</b> "Concentration is peg risk. We attribute your largest holders and alert you the moment one moves funds somewhere risky."</div></div></div></div>
         <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">3</div><div><div style="font-size:13px;font-weight:700;">Run the Mint Gate (live)</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">In section 5, use the pre-screened address picker. Mint to a clean address (approved), then a sanctioned one (blocked). This is a live Address Screening API call.</div><div class="talk"><b>💬 Talking Point:</b> "You never want to mint into a sanctioned wallet. We screen the destination before a single token is issued."</div></div></div></div>
-        <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">4</div><div><div style="font-size:13px;font-weight:700;">Close on the Freeze Workflow</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Section 6: a holder hits the OFAC SDN list. Investigate in Reactor, then click Freeze — watch the audit log update.</div><div class="talk"><b>💬 Talking Point:</b> "This is the obligation that defines your business. Tether and Circle freeze sanctioned addresses on-chain — Chainalysis is how they know which ones."</div></div></div></div>
+        <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">4</div><div><div style="font-size:13px;font-weight:700;">Close on the Freeze Workflow</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Section 6: a holder hits the OFAC SDN list. Investigate in Reactor, then click Freeze, watch the audit log update.</div><div class="talk"><b>💬 Talking Point:</b> "This is the obligation that defines your business. Tether and Circle freeze sanctioned addresses on-chain, Chainalysis is how they know which ones."</div></div></div></div>
       </div>
       <div class="card" style="margin-top:16px;">
         <div class="card-t" style="margin-bottom:10px;">Chainalysis Products Used</div>
@@ -489,12 +489,12 @@ LIMIT  20;</pre></details>
   <script>
   // ===== Addresses =====
   const DEMO_ADDRESSES=[
-    {id:'defi-user',label:'🟢 Typical DeFi User',address:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',risk:'Low',story:'Normal DeFi user — clean profile, safe to mint to.',category:'low'},
-    {id:'binance-hot',label:'🟢 Binance Hot Wallet',address:'0x28C6c06298d514Db089934071355E5743bf21d60',risk:'Low',story:'Major exchange hot wallet — fully attributed, low risk.',category:'low'},
-    {id:'unnamed-svc',label:'🟡 Unnamed Service',address:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',risk:'Medium',story:'Unnamed service, $4M+ exposure — mint with enhanced monitoring.',category:'medium'},
-    {id:'wintermute',label:'🟡 Wintermute (Market Maker)',address:'0x0000000fe6a514a32abdcdfcc076c85243de899b',risk:'Medium',story:'Market maker — Medium risk from prior hack exposure.',category:'medium'},
-    {id:'lazarus',label:'🔴 Lazarus Group (OFAC)',address:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',risk:'Severe',story:'OFAC SDN-listed North Korean group — must be blocked.',category:'severe'},
-    {id:'tornado',label:'🔴 Tornado Cash (Sanctioned)',address:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',risk:'Severe',story:'OFAC-sanctioned mixer — minting here is a sanctions violation.',category:'severe'},
+    {id:'defi-user',label:'🟢 Typical DeFi User',address:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',risk:'Low',story:'Normal DeFi user, clean profile, safe to mint to.',category:'low'},
+    {id:'binance-hot',label:'🟢 Binance Hot Wallet',address:'0x28C6c06298d514Db089934071355E5743bf21d60',risk:'Low',story:'Major exchange hot wallet, fully attributed, low risk.',category:'low'},
+    {id:'unnamed-svc',label:'🟡 Unnamed Service',address:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',risk:'Medium',story:'Unnamed service, $4M+ exposure, mint with enhanced monitoring.',category:'medium'},
+    {id:'wintermute',label:'🟡 Wintermute (Market Maker)',address:'0x0000000fe6a514a32abdcdfcc076c85243de899b',risk:'Medium',story:'Market maker, Medium risk from prior hack exposure.',category:'medium'},
+    {id:'lazarus',label:'🔴 Lazarus Group (OFAC)',address:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',risk:'Severe',story:'OFAC SDN-listed North Korean group, must be blocked.',category:'severe'},
+    {id:'tornado',label:'🔴 Tornado Cash (Sanctioned)',address:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',risk:'Severe',story:'OFAC-sanctioned mixer, minting here is a sanctions violation.',category:'severe'},
   ];
   const SLUG='demochain-address-screen';
 
@@ -546,7 +546,7 @@ LIMIT  20;</pre></details>
       if(r.error)throw new Error(r.error);
       renderMintResult(r,amt);
     }catch(e){
-      if(e instanceof TypeError){ // sandbox/no-API fallback — use seeded data
+      if(e instanceof TypeError){ // sandbox/no-API fallback, use seeded data
         const seed=DEMO_ADDRESSES.find(a=>a.address.toLowerCase()===address.toLowerCase());
         renderMintResult(seed?{address,risk:seed.risk,riskReason:seed.story,addressType:'PRIVATE_WALLET',identifications:seed.category==='severe'?[{category:'sanctioned entity',name:seed.label.replace(/^.. /,'')}]:[]}:{address,risk:'Low',riskReason:'No risk signals detected.',addressType:'PRIVATE_WALLET',identifications:[]},amt,true);
       }else{
@@ -556,10 +556,10 @@ LIMIT  20;</pre></details>
   }
   function renderMintResult(r,amt,sandbox){
     const risk=r.risk||'Unknown';
-    const map={Low:{c:'var(--m-low)',bg:'rgba(22,163,74,.1)',ok:true,t:'Mint Authorized',d:'Destination cleared — safe to issue USDM.'},
-      Medium:{c:'var(--m-med)',bg:'rgba(217,119,6,.12)',ok:true,t:'Authorized — Enhanced Monitoring',d:'Moderate risk. Mint allowed but flagged for ongoing KYT review.'},
+    const map={Low:{c:'var(--m-low)',bg:'rgba(22,163,74,.1)',ok:true,t:'Mint Authorized',d:'Destination cleared, safe to issue USDM.'},
+      Medium:{c:'var(--m-med)',bg:'rgba(217,119,6,.12)',ok:true,t:'Authorized, Enhanced Monitoring',d:'Moderate risk. Mint allowed but flagged for ongoing KYT review.'},
       High:{c:'var(--m-high)',bg:'rgba(220,38,38,.1)',ok:false,t:'Mint Blocked',d:'High-risk destination. Issuance denied.'},
-      Severe:{c:'var(--m-high)',bg:'rgba(220,38,38,.1)',ok:false,t:'Mint Blocked — Sanctions',d:'Destination is sanctioned/severe risk. Minting would be a compliance violation.'}};
+      Severe:{c:'var(--m-high)',bg:'rgba(220,38,38,.1)',ok:false,t:'Mint Blocked, Sanctions',d:'Destination is sanctioned/severe risk. Minting would be a compliance violation.'}};
     const m=map[risk]||map.High;
     const ids=(r.identifications||[]).map(i=>`<span class="risk-badge" style="background:rgba(220,38,38,.08);color:var(--m-high);margin:2px 3px 0 0;">${i.category||''}${i.name?' · '+i.name:''}</span>`).join('');
     document.getElementById('mintResult').innerHTML=`
@@ -576,7 +576,7 @@ LIMIT  20;</pre></details>
           <div style="font-size:12px;color:#374151;margin-top:3px;">${m.d}</div>
           ${m.ok?`<div style="font-size:12px;margin-top:8px;font-weight:700;">Minting ${amt} USDM →</div>`:''}
         </div>
-        ${sandbox?'<div style="font-size:10px;color:var(--m-muted);margin-top:8px;">Sandbox mode — open in a new tab for live API screening.</div>':''}
+        ${sandbox?'<div style="font-size:10px;color:var(--m-muted);margin-top:8px;">Sandbox mode, open in a new tab for live API screening.</div>':''}
       </div>`;
   }
 
@@ -624,7 +624,7 @@ LIMIT  20;</pre></details>
     // whale alerts (clickable)
     const alerts=[
       {sev:'high',ic:'!',t:'Whale → mixer-adjacent',d:'Unknown Whale moved $34M USDM to an address 1 hop from a sanctioned mixer.',hid:6},
-      {sev:'med',ic:'⚡',t:'Rapid accumulation',d:'Unknown Whale +8.9% in 24h ($31M) — concentration rising.',hid:6},
+      {sev:'med',ic:'⚡',t:'Rapid accumulation',d:'Unknown Whale +8.9% in 24h ($31M), concentration rising.',hid:6},
       {sev:'low',ic:'↗',t:'Large bridge-out',d:'$28M USDM bridged ETH → Solana via Wormhole by Wintermute.',hid:4},
     ];
     const ac={high:['rgba(220,38,38,.1)','var(--m-high)'],med:['rgba(217,119,6,.12)','var(--m-med)'],low:['rgba(22,163,74,.1)','var(--m-low)']};
@@ -681,7 +681,7 @@ LIMIT  20;</pre></details>
     }catch(e){
       btn.disabled=false;btn.innerHTML=orig;
       const n=document.getElementById('graphNote');
-      if(n){n.style.display='block';n.textContent='Live graph creation runs when this page is opened in a new tab — the preview sandbox blocks the API.';}
+      if(n){n.style.display='block';n.textContent='Live graph creation runs when this page is opened in a new tab, the preview sandbox blocks the API.';}
     }
   }
 
@@ -752,7 +752,7 @@ LIMIT  20;</pre></details>
   <script>
   (function(){var S='compliance-cove-analytics';
   var M=document.querySelector('meta[name="cove-demo"]');
-  var D=M?M.getAttribute('content'):(document.title.split('—')[0].trim()||'unknown');
+  var D=M?M.getAttribute('content'):(document.title.split(',')[0].trim()||'unknown');
   var P=new URLSearchParams(location.search);
   var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';
   window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',
