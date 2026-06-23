@@ -251,17 +251,27 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 ### 4. 👥 P2P Marketplace `p2p-marketplace-demo.html`
 **Priority:** Medium — Common prospect type, but Address Screening + KYT overlap with other demos  
 **Effort:** ~3–4 hours  
-**Products:** Address Screening, KYT  
+**Status:** ✅ Complete — built as **Peerly** (light theme, green accent). Live on the hub.  
+**Products:** Address Screening ★, KYT, Reactor  
 **Industry:** P2P Exchange
 
 **Concept:** A peer-to-peer trading platform (like Paxful/LocalBitcoins) where buyers and sellers trade directly. Focus on counterparty screening before trade and escrow release.
 
-| # | Task | Effort | Notes |
+**Built — the complete compliance journey:** Landing → Marketplace (offer board, asset filter, trader reputation) → Trade flow → About (presenter workflow). Each offer embeds a counterparty wallet with a known outcome. The trade screen runs a real end-to-end journey with a live **Compliance Audit Trail** side panel and a **Products in this journey** card:
+1. **Counterparty screening** — live `demochain-address-screen` on the seller wallet (risk gauge + exposure bars + Reactor link). Clean proceeds, Medium proceeds with enhanced monitoring, **Severe/High blocks the trade before any escrow**.
+2. **Escrow lock (KYT)** — seller funds escrow; transfer registered + monitored; buyer marks fiat sent.
+3. **Release gate (KYT)** — payout pre-screened before release, then escrow released.
+4. **Continuous monitoring** — the `clean_exit_88` offer reuses the validated indirect tx: releases clean, then a **6 WEEKS LATER** divider calls `cove-kyt-screen` and flips the monitoring box to a SEVERE indirect alert (Chatex) with Reactor + KYT links.
+5. **Dispute flow** — `Raise dispute` modal assembles the Chainalysis evidence already collected and files a report (freeze + return + SAR when flagged).
+
+Sandbox-safe validated fallbacks throughout; brand-swap (?brand=&color=&domain=) + analytics wired; em-dash free copy. **Wired into the hub** (`compliance-cove.html`): status `active`, `defaultBrand: 'Peerly'`, products Address Screening / KYT / Reactor.
+
+| # | Task | Status | Notes |
 |---|------|--------|-------|
-| 4.1 | Trade listing board | 45 min | Buy/sell listings with price, payment method, trader reputation |
-| 4.2 | Counterparty screening on match | 30 min | When a trade is initiated, screen the counterparty's wallet |
-| 4.3 | Escrow + compliance gate | 45 min | Funds held in escrow, compliance check before release |
-| 4.4 | Trade chat + dispute flow | 30 min | Simple chat UI, dispute resolution with compliance evidence |
+| 4.1 | Trade listing board | ✅ | Offer rows with price, margin, limits, payment method, trader reputation, online dot, asset filter |
+| 4.2 | Counterparty screening on match | ✅ | Live Address Screening on the seller wallet with risk gauge, identifications, exposure bars, Reactor link |
+| 4.3 | Escrow + compliance gate | ✅ | KYT monitors escrow deposit; payout pre-screened before release; sanctioned counterparties blocked pre-escrow |
+| 4.4 | Dispute flow | ✅ | Dispute modal with auto-assembled Chainalysis evidence + compliance report. (Trade chat dropped as low value.) |
 
 **Integration points:**
 - Address Screening for counterparty wallets
@@ -516,7 +526,7 @@ Scenarios: Clean Exchange User, Unnamed Service (enhanced review), OFAC Sanction
 12. **🤖 AI Demo Narrator** (T7) — ~5–6 hrs
 13. **💳 Crypto Payroll** (T8) — ~4 hrs
 14. **⚖️ Travel Rule** (T9) — ~4 hrs
-15. **P2P Marketplace** (Task 4) — ~3–4 hrs
+15. ~~**P2P Marketplace** (Task 4)~~ ✅ Built (Peerly) — counterparty screening + escrow + continuous monitoring
 16. **Prediction Markets** (Task 6) — ~3–4 hrs
 
 ---
