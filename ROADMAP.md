@@ -199,7 +199,7 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 
 > **Org alert-rule reality:** this shared KYT org only hard-alerts on exchanges (LOW/MED), mixing/sanctioned/illicit (MED/SEVERE). Gambling & ATM do NOT alert, and KYT doesn't return source attribution for non-alerting transfers. So the ATM "middle" tier is built as an authentic **EDD** scenario: KYT monitors the transfer (real usd/processing) + Chainalysis attributes the source as a crypto ATM (real, via Data Solutions) → policy routes high-risk categories to EDD. Distinct from a sanctioned hard alert. (Tornado was dropped — it's sanctioned, which contradicted a mid-risk story.)
 >
-> **Deep links:** result shows BOTH the Reactor alert graph (`graphLink` = `/alerts/graph-v2?alertIds={id}`, alert-specific, opens the alert in Reactor) and the KYT alert (`alertLink` = `/alerts?alertIds={id}`, best-effort alert filter; falls back to the Alerts tab).
+> **Deep links:** result shows BOTH the Reactor alert graph (`graphLink` = `/alerts/graph-v2?alertIds={id}`, alert-specific, opens the alert in Reactor) and the KYT alert (`alertLink` = `/alerts/{alertId}`, opens the alert detail directly).
 
 **Sourcing tx hashes:** Data Solutions `cross_chain.transfers_clustered` (filter by risky `sender_name`/`sender_category`) → register candidates → keep validated outcomes. Note: avoid `asset_symbol='ETH'` as a sole broad predicate (non-selective → 400); keep `sender_name IS NULL` style filters selective.
 

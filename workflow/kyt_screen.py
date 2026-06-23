@@ -104,7 +104,7 @@ def handler(event: dict, context: DurableContext) -> dict:
         graph_link = None
         if top and top.get("alertId"):
             graph_link = "https://kyt.chainalysis.com/alerts/graph-v2?alertIds=" + top["alertId"]
-            alert_link = "https://kyt.chainalysis.com/alerts?alertIds=" + top["alertId"]
+            alert_link = "https://kyt.chainalysis.com/alerts/" + top["alertId"]
 
         return {
             "ok": True,
