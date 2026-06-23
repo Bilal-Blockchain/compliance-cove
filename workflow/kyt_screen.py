@@ -99,9 +99,11 @@ def handler(event: dict, context: DurableContext) -> dict:
         top = max(alerts, key=lambda a: order.get(a.get("level"), 0)) if alerts else None
         level = top["level"] if top else "CLEARED"
 
-        deep_link = "https://kyt.chainalysis.com/alerts"
+        # KYT alert inbox (the alert itself) + Reactor graph of the alert
+        alert_link = "https://kyt.chainalysis.com/alerts"
+        graph_link = None
         if top and top.get("alertId"):
-            deep_link = "https://kyt.chainalysis.com/alerts/graph-v2?alertIds=" + top["alertId"]
+            graph_link = "https://kyt.chainalysis.com/alerts/graph-v2?alertIds=" + top["alertId"]
 
         return {
             "ok": True,
@@ -115,7 +117,8 @@ def handler(event: dict, context: DurableContext) -> dict:
             "level": level,
             "alertCount": len(alerts),
             "alerts": sorted(alerts, key=lambda a: order.get(a.get("level"), 0), reverse=True),
-            "deepLink": deep_link,
+            "alertLink": alert_link,
+            "graphLink": graph_link,
         }
     except Exception as e:
         return {"ok": False, "error": str(e)}

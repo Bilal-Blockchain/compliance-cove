@@ -192,10 +192,12 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 **Curated library:** `kyt-transactions.js` — validated against live KYT:
 | Scenario | Shape | Live outcome |
 |---|---|---|
-| Clean (self-custody) | withdrawal | CLEARED |
-| Mixer-exposed (Tornado, ETH) | transfer | MEDIUM |
+| Clean (self-custody) | withdrawal | CLEARED — "no alert, source clean" |
+| Exchange-sourced (Bitget, USDT) | transfer | LOW — source-of-funds logged |
 | Sanctioned (Swapster.fi, USDT) | transfer | SEVERE |
 | Sanctioned (Heleket.com, USDT) | transfer | SEVERE |
+
+> Note: dropped Tornado Cash as the "medium" tier — it's OFAC-sanctioned, which contradicts a mid-risk story. This org's KYT rules only emit MEDIUM for mixing(sanctioned)/exchange and SEVERE for sanctioned/illicit, so the coherent escalation is none → LOW (exchange) → SEVERE (sanctioned). Result panel now links to BOTH the Reactor alert graph (`graphLink`) and the KYT alert inbox (`alertLink`).
 
 **Sourcing tx hashes:** Data Solutions `cross_chain.transfers_clustered` (filter by risky `sender_name`/`sender_category`) → register candidates → keep validated outcomes. Note: avoid `asset_symbol='ETH'` as a sole broad predicate (non-selective → 400); keep `sender_name IS NULL` style filters selective.
 

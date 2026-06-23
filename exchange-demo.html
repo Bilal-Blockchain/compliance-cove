@@ -513,27 +513,29 @@
     // =======================================================
     const KYT_SLUG='cove-kyt-screen';
     const KYT_DEPOSITS=[
-      {id:'clean',label:'🟢 Clean deposit (self-custody wallet)',asset:'ETH',amount:'2.5',
-       story:'Funds from a normal self-custody wallet. No risky exposure — KYT clears it instantly.',expected:'CLEARED',
+      {id:'clean',label:'🟢 Clean deposit (self-custody wallet)',asset:'ETH',amount:'2.5',svc:'',
+       story:'Funds from a normal self-custody wallet. No risky exposure — KYT generates no alert.',expected:'CLEARED',
        input:{mode:'withdrawal',network:'ETHEREUM',asset:'ETH',assetAmount:2.5,address:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0'}},
-      {id:'mixer',label:'🟡 Mixer-exposed deposit (Tornado Cash)',asset:'ETH',amount:'7.6',
-       story:'Funds received directly from the sanctioned Tornado Cash mixer — triggers a real KYT alert.',expected:'MEDIUM',
-       input:{mode:'transfer',network:'ETHEREUM',asset:'ETH',direction:'received',transferReference:'0x6582e5d0b18c05118bf34abe24d2be5729c64d6da466a3da811a2ca45e5fd9e8:0x77ebb90f659461ca82921a2314bd6d06ff036cfa'}},
-      {id:'sanctioned',label:'🔴 Sanctioned source (Swapster.fi)',asset:'USDT',amount:'4,840',
+      {id:'exchange',label:'🟡 Exchange-sourced deposit (Bitget)',asset:'USDT',amount:'15,982',svc:'Bitget.com',
+       story:'Funds arrived directly from a third-party exchange. KYT logs the counterparty for Travel Rule / source-of-funds — low severity, cleared with a record.',expected:'LOW',
+       input:{mode:'transfer',network:'ETHEREUM',asset:'USDT',direction:'received',transferReference:'0x92d7be10a97025f32928748a3e2415f3fa321dfc5b0f2027b0cdec5f606ca905:0xbc0235c2052844a887ab5c896018f788148e7782'}},
+      {id:'sanctioned',label:'🔴 Sanctioned source (Swapster.fi)',asset:'USDT',amount:'4,840',svc:'Swapster.fi',
        story:'Stablecoin received from an OFAC/EU-sanctioned service — severe KYT alert, funds frozen.',expected:'SEVERE',
        input:{mode:'transfer',network:'ETHEREUM',asset:'USDT',direction:'received',transferReference:'0x0f9e200d58a92d1eca9d120340a4ed18ec927055230baad3cfbc58ea5943e680:0x0c82f1b5e5acb1a63cb7aecddf389b342fb15e35'}},
-      {id:'sanctioned2',label:'🔴 Sanctioned source (Heleket.com)',asset:'USDT',amount:'9,989',
+      {id:'sanctioned2',label:'🔴 Sanctioned source (Heleket.com)',asset:'USDT',amount:'9,989',svc:'Heleket.com',
        story:'Stablecoin received from an OFAC/EU-sanctioned service — severe KYT alert.',expected:'SEVERE',
        input:{mode:'transfer',network:'ETHEREUM',asset:'USDT',direction:'received',transferReference:'0xf15bfc35757484912e9782f84414a9290d2d50744870e841dc76ce76e7566771:0xdc7955346c29c2a3452496897b5f9a63c6ee20a1'}},
     ];
     function depScenario(){return KYT_DEPOSITS.find(s=>s.id===document.getElementById('depScenario').value)||KYT_DEPOSITS[0];}
     function syncDepFields(){const s=depScenario();document.getElementById('depAmt').value=s.amount;document.getElementById('depAssetLbl').textContent=s.asset;document.getElementById('depScenarioStory').textContent=s.story;}
     function fallbackResult(s){
-      const svc=s.id==='sanctioned2'?'Heleket.com':(s.id==='sanctioned'?'Swapster.fi':'Tornado.cash');
       const map={CLEARED:{level:'CLEARED',alerts:[]},
-        MEDIUM:{level:'MEDIUM',alerts:[{level:'MEDIUM',service:'Tornado.cash',exposureType:'DIRECT'}]},
-        SEVERE:{level:'SEVERE',alerts:[{level:'SEVERE',service:svc,exposureType:'DIRECT'}]}};
-      return Object.assign({usdAmount:null,deepLink:'https://kyt.chainalysis.com/alerts',sandbox:true},map[s.expected]||map.CLEARED);
+        LOW:{level:'LOW',alerts:[{level:'LOW',service:s.svc,exposureType:'DIRECT'}]},
+        MEDIUM:{level:'MEDIUM',alerts:[{level:'MEDIUM',service:s.svc,exposureType:'DIRECT'}]},
+        SEVERE:{level:'SEVERE',alerts:[{level:'SEVERE',service:s.svc,exposureType:'DIRECT'}]}};
+      const r=map[s.expected]||map.CLEARED;
+      return Object.assign({usdAmount:null,sandbox:true,alertLink:'https://kyt.chainalysis.com/alerts',
+        graphLink:s.expected==='CLEARED'?null:'https://kyt.chainalysis.com/alerts/graph-v2?alertIds=demo'},r);
     }
     async function simulateDeposit(){
       const s=depScenario();
@@ -559,18 +561,25 @@
     function renderDepResult(s,res){
       const el=document.getElementById('dep-result');el.style.display='';
       const lvl=res.level||'CLEARED';
+      const flagged=lvl!=='CLEARED';
       const usd=res.usdAmount?(' · $'+Number(res.usdAmount).toLocaleString(undefined,{maximumFractionDigits:0})):'';
-      const alertsHtml=(res.alerts||[]).map(a=>`<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold" style="background:rgba(239,68,68,.1);color:#dc2626;margin:4px 4px 0 0;">${a.level} · ${a.service||''}${a.exposureType?' · '+a.exposureType:''}</span>`).join('');
-      const deep=res.deepLink?`<a href="${res.deepLink}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 mt-2 text-xs font-semibold" style="color:#6366f1;">View alert in KYT platform →</a>`:'';
+      const chip=l=>(l==='SEVERE'||l==='HIGH')?['rgba(239,68,68,.1)','#dc2626']:(l==='MEDIUM'?['rgba(245,158,11,.12)','#b45309']:['rgba(99,102,241,.1)','#4f46e5']);
+      const alertsHtml=(res.alerts||[]).map(a=>{const c=chip(a.level);return `<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold" style="background:${c[0]};color:${c[1]};margin:4px 4px 0 0;">${a.level} · ${a.service||''}${a.exposureType?' · '+a.exposureType:''}</span>`;}).join('');
+      let links=[];
+      if(flagged&&res.graphLink)links.push(`<a href="${res.graphLink}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-semibold" style="color:#7c3aed;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="12" cy="18" r="2"/><path d="M6.7 7.4l4.6 9.2M17.3 7.4l-4.6 9.2"/></svg>Open alert graph in Reactor →</a>`);
+      if(flagged&&res.alertLink)links.push(`<a href="${res.alertLink}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-semibold" style="color:#6366f1;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>View alert in KYT →</a>`);
+      const linksHtml=links.length?`<div class="flex flex-col gap-1.5 mt-2">${links.join('')}</div>`:'';
       const sandboxNote=res.sandbox?`<p class="text-xs text-muted-foreground mt-2">Sandbox preview — open this page in a new tab for a live KYT API call.</p>`:'';
       const actions=`<div class="flex gap-2 mt-3"><button onclick="resetDeposit()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted">Screen another</button><button onclick="showScreen('dashboard')" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground accent-bg">Go to Dashboard</button></div>`;
       let head;
       if(lvl==='CLEARED'){
-        head=`<div class="rounded-lg bg-success/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p class="text-sm font-semibold text-success">Deposit Cleared by KYT</p><p class="text-xs text-muted-foreground mt-1"><strong>${s.amount} ${s.asset}</strong>${usd} — no high-risk exposure detected. Funds available for trading immediately.</p></div></div>`;
+        head=`<div class="rounded-lg bg-success/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p class="text-sm font-semibold text-success">Deposit Cleared by KYT</p><p class="text-xs text-muted-foreground mt-1"><strong>No alert generated. Source of funds are clean.</strong> ${s.amount} ${s.asset}${usd} cleared — funds available for trading immediately.</p></div></div>`;
       }else if(lvl==='SEVERE'||lvl==='HIGH'){
-        head=`<div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-destructive flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><p class="text-sm font-semibold text-destructive">⛔ Deposit Blocked — ${lvl} KYT Alert</p><p class="text-xs text-muted-foreground mt-1">Real KYT alert on <strong>${s.amount} ${s.asset}</strong>${usd}. Funds received from a sanctioned source — held & escalated to compliance.</p>${alertsHtml}<br/>${deep}</div></div>`;
+        head=`<div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-destructive flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><p class="text-sm font-semibold text-destructive">⛔ Deposit Blocked — ${lvl} KYT Alert</p><p class="text-xs text-muted-foreground mt-1">Real KYT alert on <strong>${s.amount} ${s.asset}</strong>${usd}. Funds received from a sanctioned source — held &amp; escalated to compliance.</p>${alertsHtml}${linksHtml}</div></div>`;
+      }else if(lvl==='MEDIUM'){
+        head=`<div class="rounded-lg bg-warning/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-warning flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><p class="text-sm font-semibold text-warning">KYT Alert — Deposit Under Review (MEDIUM)</p><p class="text-xs text-muted-foreground mt-1">Real KYT alert on <strong>${s.amount} ${s.asset}</strong>${usd}. Exposure to a flagged source — held pending compliance review.</p>${alertsHtml}${linksHtml}</div></div>`;
       }else{
-        head=`<div class="rounded-lg bg-warning/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-warning flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><p class="text-sm font-semibold text-warning">KYT Alert — Deposit Under Review (${lvl})</p><p class="text-xs text-muted-foreground mt-1">Real KYT alert on <strong>${s.amount} ${s.asset}</strong>${usd}. Exposure to a flagged source detected — held pending compliance review.</p>${alertsHtml}<br/>${deep}</div></div>`;
+        head=`<div class="rounded-lg p-3 flex items-start gap-2" style="background:rgba(99,102,241,.08);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" class="flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><div><p class="text-sm font-semibold" style="color:#4f46e5;">Logged — Low-Severity KYT Alert</p><p class="text-xs text-muted-foreground mt-1"><strong>${s.amount} ${s.asset}</strong>${usd} arrived directly from a third-party exchange. KYT recorded the counterparty for Travel Rule / source-of-funds. Cleared for trading.</p>${alertsHtml}${linksHtml}</div></div>`;
       }
       el.innerHTML=head+actions+sandboxNote;
     }
