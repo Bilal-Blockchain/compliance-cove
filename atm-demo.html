@@ -469,6 +469,13 @@
               <p style="font-size:11px;color:#555;">Send Bitcoin to an external wallet</p>
             </div>
 
+            <!-- KYT sample destinations -->
+            <div style="margin-bottom:12px;">
+              <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px;">Sample destination (KYT)</label>
+              <select id="wdScenario" onchange="pickWdScenario()" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2a2a;background:#111;color:white;font-size:12px;outline:none;"></select>
+              <p id="wdScenarioStory" style="font-size:10px;color:#888;margin-top:5px;line-height:1.5;display:none;"></p>
+            </div>
+
             <!-- Amount -->
             <div class="amount-display" style="margin-bottom:12px;">
               <p style="font-size:11px;color:#888;margin-bottom:4px;">Send Amount</p>
@@ -614,7 +621,7 @@
                 <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:4px;"><span>To</span><span class="mono text-gold" id="wdReceiptAddr" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span></div>
                 <div style="display:flex;justify-content:space-between;font-size:12px;color:#888;"><span>Tx ID</span><span class="mono text-gold" id="wdReceiptTx"></span></div>
               </div>
-              <div style="width:100%;border-radius:10px;padding:10px 12px;background:rgba(34,197,94,0.04);border:1px solid rgba(34,197,94,0.12);">
+              <div id="wdMonitorBox" style="width:100%;border-radius:10px;padding:10px 12px;background:rgba(34,197,94,0.04);border:1px solid rgba(34,197,94,0.12);">
                 <div style="display:flex;align-items:center;gap:6px;">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                   <span style="font-size:11px;font-weight:600;color:#22c55e;">KYT Monitoring Active</span>
@@ -889,12 +896,36 @@
       }
 
       const SLUG = 'demochain-address-screen';
+      const KYT_SLUG_WD = 'cove-kyt-screen';
+      const WD_SCENARIOS = [
+        {id:'wd-clean',label:'🟢 Clean destination',addr:'bc1qakvuk920fcal063mpvz6gym0nsse0auuz9ny0u',amount:0.05,kind:'screen',
+         story:'A normal external wallet — Address Screening clears it and the withdrawal proceeds.'},
+        {id:'wd-sanctioned',label:'🔴 Sanctioned destination (blocked)',addr:'3JaAYDPJkwdSYtBDML3QUtaSJjB6eebd2R',amount:0.05,kind:'screen',
+         story:'Destination is OFAC-sanctioned (Chatex.com). Address Screening blocks the withdrawal before any BTC leaves the ATM.'},
+        {id:'wd-indirect',label:'🟡 Indirect exposure — continuous monitoring',addr:'bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar',amount:0.0423,kind:'monitor',
+         story:'Destination screens clean at the time of send. KYT keeps monitoring the transfer — and later detects the funds reaching OFAC-sanctioned Chatex.com.',
+         input:{mode:'transfer',network:'BITCOIN',asset:'BTC',direction:'sent',transferReference:'6dd7ede9526c3bb8b670696b96a6edf6d39d445f02b8496da3335d69c6640c47:bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar'}},
+      ];
+      let wdKind = 'screen';
+      function pickWdScenario() {
+        const s = WD_SCENARIOS.find(x => x.id === document.getElementById('wdScenario').value);
+        const st = document.getElementById('wdScenarioStory');
+        wdKind = s ? s.kind : 'screen';
+        if (s) { document.getElementById('wdAddress').value = s.addr; setWdAmount(s.amount); st.textContent = s.story; st.style.display = ''; }
+        else { st.textContent = ''; st.style.display = 'none'; }
+        validateWithdrawForm();
+      }
 
       async function screenWithdraw() {
         const address = document.getElementById('wdAddress').value.trim();
         if (!address || wdAmount <= 0) return;
 
         document.getElementById('wd-step-input').style.display = 'none';
+        // Continuous-monitoring scenario: screened clean at send time; KYT catches it later.
+        if (wdKind === 'monitor') {
+          showWithdrawResults({ address, risk:'Low', riskReason:'No risk detected at the time of screening.', addressType:'PRIVATE_WALLET' });
+          return;
+        }
         document.getElementById('wd-step-screening').style.display = '';
         document.getElementById('screeningAddr').textContent = address.length > 36 ? address.slice(0,18)+'…'+address.slice(-12) : address;
 
@@ -1007,13 +1038,25 @@
         await animateStep('send-s2', 'success', 0);
         document.getElementById('send-s2').querySelector('.step-icon').textContent = '✓';
 
+        // Step 3: register & monitor via real KYT (continuous-monitoring scenario)
         await animateStep('send-s3', 'running', 1100);
-        await animateStep('send-s3', 'success', 0);
-        document.getElementById('send-s3').querySelector('.step-icon').textContent = '✓';
+        let kyt = null;
+        if (wdKind === 'monitor') {
+          const sc = WD_SCENARIOS.find(x => x.id === 'wd-indirect');
+          try {
+            const r = await fetch(`/api/workflow/${KYT_SLUG_WD}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:sc.input}) });
+            if (r.ok) { const d = await r.json(); kyt = d.output ?? d; if (kyt.error) kyt = null; }
+          } catch(e) {}
+          if (!kyt) kyt = { level:'SEVERE', alerts:[{level:'SEVERE',exposureType:'INDIRECT'}], graphLink:'https://kyt.chainalysis.com/alerts', alertLink:'https://kyt.chainalysis.com/alerts', sandbox:true };
+        }
+        const flagged = wdKind === 'monitor' && kyt && kyt.level && kyt.level !== 'CLEARED';
+        await animateStep('send-s3', flagged ? 'alert' : 'success', 0);
+        document.getElementById('send-s3').querySelector('.step-icon').textContent = flagged ? '!' : '✓';
 
         await animateStep('send-s4', 'running', 500);
-        await animateStep('send-s4', 'success', 0);
-        document.getElementById('send-s4').querySelector('.step-icon').textContent = '✓';
+        await animateStep('send-s4', flagged ? 'alert' : 'success', 0);
+        document.getElementById('send-s4').querySelector('.step-icon').textContent = flagged ? '!' : '✓';
+        if (flagged) { const lbl = document.querySelector('#send-s4 div div'); if (lbl) lbl.textContent = 'Post-send alert raised'; }
 
         await delay(400);
 
@@ -1024,6 +1067,15 @@
         document.getElementById('wdReceiptAmt').textContent = wdAmount.toFixed(4) + ' BTC';
         document.getElementById('wdReceiptAddr').textContent = addr;
         document.getElementById('wdReceiptTx').textContent = genTxId();
+
+        // Continuous-monitoring alert (post-send) — funds later reached a sanctioned entity
+        const box = document.getElementById('wdMonitorBox');
+        if (flagged && box) {
+          const links = `<div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">${kyt.graphLink?`<a href="${kyt.graphLink}" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:#a78bfa;text-decoration:none;">↗ Open alert graph in Reactor</a>`:''}${kyt.alertLink?`<a href="${kyt.alertLink}" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:#eab308;text-decoration:none;">↗ View alert in KYT</a>`:''}</div>`;
+          box.style.background = 'rgba(239,68,68,0.06)';
+          box.style.borderColor = 'rgba(239,68,68,0.2)';
+          box.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:11px;font-weight:700;color:#ef4444;">KYT Continuous Monitoring — Alert</span></div><p style="font-size:10px;color:#aaa;margin-top:4px;line-height:1.5;">This withdrawal screened clean at send. KYT has since detected the funds reaching <strong style="color:#ccc;">OFAC-sanctioned Chatex.com</strong> (SEVERE · indirect exposure). Compliance has been notified.</p>${links}`;
+        }
       }
 
       function resetWithdraw() {
@@ -1046,6 +1098,13 @@
           s.className = 'kyt-step pending workflow-step';
           s.querySelector('.step-icon').textContent = i+1;
         });
+        const s4lbl = document.querySelector('#send-s4 div div'); if (s4lbl) s4lbl.textContent = 'Compliance cleared';
+        // Reset KYT scenario + monitoring box
+        wdKind = 'screen';
+        const wsel = document.getElementById('wdScenario'); if (wsel) wsel.value = '';
+        const wstory = document.getElementById('wdScenarioStory'); if (wstory) { wstory.textContent = ''; wstory.style.display = 'none'; }
+        const mbox = document.getElementById('wdMonitorBox');
+        if (mbox) { mbox.style.background = 'rgba(34,197,94,0.04)'; mbox.style.borderColor = 'rgba(34,197,94,0.12)'; mbox.innerHTML = '<div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#22c55e;">KYT Monitoring Active</span></div><p style="font-size:10px;color:#888;margin-top:4px;line-height:1.5;">This transaction is being continuously monitored by Chainalysis KYT. The compliance team will be alerted if any post-send risk is detected.</p>'; }
       }
 
       // =====================================================
@@ -1108,7 +1167,7 @@
       document.addEventListener('click',(e)=>{if(!w.contains(e.target))dd.style.display='none';});
       w.appendChild(dd);w.appendChild(btn);input.parentNode.appendChild(w);
     }
-    setTimeout(()=>renderAddressPicker('wdAddress'),200);
+    (function(){var sel=document.getElementById('wdScenario');if(sel){sel.innerHTML='<option value="">— enter address or pick a sample —</option>'+WD_SCENARIOS.map(function(s){return '<option value="'+s.id+'">'+s.label+'</option>';}).join('');}})();
     </script>
   
     <!-- Brand customization (brand-swap) — supports ?brand=, ?color=, ?domain= from Branding Studio -->

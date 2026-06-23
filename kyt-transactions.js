@@ -67,6 +67,41 @@ const KYT_DEPOSITS = [
   },
 ];
 
+// ---- WITHDRAWAL scenarios (outgoing sends) ----
+// For demos with a "send / withdraw" flow. Includes the continuous-monitoring
+// case: a destination that screened clean at send, but whose funds later reached
+// a sanctioned entity (indirect exposure) — caught by ongoing KYT monitoring.
+const KYT_WITHDRAWALS = [
+  {
+    id: 'wd-clean',
+    label: '🟢 Clean destination',
+    asset: 'BTC', amount: '0.05', expected: 'CLEARED',
+    story: 'A normal external wallet — pre-screen clears it and the withdrawal proceeds.',
+    input: { mode: 'withdrawal', network: 'BITCOIN', asset: 'BTC', assetAmount: 0.05,
+             address: 'bc1qakvuk920fcal063mpvz6gym0nsse0auuz9ny0u' },
+  },
+  {
+    id: 'wd-sanctioned',
+    label: '🔴 Sanctioned destination (blocked)',
+    asset: 'BTC', amount: '0.05', expected: 'SEVERE',
+    story: 'Destination is OFAC-sanctioned (Chatex.com). The withdrawal is blocked before any funds leave.',
+    input: { mode: 'withdrawal', network: 'BITCOIN', asset: 'BTC', assetAmount: 0.05,
+             address: '3JaAYDPJkwdSYtBDML3QUtaSJjB6eebd2R' },
+  },
+  {
+    id: 'wd-indirect',
+    label: '🟡 Indirect exposure — continuous monitoring',
+    asset: 'BTC', amount: '0.0423', expected: 'INDIRECT',
+    source: 'Chatex.com', sourceCat: 'OFAC SDN (sanctioned entity)',
+    // The destination screened clean at send. KYT keeps monitoring the registered
+    // transfer and later raises a SEVERE indirect alert when the funds reach the
+    // sanctioned entity — the point-in-time screen alone would have missed this.
+    story: 'Destination screened clean at the time of send. KYT continuous monitoring later detected the funds reaching OFAC-sanctioned Chatex.com — a SEVERE indirect-exposure alert on the completed transfer.',
+    input: { mode: 'transfer', network: 'BITCOIN', asset: 'BTC', direction: 'sent',
+             transferReference: '6dd7ede9526c3bb8b670696b96a6edf6d39d445f02b8496da3335d69c6640c47:bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar' },
+  },
+];
+
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { KYT_WORKFLOW_SLUG, KYT_DEPOSITS };
+  module.exports = { KYT_WORKFLOW_SLUG, KYT_DEPOSITS, KYT_WITHDRAWALS };
 }

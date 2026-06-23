@@ -203,7 +203,16 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 
 **Sourcing tx hashes:** Data Solutions `cross_chain.transfers_clustered` (filter by risky `sender_name`/`sender_category`) → register candidates → keep validated outcomes. Note: avoid `asset_symbol='ETH'` as a sole broad predicate (non-selective → 400); keep `sender_name IS NULL` style filters selective.
 
-**Next:** roll `cove-kyt-screen` into ATM (withdrawal), Remittance (send), ArcSwap, Stablecoin mint; then a standalone Live KYT Screener tool + interactive KYT Explainer. (Address Screening is NOT replaced anywhere — KYT is additive.)
+**Withdrawal scenarios** (`KYT_WITHDRAWALS` in `kyt-transactions.js`, all validated):
+| Scenario | Shape | Outcome |
+|---|---|---|
+| Clean destination (BTC) | withdrawal | CLEARED |
+| Sanctioned destination — Chatex (BTC) | withdrawal | SEVERE → blocked before send |
+| **Indirect — continuous monitoring** (BTC tx → Chatex) | transfer (sent) | clean at send → **KYT later raises SEVERE/INDIRECT** post-send |
+
+✅ **ATM (CoinVault) rolled out:** withdraw flow has a sample-destination picker. Clean → Address-Screening approved → sent. Sanctioned → blocked. Indirect → screens clean at send, then `confirmSend` calls `cove-kyt-screen` (transfer/sent) and the "KYT Monitoring Active" box flips to a **post-send continuous-monitoring alert** (funds reached OFAC-sanctioned Chatex.com) with Reactor-graph + KYT-alert links. The continuous-monitoring tx hash was provided by the user.
+
+**Next:** roll `cove-kyt-screen` into Remittance (send), ArcSwap (withdraw), Gaming (cash out); then a standalone Live KYT Screener tool + interactive KYT Explainer. (Address Screening is NOT replaced anywhere — KYT is additive.)
 
 ---
 
