@@ -231,7 +231,9 @@ Style: `color: #a855f7`, subtle background, hover effect. Already implemented in
 **Products:** Data Solutions ★, KYT, Address Screening, Reactor  
 **Industry:** Stablecoins / Treasury
 
-**Concept:** An issuer intelligence console (think Circle/Tether). Built sections: (1) Ecosystem Overview — supply by chain + holder type, (2) In/Out Flows — mint vs burn chart, net flow map, cross-chain bridge & swap attribution, (3) Whale/Top-Holder Surveillance with movement alerts + Reactor links, (4) Market Integrity / Peg Watch, (5) Mint/Burn Compliance Gate — **live** Address Screening call (`demochain-address-screen`) with sandbox fallback, (6) Sanctions & Freeze Workflow with audit log. Brand-swap + analytics tracking wired in.
+**Concept:** An issuer intelligence console (think Circle/Tether). Built sections: (1) Ecosystem Overview — supply by chain + holder type, (2) In/Out Flows — mint vs burn chart, net flow map, cross-chain bridge & swap attribution, (3) Whale/Top-Holder Surveillance with movement alerts, (4) Market Integrity / Peg Watch, (5) Mint/Burn Compliance Gate — **live** Address Screening call (`demochain-address-screen`) with sandbox fallback, (6) Sanctions & Freeze Workflow with audit log. Brand-swap + analytics tracking wired in.
+
+**Polish pass (v2):** Removed dead Reactor homepage links. Added: (a) **Holder Intelligence drawer** — click any holder/whale for cluster, counterparties, exposure; (b) **real Reactor graph creation** via `arcswap-reactor-graph` workflow (drawer + freeze) instead of homepage links; (c) **"View Data Solutions query"** SQL reveals on Flows + Holders panels; (d) **Supply Exposure by Risk Category** panel (Data Solutions); (e) **KYT Monitoring Rules** card.
 
 | # | Task | Effort | Notes |
 |---|------|--------|-------|

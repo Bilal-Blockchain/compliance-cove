@@ -107,6 +107,40 @@
       .step-card{border:1px solid var(--m-border);border-radius:12px;padding:16px;margin-bottom:10px;background:#fff;}
       .step-num{width:30px;height:30px;border-radius:8px;background:var(--m-accent);color:#fff;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
       .talk{margin-top:8px;padding:9px 12px;border-radius:8px;background:rgba(5,150,105,.05);border:1px solid rgba(5,150,105,.12);font-size:12px;line-height:1.5;color:#0d5c43;}
+      /* Clickable rows */
+      tr.clk{cursor:pointer;transition:background .12s;}
+      tr.clk:hover{background:#f1f5f4;}
+      .alert-item.clk{cursor:pointer;}
+      .alert-item.clk:hover{border-color:var(--m-accent);}
+
+      /* Data Solutions query reveal */
+      details.ds-q{margin-top:14px;border-top:1px dashed var(--m-border);padding-top:12px;}
+      details.ds-q summary{cursor:pointer;font-size:11px;font-weight:700;color:var(--m-accent-dark);list-style:none;display:inline-flex;align-items:center;gap:6px;}
+      details.ds-q summary::-webkit-details-marker{display:none;}
+      details.ds-q summary .chev{transition:transform .2s;}
+      details.ds-q[open] summary .chev{transform:rotate(90deg);}
+      details.ds-q pre{margin-top:10px;background:#0f1f1a;color:#a7f3d0;border-radius:10px;padding:13px 15px;font-size:11px;line-height:1.65;overflow-x:auto;font-family:'JetBrains Mono',monospace;white-space:pre;}
+
+      /* KYT rules */
+      .rule-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f0f3f2;}
+      .rule-row:last-child{border-bottom:none;}
+      .rule-ic{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(5,150,105,.08);color:var(--m-accent-dark);}
+      .rule-on{font-size:9px;font-weight:800;color:var(--m-low);background:rgba(22,163,74,.1);padding:3px 8px;border-radius:999px;}
+
+      /* Drawer */
+      .drawer-overlay{position:fixed;inset:0;background:rgba(15,31,26,.32);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:.2s;z-index:90;}
+      .drawer-overlay.open{opacity:1;visibility:visible;}
+      .drawer{position:fixed;top:0;right:0;height:100%;width:430px;max-width:93vw;background:#fff;box-shadow:-14px 0 50px rgba(0,0,0,.16);transform:translateX(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);z-index:91;overflow-y:auto;}
+      .drawer.open{transform:translateX(0);}
+      .drawer-h{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--m-border);padding:18px 20px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+      .drawer-x{background:none;border:none;cursor:pointer;color:var(--m-muted);line-height:0;padding:4px;border-radius:6px;}
+      .drawer-x:hover{background:#f1f5f4;color:var(--m-ink);}
+      .dstat{background:#f6f8f7;border-radius:10px;padding:10px 12px;}
+      .dstat .dl{font-size:10px;color:var(--m-muted);font-weight:600;}
+      .dstat .dv{font-size:15px;font-weight:800;margin-top:2px;}
+      .cp-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid #f4f6f5;}
+      .cp-row:last-child{border-bottom:none;}
+
       @media(max-width:920px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.grid2,.grid3,.flow{grid-template-columns:1fr;}.flow-core{margin:8px 0;}}
     </style>
   </head>
@@ -178,6 +212,24 @@
             </div>
           </div>
         </div>
+        <div class="card" style="margin-top:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+            <div><div class="card-t">Supply Exposure by Risk Category</div><div class="card-s">Share of 30-day USDM volume touching each counterparty category — the "is my coin being misused?" view every issuer needs.</div></div>
+            <span class="m-pill" style="background:rgba(22,163,74,.1);color:var(--m-low);border-color:rgba(22,163,74,.2);">99.3% clean &amp; attributable</span>
+          </div>
+          <div style="margin-top:16px;" id="exposureBars"></div>
+          <details class="ds-q"><summary><svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg> View Data Solutions query</summary><pre>-- USDM volume exposure by counterparty category (30d)
+SELECT cp.category,
+       SUM(t.amount_usd)                              AS volume_usd,
+       SUM(t.amount_usd) / SUM(SUM(t.amount_usd)) OVER () AS pct
+FROM   transfers_clustered t
+JOIN   cross_chain.clusters cp
+       ON t.counterparty_cluster = cp.cluster_id
+WHERE  t.asset = 'USDM'
+  AND  t.block_timestamp >= now() - INTERVAL 30 DAY
+GROUP  BY cp.category
+ORDER  BY volume_usd DESC;</pre></details>
+        </div>
         <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions:</b> a single SQL query against <span class="mono">transfers_clustered</span> + <span class="mono">cross_chain.clusters</span> attributes 1.24M holders into named entities (exchanges, DeFi, bridges, market makers) — the foundation for every panel below.</div></div>
       </div>
 
@@ -233,6 +285,19 @@
               <tr><td>Uniswap v3</td><td>DEX swap</td><td style="text-align:right;color:var(--m-low);">$44M</td><td style="text-align:right;color:var(--m-high);">$72M</td><td style="text-align:right;font-weight:700;color:var(--m-high);">−$28M</td></tr>
             </tbody>
           </table>
+          <details class="ds-q"><summary><svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg> View Data Solutions query</summary><pre>-- USDM cross-chain bridge &amp; swap flows (last 24h)
+SELECT cp.entity_name AS venue,
+       cp.category    AS venue_type,
+       SUM(CASE WHEN t.direction = 'in'  THEN t.amount_usd END) AS in_24h,
+       SUM(CASE WHEN t.direction = 'out' THEN t.amount_usd END) AS out_24h
+FROM   transfers_clustered t
+JOIN   cross_chain.clusters cp
+       ON t.counterparty_cluster = cp.cluster_id
+WHERE  t.asset = 'USDM'
+  AND  cp.category IN ('bridge', 'dex')
+  AND  t.block_timestamp >= now() - INTERVAL 24 HOUR
+GROUP  BY venue, venue_type
+ORDER  BY (in_24h + out_24h) DESC;</pre></details>
         </div>
         <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions:</b> bridge and DEX contracts are pre-attributed, so flows in/out of Wormhole, CCTP, Curve and Uniswap are categorized automatically. The issuer sees exactly how much supply is leaving the native chain and what it's being swapped into — no manual contract tagging.</div></div>
       </div>
@@ -250,14 +315,40 @@
               <thead><tr><th>#</th><th>Holder</th><th style="text-align:right;">Balance</th><th style="text-align:right;">% Supply</th><th style="text-align:right;">24h Δ</th><th>Risk</th></tr></thead>
               <tbody id="holderTbl"></tbody>
             </table>
+            <details class="ds-q"><summary><svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg> View Data Solutions query</summary><pre>-- Top USDM holders with entity attribution
+SELECT c.entity_name AS holder,
+       c.category,
+       b.balance_usd,
+       b.balance_usd / s.supply AS pct_supply
+FROM   cross_chain.cluster_balances b
+JOIN   cross_chain.clusters c ON b.cluster_id = c.cluster_id
+CROSS  JOIN (SELECT SUM(balance_usd) AS supply
+            FROM cross_chain.cluster_balances
+            WHERE asset = 'USDM') s
+WHERE  b.asset = 'USDM'
+ORDER  BY b.balance_usd DESC
+LIMIT  20;</pre></details>
           </div>
           <div class="card">
             <div class="card-t" style="margin-bottom:4px;">Whale Movement Alerts</div>
             <div class="card-s" style="margin-bottom:12px;">KYT + Data Solutions, large-transfer triggers</div>
             <div id="whaleAlerts"></div>
+            <div style="font-size:10px;color:var(--m-muted);margin-top:10px;text-align:center;">Click any holder or alert for full intelligence →</div>
           </div>
         </div>
-        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions + Entity Monitoring:</b> rank holders by balance, attribute them to known entities, and flag movements to risky destinations. <b>Reactor</b> deep-links let an analyst pivot from any holder straight into a full investigation.</div></div>
+        <div class="card" style="margin-top:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+            <div><div class="card-t">KYT Monitoring Rules</div><div class="card-s">Real-time triggers running on every USDM mint, burn, and transfer</div></div>
+            <span class="m-pill">4 active rules</span>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="rule-row"><div class="rule-ic">🛡️</div><div style="flex:1;"><div style="font-size:12.5px;font-weight:700;">Mint or transfer to sanctioned entity</div><div style="font-size:11px;color:var(--m-muted);">Action: block issuance &amp; flag address for freeze</div></div><span class="rule-on">ACTIVE</span></div>
+            <div class="rule-row"><div class="rule-ic">🐋</div><div style="flex:1;"><div style="font-size:12.5px;font-weight:700;">Whale transfer &gt; $25M to an unhosted wallet</div><div style="font-size:11px;color:var(--m-muted);">Action: raise alert &amp; open enhanced review</div></div><span class="rule-on">ACTIVE</span></div>
+            <div class="rule-row"><div class="rule-ic">🪙</div><div style="flex:1;"><div style="font-size:12.5px;font-weight:700;">Single mint &gt; $10M</div><div style="font-size:11px;color:var(--m-muted);">Action: enhanced review before authorization</div></div><span class="rule-on">ACTIVE</span></div>
+            <div class="rule-row"><div class="rule-ic">⚡</div><div style="flex:1;"><div style="font-size:12.5px;font-weight:700;">Redemption cluster &gt; $50M in 30 min</div><div style="font-size:11px;color:var(--m-muted);">Action: peg-risk alert to treasury &amp; comms</div></div><span class="rule-on">ACTIVE</span></div>
+          </div>
+        </div>
+        <div class="ds-note"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg><div><b>Data Solutions + Entity Monitoring + KYT:</b> holders are ranked, attributed to known entities, and watched for risky movements. Click any holder to open full on-chain intelligence — and spin up a live <b>Reactor</b> investigation graph for that exact address in one click.</div></div>
       </div>
 
       <!-- 4. MARKET -->
@@ -328,10 +419,10 @@
               Address holds <b>$8.4M USDM</b> and was identified by Chainalysis as <b>Lazarus Group</b> — an OFAC-sanctioned entity. Screening triggered a Severe alert. Tokens must be frozen to remain compliant.
             </div>
             <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
-              <a class="btn btn-ghost" href="https://reactor.chainalysis.com" target="_blank" rel="noopener" style="text-decoration:none;">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#a855f7" width="14" height="14"><path d="M14.58 0c.33 0 .7.04.7.04C14.18 1.35 13.52 2.97 13.39 4.67 11.32 5.01 9.42 6 7.96 7.5 6.5 8.99 5.55 10.91 5.26 12.98 3.37 13.18 1.24 14.04.01 15.27-.28 6.84 6.21 0 14.58 0Z"/></svg>
-                Investigate in Reactor
-              </a>
+              <button class="btn btn-ghost" style="color:#7c3aed;border-color:rgba(124,58,237,.3);" onclick="createReactorGraph('0x098B716B8Aaf21512996dC57EB0615e2383E2f96', this)">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#7c3aed" width="14" height="14"><path d="M14.58 0c.33 0 .7.04.7.04C14.18 1.35 13.52 2.97 13.39 4.67 11.32 5.01 9.42 6 7.96 7.5 6.5 8.99 5.55 10.91 5.26 12.98 3.37 13.18 1.24 14.04.01 15.27-.28 6.84 6.21 0 14.58 0Z"/></svg>
+                Build Reactor Graph
+              </button>
               <button class="btn btn-danger" id="freezeBtn" onclick="freezeAddress()">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 Freeze Address
@@ -354,6 +445,16 @@
     </div>
   </div>
 
+  <!-- ==================== HOLDER DRAWER ==================== -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-h">
+      <div id="drawerTitle"></div>
+      <button class="drawer-x" onclick="closeDrawer()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div id="drawerBody" style="padding:18px 20px;"></div>
+  </div>
+
   <!-- ==================== ABOUT ==================== -->
   <div class="screen" id="screen-about">
     <div class="wrap" style="max-width:900px;">
@@ -369,7 +470,7 @@
       <div class="card" style="margin-top:16px;">
         <div class="card-t" style="margin-bottom:12px;">Presenter Workflow</div>
         <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">1</div><div><div style="font-size:13px;font-weight:700;">Open on Ecosystem + Flows</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Start with where the coin lives and how it moves. Scroll through supply-by-chain, holder types, and the In/Out flow map.</div><div class="talk"><b>💬 Talking Point:</b> "Issuers are accountable for what their token does after it leaves the door. Data Solutions gives you a live map of every flow — across chains, bridges, and DEXs — from one query."</div></div></div></div>
-        <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">2</div><div><div style="font-size:13px;font-weight:700;">Show Whale Surveillance</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Walk the top-holder table and the whale alert feed. Click a Reactor link to show the pivot to investigation.</div><div class="talk"><b>💬 Talking Point:</b> "Concentration is peg risk. We attribute your largest holders and alert you the moment one moves funds somewhere risky."</div></div></div></div>
+        <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">2</div><div><div style="font-size:13px;font-weight:700;">Show Whale Surveillance</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Walk the top-holder table and whale alert feed. Click any holder to open its Data Solutions intelligence drawer — counterparties, exposure, cluster — then build a live Reactor investigation graph for that exact address.</div><div class="talk"><b>💬 Talking Point:</b> "Concentration is peg risk. We attribute your largest holders and alert you the moment one moves funds somewhere risky."</div></div></div></div>
         <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">3</div><div><div style="font-size:13px;font-weight:700;">Run the Mint Gate (live)</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">In section 5, use the pre-screened address picker. Mint to a clean address (approved), then a sanctioned one (blocked). This is a live Address Screening API call.</div><div class="talk"><b>💬 Talking Point:</b> "You never want to mint into a sanctioned wallet. We screen the destination before a single token is issued."</div></div></div></div>
         <div class="step-card"><div style="display:flex;gap:12px;"><div class="step-num">4</div><div><div style="font-size:13px;font-weight:700;">Close on the Freeze Workflow</div><div style="font-size:12px;color:var(--m-muted);margin-top:3px;line-height:1.6;">Section 6: a holder hits the OFAC SDN list. Investigate in Reactor, then click Freeze — watch the audit log update.</div><div class="talk"><b>💬 Talking Point:</b> "This is the obligation that defines your business. Tether and Circle freeze sanctioned addresses on-chain — Chainalysis is how they know which ones."</div></div></div></div>
       </div>
@@ -496,33 +597,93 @@
   // ===== Charts & dynamic content =====
   function bar(label,pct,val,color){return `<div class="bar-row"><span class="lbl">${label}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%;${color?'background:'+color:''}"></div></div><span class="bar-val">${val}</span></div>`;}
 
+  // Holder intelligence (Data Solutions-style attribution)
+  const HOLDERS=[
+    {id:1,name:'Binance',type:'Exchange (CEX)',bal:'$1.42B',pct:'11.4%',d:'+0.3%',risk:'low',addr:'0x28C6c06298d514Db089934071355E5743bf21d60',cluster:'Binance',cat:'Centralized Exchange',first:'Mar 2019',last:'2 min ago',cin:[['Coinbase','$210M'],['Circle (mint)','$140M'],['Retail deposits','$96M']],cout:[['User withdrawals','$180M'],['Curve 3pool','$70M']],exp:[['Exchange',62,'low'],['DeFi',21,'low'],['Retail',12,'low'],['Other',5,'low']]},
+    {id:2,name:'Curve 3pool',type:'DeFi protocol',bal:'$0.88B',pct:'7.1%',d:'−1.2%',risk:'low',addr:'0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7',cluster:'Curve.fi',cat:'DeFi / DEX',first:'Jan 2020',last:'1 min ago',cin:[['Arbitrageurs','$120M'],['Liquidity providers','$88M']],cout:[['Swappers','$140M'],['LP exits','$60M']],exp:[['DeFi',74,'low'],['Exchange',18,'low'],['Other',8,'low']]},
+    {id:3,name:'Coinbase',type:'Exchange (CEX)',bal:'$0.74B',pct:'6.0%',d:'+0.1%',risk:'low',addr:'0x71660c4005BA85c37ccec55d0C4493E66Fe775d3',cluster:'Coinbase',cat:'Centralized Exchange',first:'Aug 2019',last:'4 min ago',cin:[['Retail deposits','$130M'],['Binance','$60M']],cout:[['User withdrawals','$150M']],exp:[['Exchange',69,'low'],['Retail',20,'low'],['DeFi',11,'low']]},
+    {id:4,name:'Wintermute (MM)',type:'Market maker',bal:'$0.51B',pct:'4.1%',d:'+2.4%',risk:'med',addr:'0x0000000fe6a514a32abdcdfcc076c85243de899b',cluster:'Wintermute',cat:'Market Maker',first:'Nov 2020',last:'just now',cin:[['CEX desks','$210M'],['DEX market making','$96M']],cout:[['DEX market making','$180M'],['CEX desks','$120M']],exp:[['Exchange',48,'low'],['DeFi',34,'low'],['Unnamed service',12,'med'],['Stolen funds (indirect)',6,'high']]},
+    {id:5,name:'Aave v3',type:'DeFi protocol',bal:'$0.43B',pct:'3.5%',d:'−0.4%',risk:'low',addr:'0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',cluster:'Aave',cat:'DeFi / Lending',first:'Mar 2022',last:'6 min ago',cin:[['Suppliers','$90M']],cout:[['Borrowers','$70M']],exp:[['DeFi',82,'low'],['Exchange',13,'low'],['Other',5,'low']]},
+    {id:6,name:'Unknown Whale',type:'Private wallet',bal:'$0.39B',pct:'3.1%',d:'+8.9%',risk:'med',addr:'0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',cluster:'Unnamed (unattributed)',cat:'Private wallet',first:'5 days ago',last:'18 min ago',cin:[['Binance','$120M'],['Unnamed service','$34M']],cout:[['Mixer (1 hop)','$34M'],['Uniswap','$60M']],exp:[['Exchange',41,'low'],['Unnamed service',33,'med'],['Mixer (indirect)',18,'high'],['Other',8,'low']]},
+    {id:7,name:'Bybit',type:'Exchange (CEX)',bal:'$0.31B',pct:'2.5%',d:'+0.2%',risk:'low',addr:'0xf89d7b9c864f589bbF53a82105107622B35EaA40',cluster:'Bybit',cat:'Centralized Exchange',first:'Feb 2021',last:'3 min ago',cin:[['Retail deposits','$70M']],cout:[['User withdrawals','$66M']],exp:[['Exchange',72,'low'],['Retail',19,'low'],['DeFi',9,'low']]},
+    {id:8,name:'Unnamed Service',type:'Unattributed service',bal:'$0.22B',pct:'1.8%',d:'+0.0%',risk:'med',addr:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',cluster:'Unnamed service',cat:'Unnamed service',first:'Jul 2023',last:'1 hr ago',cin:[['Mixed sources','$40M']],cout:[['Exchanges','$38M']],exp:[['Unnamed service',58,'med'],['Exchange',30,'low'],['Gambling',12,'med']]},
+  ];
+  const HMAP={};HOLDERS.forEach(h=>HMAP[h.id]=h);
+  const RC={low:'#10b981',med:'#d97706',high:'#dc2626'};
+
   function buildContent(){
     // chain bars
     const chains=[['Ethereum',52,'$6.45B'],['Base',18,'$2.23B'],['Arbitrum',12,'$1.49B'],['Solana',10,'$1.24B'],['Tron',5,'$0.62B'],['Polygon',3,'$0.37B']];
     document.getElementById('chainBars').innerHTML=chains.map(c=>bar(c[0],c[1],c[2])).join('');
-    // holders table
-    const holders=[
-      ['1','Binance','$1.42B','11.4%','+0.3%','low'],
-      ['2','Curve 3pool','$0.88B','7.1%','−1.2%','low'],
-      ['3','Coinbase','$0.74B','6.0%','+0.1%','low'],
-      ['4','Wintermute (MM)','$0.51B','4.1%','+2.4%','med'],
-      ['5','Aave v3','$0.43B','3.5%','−0.4%','low'],
-      ['6','Unknown Whale','$0.39B','3.1%','+8.9%','med'],
-      ['7','Bybit','$0.31B','2.5%','+0.2%','low'],
-      ['8','Unnamed Service','$0.22B','1.8%','+0.0%','med'],
-    ];
+    // exposure by category
+    const exp=[['Licensed exchanges',71,'low'],['DeFi protocols',18,'low'],['Unnamed services',6,'med'],['Gambling',2.4,'med'],['Sanctioned / mixers',0.4,'high'],['Scams / stolen',0.3,'high']];
+    document.getElementById('exposureBars').innerHTML=exp.map(e=>`<div class="bar-row"><span class="lbl" style="min-width:140px;">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(e[1],1.5)}%;background:${RC[e[2]]};"></div></div><span class="bar-val">${e[1]}%</span></div>`).join('');
+    // holders table (clickable)
     const rb={low:'<span class="risk-badge rb-low">Low</span>',med:'<span class="risk-badge rb-med">Medium</span>',high:'<span class="risk-badge rb-high">Severe</span>'};
-    document.getElementById('holderTbl').innerHTML=holders.map(h=>`<tr><td style="color:var(--m-muted);">${h[0]}</td><td style="font-weight:600;">${h[1]} ${reactorPill()}</td><td style="text-align:right;font-weight:700;">${h[2]}</td><td style="text-align:right;">${h[3]}</td><td style="text-align:right;color:${h[4].startsWith('+')?'var(--m-low)':'var(--m-high)'};font-weight:600;">${h[4]}</td><td>${rb[h[5]]}</td></tr>`).join('');
-    // whale alerts
+    document.getElementById('holderTbl').innerHTML=HOLDERS.map(h=>`<tr class="clk" onclick="openHolder(${h.id})"><td style="color:var(--m-muted);">${h.id}</td><td style="font-weight:600;">${h.name}</td><td style="text-align:right;font-weight:700;">${h.bal}</td><td style="text-align:right;">${h.pct}</td><td style="text-align:right;color:${h.d.startsWith('+')?'var(--m-low)':'var(--m-high)'};font-weight:600;">${h.d}</td><td>${rb[h.risk]}</td></tr>`).join('');
+    // whale alerts (clickable)
     const alerts=[
-      ['high','!','Whale → mixer-adjacent','Unknown Whale moved $34M USDM to an address 1 hop from a sanctioned mixer.'],
-      ['med','⚡','Rapid accumulation','Unknown Whale +8.9% in 24h ($31M) — concentration rising.'],
-      ['low','↗','Large bridge-out','$28M USDM bridged ETH → Solana via Wormhole.'],
+      {sev:'high',ic:'!',t:'Whale → mixer-adjacent',d:'Unknown Whale moved $34M USDM to an address 1 hop from a sanctioned mixer.',hid:6},
+      {sev:'med',ic:'⚡',t:'Rapid accumulation',d:'Unknown Whale +8.9% in 24h ($31M) — concentration rising.',hid:6},
+      {sev:'low',ic:'↗',t:'Large bridge-out',d:'$28M USDM bridged ETH → Solana via Wormhole by Wintermute.',hid:4},
     ];
     const ac={high:['rgba(220,38,38,.1)','var(--m-high)'],med:['rgba(217,119,6,.12)','var(--m-med)'],low:['rgba(22,163,74,.1)','var(--m-low)']};
-    document.getElementById('whaleAlerts').innerHTML=alerts.map(a=>`<div class="alert-item"><div class="alert-ic" style="background:${ac[a[0]][0]};color:${ac[a[0]][1]};">${a[1]}</div><div><div style="font-size:12px;font-weight:700;">${a[2]} ${reactorPill()}</div><div style="font-size:11px;color:var(--m-muted);margin-top:1px;">${a[3]}</div></div></div>`).join('');
+    document.getElementById('whaleAlerts').innerHTML=alerts.map(a=>`<div class="alert-item clk" onclick="openHolder(${a.hid})"><div class="alert-ic" style="background:${ac[a.sev][0]};color:${ac[a.sev][1]};">${a.ic}</div><div><div style="font-size:12px;font-weight:700;">${a.t}</div><div style="font-size:11px;color:var(--m-muted);margin-top:1px;">${a.d}</div></div></div>`).join('');
   }
-  function reactorPill(){return '<a class="reactor-pill" href="https://reactor.chainalysis.com" target="_blank" rel="noopener">Reactor →</a>';}
+
+  // ===== Holder intelligence drawer =====
+  function openHolder(id){
+    const h=HMAP[id];if(!h)return;
+    const rmap={low:['Low Risk','rb-low'],med:['Medium Risk','rb-med'],high:['Severe Risk','rb-high']};
+    document.getElementById('drawerTitle').innerHTML=`<div style="font-size:16px;font-weight:800;">${h.name}</div><div style="font-size:11px;color:var(--m-muted);margin-top:1px;">${h.type}</div>`;
+    document.getElementById('drawerBody').innerHTML=`
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+        <span class="mono" style="font-size:11px;color:var(--m-muted);">${h.addr.slice(0,14)}…${h.addr.slice(-8)}</span>
+        <span class="risk-badge ${rmap[h.risk][1]}">${rmap[h.risk][0]}</span>
+      </div>
+      <div class="grid2" style="gap:10px;margin-top:14px;">
+        <div class="dstat"><div class="dl">Balance</div><div class="dv">${h.bal}</div></div>
+        <div class="dstat"><div class="dl">% of Supply</div><div class="dv">${h.pct}</div></div>
+        <div class="dstat"><div class="dl">24h Change</div><div class="dv" style="color:${h.d.startsWith('+')?'var(--m-low)':'var(--m-high)'};">${h.d}</div></div>
+        <div class="dstat"><div class="dl">Type</div><div class="dv" style="font-size:12px;">${h.cat}</div></div>
+      </div>
+      <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;color:var(--m-accent-dark);margin:18px 0 8px;">Entity Intelligence · Data Solutions</div>
+      <div class="cp-row"><span style="color:var(--m-muted);">Cluster</span><span style="font-weight:700;">${h.cluster}</span></div>
+      <div class="cp-row"><span style="color:var(--m-muted);">Category</span><span style="font-weight:700;">${h.cat}</span></div>
+      <div class="cp-row"><span style="color:var(--m-muted);">First seen</span><span style="font-weight:700;">${h.first}</span></div>
+      <div class="cp-row"><span style="color:var(--m-muted);">Last active</span><span style="font-weight:700;">${h.last}</span></div>
+      <div class="grid2" style="gap:16px;margin-top:18px;">
+        <div><div style="font-size:11px;font-weight:700;color:var(--m-muted);margin-bottom:6px;">Top inflows</div>${h.cin.map(c=>`<div class="cp-row"><span>${c[0]}</span><span style="font-weight:700;color:var(--m-low);">${c[1]}</span></div>`).join('')}</div>
+        <div><div style="font-size:11px;font-weight:700;color:var(--m-muted);margin-bottom:6px;">Top outflows</div>${h.cout.map(c=>`<div class="cp-row"><span>${c[0]}</span><span style="font-weight:700;color:var(--m-high);">${c[1]}</span></div>`).join('')}</div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--m-muted);margin:18px 0 8px;">Exposure by category</div>
+      ${h.exp.map(e=>`<div class="bar-row"><span class="lbl" style="min-width:140px;">${e[0]}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.max(e[1],1.5)}%;background:${RC[e[2]]};"></div></div><span class="bar-val">${e[1]}%</span></div>`).join('')}
+      <button class="btn btn-ghost" style="width:100%;margin-top:18px;color:#7c3aed;border-color:rgba(124,58,237,.3);" onclick="createReactorGraph('${h.addr}',this)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#7c3aed" width="14" height="14"><path d="M14.58 0c.33 0 .7.04.7.04C14.18 1.35 13.52 2.97 13.39 4.67 11.32 5.01 9.42 6 7.96 7.5 6.5 8.99 5.55 10.91 5.26 12.98 3.37 13.18 1.24 14.04.01 15.27-.28 6.84 6.21 0 14.58 0Z"/></svg>
+        Build Reactor investigation graph
+      </button>
+      <div id="graphNote" style="display:none;font-size:10px;color:var(--m-muted);margin-top:8px;text-align:center;"></div>`;
+    document.getElementById('drawer').classList.add('open');
+    document.getElementById('drawerOverlay').classList.add('open');
+  }
+  function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');}
+
+  // ===== Real Reactor graph creation (arcswap-reactor-graph workflow) =====
+  async function createReactorGraph(address,btn){
+    const orig=btn.innerHTML;btn.disabled=true;
+    btn.innerHTML='<span style="width:13px;height:13px;border:2px solid rgba(124,58,237,.3);border-top-color:#7c3aed;border-radius:50%;display:inline-block;animation:rot 1s linear infinite;"></span> Building graph…';
+    try{
+      const res=await fetch('/api/workflow/arcswap-reactor-graph/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address,network:'ETH'}})});
+      if(!res.ok)throw new Error('wf');
+      const data=await res.json();const r=data.output??data;
+      if(r.graphUrl){window.open(r.graphUrl,'_blank');btn.innerHTML='✓ Graph opened in Reactor';}
+      else throw new Error('nourl');
+    }catch(e){
+      btn.disabled=false;btn.innerHTML=orig;
+      const n=document.getElementById('graphNote');
+      if(n){n.style.display='block';n.textContent='Live graph creation runs when this page is opened in a new tab — the preview sandbox blocks the API.';}
+    }
+  }
 
   function initCharts(){
     if(typeof Chart==='undefined')return;
