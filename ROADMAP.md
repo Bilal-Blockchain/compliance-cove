@@ -146,7 +146,9 @@ Interactive reference pages that make Chainalysis APIs **dead simple** for CSMs,
 | `https://kyt.chainalysis.com/alerts/graph-v2?alertIds={alertId}` | KYT deep link — lazily creates a graph on click |
 | `https://reactor.chainalysis.com` | Reactor app home — used for demo "Investigate in Reactor" links |
 
-> **⚠️ No address-based search URL exists in Reactor's routing.** The old pattern `/graphs/reactor/{NETWORK}/{ADDRESS}` was invalid and redirected to `/graphs/list`. All demos now link to `https://reactor.chainalysis.com` directly with tooltip context showing the address. ✅ Fixed across all 8 demos.
+> **⚠️ No address-based search URL exists in Reactor's routing.** The old pattern `/graphs/reactor/{NETWORK}/{ADDRESS}` was invalid.
+>
+> ✅ **RESOLVED (v3): every Reactor button now creates a REAL graph.** All decorative homepage links removed. Each demo's `openInReactor(address, network, btn)` calls the `arcswap-reactor-graph` workflow, which builds an actual investigation graph and opens its live `graph-v2/{id}` URL. On sandbox/preview failure it shows an inline tooltip (NO homepage fallback). Applied across: demochain, exchange, gaming, merchant, nft, remittance, banking, screener, stablecoin. (atm, hexagate, prediction, trading-firm have no address-display surfaces / no Reactor links.)
 
 ### Shared Helper Function
 

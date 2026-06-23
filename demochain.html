@@ -1626,11 +1626,11 @@
         if (result.graphUrl) {
           window.open(result.graphUrl, '_blank');
         } else {
-          window.open('https://reactor.chainalysis.com', '_blank');
+          void 0; /* no homepage fallback */
         }
       } catch (e) {
         // Fallback — open Reactor home
-        window.open('https://reactor.chainalysis.com', '_blank');
+        void 0; /* no homepage fallback */
       }
     }
 
