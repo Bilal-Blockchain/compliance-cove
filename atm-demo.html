@@ -472,7 +472,7 @@
             <!-- KYT sample destinations -->
             <div style="margin-bottom:12px;">
               <label style="font-size:12px;font-weight:600;color:#888;display:block;margin-bottom:6px;">Sample destination (KYT)</label>
-              <select id="wdScenario" onchange="pickWdScenario()" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid #2a2a2a;background:#111;color:white;font-size:12px;outline:none;"></select>
+              <select id="wdScenario" onchange="pickWdScenario()" style="width:100%;padding:14px 14px;border-radius:10px;border:1px solid #2a2a2a;background:#111;color:white;font-size:13px;line-height:1.5;height:auto;outline:none;"></select>
               <p id="wdScenarioStory" style="font-size:10px;color:#888;margin-top:5px;line-height:1.5;display:none;"></p>
             </div>
 
@@ -588,18 +588,18 @@
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#eab308" width="44" height="44"><path d="M14.5818 0C14.9085 0 15.2791 0.0406912 15.2791 0.0406912C14.1828 1.35062 13.5222 2.96756 13.3886 4.66786C11.323 5.01212 9.42139 6.00336 7.9598 7.49766C6.49821 8.99196 5.55277 10.9115 5.26076 12.9776C3.37321 13.181 1.23768 14.0414 0.00946427 15.2708C-0.282274 6.83612 6.20599 0 14.5818 0ZM16.6823 25.339C16.296 25.3959 15.9059 25.4241 15.5154 25.4233C14.8413 25.4153 14.1686 25.3599 13.5024 25.2576C12.9818 26.5063 12.2949 27.6794 11.4602 28.7454C8.84188 28.1702 6.43336 26.887 4.49924 25.037C2.56511 23.187 1.18021 20.8417 0.496667 18.2587C1.81241 16.7037 4.85232 15.8027 6.73987 15.8027C10.7659 15.8027 12.9014 17.9303 13.6424 21.2466C11.2181 20.5927 9.77978 19.2411 8.83455 17.2356C8.28216 17.0358 7.698 16.9374 7.11038 16.945C6.58013 16.9428 6.05304 17.0263 5.54958 17.192C6.61734 21.2466 10.5616 24.2752 15.3666 24.2752C19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843C21.6915 18.5843 19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396C12.4962 14.2411 10.5376 13.2718 8.42612 12.9776C9.12337 9.53918 11.7519 7.61507 15.3257 7.61507C18.8995 7.61507 21.7761 10.1932 21.7761 10.1932V6.79543C21.7761 6.79543 19.9264 5.07478 16.6415 4.70856C16.7232 3.19717 17.7092 1.31084 18.777 0.613275C23.2523 2.0055 27.5671 5.77234 28.7982 11.2569C28.7982 11.2569 26.8261 13.2217 23.1297 13.2217C20.0898 13.2217 18.1702 11.7074 17.0908 9.04798C16.5245 8.84704 15.9268 8.74861 15.3257 8.75733C14.7648 8.75121 14.2077 8.84979 13.6832 9.04798C14.8735 13.306 18.6428 16.1689 22.8438 16.1689C26.9515 16.1689 29.1687 14.2884 29.1687 14.2884C29.1687 22.8016 22.6367 28.9024 14.8735 29.0652C15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
               </div>
               <div style="text-align:center;">
-                <p style="font-size:15px;font-weight:700;color:white;">Broadcasting Transaction…</p>
-                <p style="font-size:11px;color:#888;margin-top:4px;">Sending BTC & monitoring via KYT</p>
+                <p id="wdSendTitle" style="font-size:15px;font-weight:700;color:white;">Broadcasting Transaction…</p>
+                <p id="wdSendSub" style="font-size:11px;color:#888;margin-top:4px;">Sending BTC & monitoring via KYT</p>
               </div>
               <div class="cove-disclaimer" style="width:100%;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Customers never see screening results, risk scores, or exposure data.</span></div>
-              <div style="width:100%;">
+              <div style="width:100%;" id="wdSendSteps">
                 <div class="kyt-step pending workflow-step" id="send-s1"><div class="step-icon">1</div><div><div style="font-size:13px;font-weight:600;color:white;">Broadcast to network</div></div></div>
                 <div class="step-connector" style="background:#222;"></div>
                 <div class="kyt-step pending workflow-step" id="send-s2"><div class="step-icon">2</div><div><div style="font-size:13px;font-weight:600;color:white;">Register with Chainalysis KYT</div><div style="font-size:10px;color:#888;">POST /v2/users/{userId}/transfers</div></div></div>
                 <div class="step-connector" style="background:#222;"></div>
-                <div class="kyt-step pending workflow-step" id="send-s3"><div class="step-icon">3</div><div><div style="font-size:13px;font-weight:600;color:white;">Monitor destination exposure</div></div></div>
+                <div class="kyt-step pending workflow-step" id="send-s3"><div class="step-icon">3</div><div><div style="font-size:13px;font-weight:600;color:white;">Source-of-funds analysis</div></div></div>
                 <div class="step-connector" style="background:#222;"></div>
-                <div class="kyt-step pending workflow-step" id="send-s4"><div class="step-icon">4</div><div><div style="font-size:13px;font-weight:600;color:white;">Compliance cleared</div></div></div>
+                <div class="kyt-step pending workflow-step" id="send-s4"><div class="step-icon">4</div><div><div style="font-size:13px;font-weight:600;color:white;">Transaction cleared — funds delivered</div></div></div>
               </div>
             </div>
           </div>
@@ -1029,37 +1029,51 @@
       async function confirmSend() {
         document.getElementById('wd-step-results').style.display = 'none';
         document.getElementById('wd-step-sending').style.display = '';
+        const prevCont = document.getElementById('wdCont'); if (prevCont) prevCont.remove();
 
-        await animateStep('send-s1', 'running', 700);
-        await animateStep('send-s1', 'success', 0);
+        // The transaction broadcasts, registers with KYT, screens clean, and CLEARS.
+        await animateStep('send-s1', 'running', 700); await animateStep('send-s1', 'success', 0);
         document.getElementById('send-s1').querySelector('.step-icon').textContent = '✓';
-
-        await animateStep('send-s2', 'running', 900);
-        await animateStep('send-s2', 'success', 0);
+        await animateStep('send-s2', 'running', 900); await animateStep('send-s2', 'success', 0);
         document.getElementById('send-s2').querySelector('.step-icon').textContent = '✓';
+        await animateStep('send-s3', 'running', 900); await animateStep('send-s3', 'success', 0);
+        document.getElementById('send-s3').querySelector('.step-icon').textContent = '✓';
+        await animateStep('send-s4', 'running', 600); await animateStep('send-s4', 'success', 0);
+        document.getElementById('send-s4').querySelector('.step-icon').textContent = '✓';
 
-        // Step 3: register & monitor via real KYT (continuous-monitoring scenario)
-        await animateStep('send-s3', 'running', 1100);
-        let kyt = null;
+        let kyt = null, flagged = false;
+        // Continuous-monitoring scenario: the cleared transfer is flagged weeks later.
         if (wdKind === 'monitor') {
+          document.getElementById('wdSendTitle').textContent = 'Transaction Cleared';
+          document.getElementById('wdSendSub').textContent = 'Sent & cleared — KYT continuous monitoring active';
           const sc = WD_SCENARIOS.find(x => x.id === 'wd-indirect');
           try {
             const r = await fetch(`/api/workflow/${KYT_SLUG_WD}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:sc.input}) });
             if (r.ok) { const d = await r.json(); kyt = d.output ?? d; if (kyt.error) kyt = null; }
           } catch(e) {}
-          if (!kyt) kyt = { level:'SEVERE', alerts:[{level:'SEVERE',exposureType:'INDIRECT'}], graphLink:'https://kyt.chainalysis.com/alerts', alertLink:'https://kyt.chainalysis.com/alerts', sandbox:true };
-        }
-        const flagged = wdKind === 'monitor' && kyt && kyt.level && kyt.level !== 'CLEARED';
-        await animateStep('send-s3', flagged ? 'alert' : 'success', 0);
-        document.getElementById('send-s3').querySelector('.step-icon').textContent = flagged ? '!' : '✓';
+          if (!kyt) kyt = { level:'SEVERE', graphLink:'https://kyt.chainalysis.com/alerts', alertLink:'https://kyt.chainalysis.com/alerts', sandbox:true };
+          flagged = kyt && kyt.level && kyt.level !== 'CLEARED';
 
-        await animateStep('send-s4', 'running', 500);
-        await animateStep('send-s4', flagged ? 'alert' : 'success', 0);
-        document.getElementById('send-s4').querySelector('.step-icon').textContent = flagged ? '!' : '✓';
-        if (flagged) { const lbl = document.querySelector('#send-s4 div div'); if (lbl) lbl.textContent = 'Post-send alert raised'; }
+          // "Weeks later" continuation — funds move on and the alert fires
+          const c = document.createElement('div'); c.id = 'wdCont';
+          c.innerHTML = `
+            <div style="display:flex;align-items:center;gap:8px;margin:16px 0 12px;">
+              <div style="flex:1;height:1px;background:#2a2a2a;"></div>
+              <span style="font-size:10px;font-weight:700;color:#eab308;white-space:nowrap;letter-spacing:0.5px;">⏱ 6 WEEKS LATER</span>
+              <div style="flex:1;height:1px;background:#2a2a2a;"></div>
+            </div>
+            <div class="kyt-step pending workflow-step" id="send-s5"><div class="step-icon">5</div><div><div style="font-size:13px;font-weight:600;color:white;">Destination moves the funds onward</div><div style="font-size:10px;color:#888;">KYT keeps tracing the registered transfer</div></div></div>
+            <div class="step-connector" style="background:#222;"></div>
+            <div class="kyt-step pending workflow-step" id="send-s6"><div class="step-icon">6</div><div><div style="font-size:13px;font-weight:600;color:white;">KYT alert — funds reached a sanctioned entity</div><div style="font-size:10px;color:#888;">OFAC SDN · Chatex.com · SEVERE · indirect exposure</div></div></div>`;
+          document.getElementById('wdSendSteps').appendChild(c);
+          await animateStep('send-s5', 'running', 1000); await animateStep('send-s5', 'success', 0);
+          document.getElementById('send-s5').querySelector('.step-icon').textContent = '✓';
+          await animateStep('send-s6', 'running', 1000); await animateStep('send-s6', 'alert', 0);
+          document.getElementById('send-s6').querySelector('.step-icon').textContent = '!';
+          await delay(900);
+        }
 
         await delay(400);
-
         const addr = document.getElementById('wdAddress').value.trim();
         document.getElementById('wd-step-sending').style.display = 'none';
         document.getElementById('wd-step-done').style.display = '';
@@ -1068,13 +1082,13 @@
         document.getElementById('wdReceiptAddr').textContent = addr;
         document.getElementById('wdReceiptTx').textContent = genTxId();
 
-        // Continuous-monitoring alert (post-send) — funds later reached a sanctioned entity
+        // Post-send continuous-monitoring alert (weeks after the tx cleared)
         const box = document.getElementById('wdMonitorBox');
         if (flagged && box) {
           const links = `<div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">${kyt.graphLink?`<a href="${kyt.graphLink}" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:#a78bfa;text-decoration:none;">↗ Open alert graph in Reactor</a>`:''}${kyt.alertLink?`<a href="${kyt.alertLink}" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:#eab308;text-decoration:none;">↗ View alert in KYT</a>`:''}</div>`;
           box.style.background = 'rgba(239,68,68,0.06)';
           box.style.borderColor = 'rgba(239,68,68,0.2)';
-          box.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:11px;font-weight:700;color:#ef4444;">KYT Continuous Monitoring — Alert</span></div><p style="font-size:10px;color:#aaa;margin-top:4px;line-height:1.5;">This withdrawal screened clean at send. KYT has since detected the funds reaching <strong style="color:#ccc;">OFAC-sanctioned Chatex.com</strong> (SEVERE · indirect exposure). Compliance has been notified.</p>${links}`;
+          box.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:11px;font-weight:700;color:#ef4444;">KYT Continuous Monitoring — Alert</span></div><p style="font-size:10px;color:#aaa;margin-top:4px;line-height:1.5;">This withdrawal <strong style="color:#ccc;">cleared at the time of send</strong>. Six weeks later, KYT detected the funds reaching <strong style="color:#ccc;">OFAC-sanctioned Chatex.com</strong> (SEVERE · indirect exposure) and automatically raised an alert. Compliance has been notified.</p>${links}`;
         }
       }
 
@@ -1098,7 +1112,10 @@
           s.className = 'kyt-step pending workflow-step';
           s.querySelector('.step-icon').textContent = i+1;
         });
-        const s4lbl = document.querySelector('#send-s4 div div'); if (s4lbl) s4lbl.textContent = 'Compliance cleared';
+        // Remove the "weeks later" continuation steps and restore the sending header
+        const cont = document.getElementById('wdCont'); if (cont) cont.remove();
+        const t = document.getElementById('wdSendTitle'); if (t) t.textContent = 'Broadcasting Transaction…';
+        const sub = document.getElementById('wdSendSub'); if (sub) sub.textContent = 'Sending BTC & monitoring via KYT';
         // Reset KYT scenario + monitoring box
         wdKind = 'screen';
         const wsel = document.getElementById('wdScenario'); if (wsel) wsel.value = '';
