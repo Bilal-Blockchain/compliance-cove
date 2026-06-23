@@ -227,10 +227,11 @@ Style: `color: #a855f7`, subtle background, hover effect. Already implemented in
 ### 5. 💰 Stablecoin Issuer `stablecoin-demo.html`
 **Priority:** Medium-High — Hot topic, unique multi-product integration  
 **Effort:** ~4–5 hours  
-**Products:** KYT, Entity Monitoring, Address Screening  
+**Status:** ✅ Complete — built as **Meridian / USDM**, light theme, 6-section console. First demo with **Data Solutions as the headline product**.  
+**Products:** Data Solutions ★, KYT, Address Screening, Reactor  
 **Industry:** Stablecoins / Treasury
 
-**Concept:** A stablecoin compliance dashboard for an issuer (think Circle/Tether). Monitor mint/burn operations, screen minting addresses, track large holder exposure, and audit reserve transparency.
+**Concept:** An issuer intelligence console (think Circle/Tether). Built sections: (1) Ecosystem Overview — supply by chain + holder type, (2) In/Out Flows — mint vs burn chart, net flow map, cross-chain bridge & swap attribution, (3) Whale/Top-Holder Surveillance with movement alerts + Reactor links, (4) Market Integrity / Peg Watch, (5) Mint/Burn Compliance Gate — **live** Address Screening call (`demochain-address-screen`) with sandbox fallback, (6) Sanctions & Freeze Workflow with audit log. Brand-swap + analytics tracking wired in.
 
 | # | Task | Effort | Notes |
 |---|------|--------|-------|
@@ -458,7 +459,7 @@ Scenarios: Clean Exchange User, Unnamed Service (enhanced review), OFAC Sanction
 10. **Infrastructure cleanup** (I.1–I.5) — ~1.5 hrs — Tech debt
 
 ### Long-Term (Backlog)
-10. **Stablecoin Issuer** (Task 5) — ~4–5 hrs
+10. ~~**Stablecoin Issuer** (Task 5)~~ ✅ Built (Meridian/USDM) — Data Solutions headline demo
 11. **Insurance Claims** (Task 3) — ~4–5 hrs
 12. **🤖 AI Demo Narrator** (T7) — ~5–6 hrs
 13. **💳 Crypto Payroll** (T8) — ~4 hrs
