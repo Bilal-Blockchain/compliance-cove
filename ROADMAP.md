@@ -178,6 +178,31 @@ Style: `color: #a855f7`, subtle background, hover effect. Already implemented in
 
 ---
 
+## 🔗 Cross-Cutting — Live KYT Integration
+
+**Status:** 🟡 Phase 1 done — Exchange (VaultX) deposit is live.
+**Workflow:** `cove-kyt-screen` (`workflow/kyt_screen.py`, deployed to $LATEST). Uses `REACTOR_API_KEY`. Two shapes:
+- `mode:"transfer"` — monitor a real deposit (`transferReference="txhash:address"`, `direction`). Returns real alerts + exposure.
+- `mode:"withdrawal"` — pre-screen an outgoing address (address only). Returns exposure + fraud + alerts.
+
+Writes are namespaced under the `compliance-cove-demo` user in the shared KYT org (idempotent identifiers). Poll until `updatedAt`; the `/alerts` endpoint is the reliable data source (level/service/exposureType/categoryId + alert `externalId` → KYT deep link). The `/exposures/direct` endpoint 404s — render from alerts.
+
+**Required-field gotchas:** withdrawal-attempts also need `assetAmount` + `attemptTimestamp`; network is the enum (`ETHEREUM`); token transfers must register with the correct `asset` (USDT/USDC), not ETH.
+
+**Curated library:** `kyt-transactions.js` — validated against live KYT:
+| Scenario | Shape | Live outcome |
+|---|---|---|
+| Clean (self-custody) | withdrawal | CLEARED |
+| Mixer-exposed (Tornado, ETH) | transfer | MEDIUM |
+| Sanctioned (Swapster.fi, USDT) | transfer | SEVERE |
+| Sanctioned (Heleket.com, USDT) | transfer | SEVERE |
+
+**Sourcing tx hashes:** Data Solutions `cross_chain.transfers_clustered` (filter by risky `sender_name`/`sender_category`) → register candidates → keep validated outcomes. Note: avoid `asset_symbol='ETH'` as a sole broad predicate (non-selective → 400); keep `sender_name IS NULL` style filters selective.
+
+**Next:** roll `cove-kyt-screen` into ATM (withdrawal), Remittance (send), ArcSwap, Stablecoin mint; then a standalone Live KYT Screener tool + interactive KYT Explainer. (Address Screening is NOT replaced anywhere — KYT is additive.)
+
+---
+
 ## 📋 Coming Soon Demos — Full Backlog
 
 ### 3. 🔍 Insurance Claim Verification `insurance-demo.html`

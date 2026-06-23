@@ -251,12 +251,17 @@
               <p class="text-xs text-muted-foreground">Every incoming deposit is registered with the <strong>Chainalysis KYT API</strong> as a received transfer. KYT traces the source of funds and generates an alert if the funds originate from high-risk or sanctioned entities.</p>
             </div>
             <div id="dep-form" class="space-y-3">
+              <div class="space-y-2">
+                <label class="text-sm font-medium">Deposit scenario</label>
+                <select id="depScenario" onchange="syncDepFields()" class="h-10 w-full rounded-lg border border-input bg-transparent px-2 text-sm"></select>
+                <p id="depScenarioStory" class="text-xs text-muted-foreground" style="line-height:1.5;"></p>
+              </div>
               <div class="grid grid-cols-2 gap-3">
-                <div class="space-y-2"><label class="text-sm font-medium">Asset</label><select id="depAsset" class="h-10 w-full rounded-lg border border-input bg-transparent px-2 text-sm"><option value="ETH">Ethereum (ETH)</option><option value="BTC">Bitcoin (BTC)</option><option value="USDT">Tether (USDT)</option></select></div>
+                <div class="space-y-2"><label class="text-sm font-medium">Asset</label><div id="depAssetLbl" class="h-10 w-full rounded-lg border border-input px-2.5 text-sm flex items-center font-medium">ETH</div></div>
                 <div class="space-y-2"><label class="text-sm font-medium">Amount</label><input id="depAmt" type="text" value="2.5" class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none mono"/></div>
               </div>
               <button onclick="simulateDeposit()" class="w-full inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all" style="background:linear-gradient(135deg,#22c55e,#16a34a);">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg>Simulate Deposit
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14"/><path d="M5 12l7-7 7 7"/></svg>Simulate &amp; Screen Deposit
               </button>
             </div>
             <div id="dep-kyt" style="display:none;" class="space-y-2">
@@ -504,27 +509,73 @@
     }
 
     // =======================================================
-    // STEP 4: DEPOSIT (KYT)
+    // STEP 4: DEPOSIT (LIVE KYT via cove-kyt-screen workflow)
     // =======================================================
+    const KYT_SLUG='cove-kyt-screen';
+    const KYT_DEPOSITS=[
+      {id:'clean',label:'🟢 Clean deposit (self-custody wallet)',asset:'ETH',amount:'2.5',
+       story:'Funds from a normal self-custody wallet. No risky exposure — KYT clears it instantly.',expected:'CLEARED',
+       input:{mode:'withdrawal',network:'ETHEREUM',asset:'ETH',assetAmount:2.5,address:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0'}},
+      {id:'mixer',label:'🟡 Mixer-exposed deposit (Tornado Cash)',asset:'ETH',amount:'7.6',
+       story:'Funds received directly from the sanctioned Tornado Cash mixer — triggers a real KYT alert.',expected:'MEDIUM',
+       input:{mode:'transfer',network:'ETHEREUM',asset:'ETH',direction:'received',transferReference:'0x6582e5d0b18c05118bf34abe24d2be5729c64d6da466a3da811a2ca45e5fd9e8:0x77ebb90f659461ca82921a2314bd6d06ff036cfa'}},
+      {id:'sanctioned',label:'🔴 Sanctioned source (Swapster.fi)',asset:'USDT',amount:'4,840',
+       story:'Stablecoin received from an OFAC/EU-sanctioned service — severe KYT alert, funds frozen.',expected:'SEVERE',
+       input:{mode:'transfer',network:'ETHEREUM',asset:'USDT',direction:'received',transferReference:'0x0f9e200d58a92d1eca9d120340a4ed18ec927055230baad3cfbc58ea5943e680:0x0c82f1b5e5acb1a63cb7aecddf389b342fb15e35'}},
+      {id:'sanctioned2',label:'🔴 Sanctioned source (Heleket.com)',asset:'USDT',amount:'9,989',
+       story:'Stablecoin received from an OFAC/EU-sanctioned service — severe KYT alert.',expected:'SEVERE',
+       input:{mode:'transfer',network:'ETHEREUM',asset:'USDT',direction:'received',transferReference:'0xf15bfc35757484912e9782f84414a9290d2d50744870e841dc76ce76e7566771:0xdc7955346c29c2a3452496897b5f9a63c6ee20a1'}},
+    ];
+    function depScenario(){return KYT_DEPOSITS.find(s=>s.id===document.getElementById('depScenario').value)||KYT_DEPOSITS[0];}
+    function syncDepFields(){const s=depScenario();document.getElementById('depAmt').value=s.amount;document.getElementById('depAssetLbl').textContent=s.asset;document.getElementById('depScenarioStory').textContent=s.story;}
+    function fallbackResult(s){
+      const svc=s.id==='sanctioned2'?'Heleket.com':(s.id==='sanctioned'?'Swapster.fi':'Tornado.cash');
+      const map={CLEARED:{level:'CLEARED',alerts:[]},
+        MEDIUM:{level:'MEDIUM',alerts:[{level:'MEDIUM',service:'Tornado.cash',exposureType:'DIRECT'}]},
+        SEVERE:{level:'SEVERE',alerts:[{level:'SEVERE',service:svc,exposureType:'DIRECT'}]}};
+      return Object.assign({usdAmount:null,deepLink:'https://kyt.chainalysis.com/alerts',sandbox:true},map[s.expected]||map.CLEARED);
+    }
     async function simulateDeposit(){
-      const asset=document.getElementById('depAsset').value;
-      const amt=document.getElementById('depAmt').value;
+      const s=depScenario();
       document.getElementById('dep-form').style.display='none';
       document.getElementById('dep-kyt').style.display='';
-      const isRisky=Math.random()<0.2;
-      await animateStep('d-s1','running',700);await animateStep('d-s1','success',0);document.getElementById('d-s1').querySelector('.step-icon').textContent='✓';
-      await animateStep('d-s2','running',900);await animateStep('d-s2','success',0);document.getElementById('d-s2').querySelector('.step-icon').textContent='✓';
-      await animateStep('d-s3','running',1200);await animateStep('d-s3','success',0);document.getElementById('d-s3').querySelector('.step-icon').textContent='✓';
-      await animateStep('d-s4','running',500);
-      if(isRisky){await animateStep('d-s4','alert',0);document.getElementById('d-s4').querySelector('.step-icon').textContent='!';}
-      else{await animateStep('d-s4','success',0);document.getElementById('d-s4').querySelector('.step-icon').textContent='✓';}
-      const resultEl=document.getElementById('dep-result');resultEl.style.display='';
-      if(isRisky){
-        resultEl.innerHTML=`<div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-destructive flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><p class="text-sm font-semibold text-destructive">⚠ KYT Alert — Deposit Under Review</p><p class="text-xs text-muted-foreground mt-1">Your deposit of <strong>${amt} ${asset}</strong> triggered a HIGH severity alert. KYT detected indirect exposure to a sanctioned entity. Funds are held pending compliance review.</p></div></div><button onclick="showScreen('dashboard')" class="w-full mt-3 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground accent-bg">Go to Dashboard</button>`;
-      }else{
-        resultEl.innerHTML=`<div class="rounded-lg bg-success/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p class="text-sm font-semibold text-success">Deposit Cleared!</p><p class="text-xs text-muted-foreground mt-1"><strong>${amt} ${asset}</strong> deposited and cleared by KYT. No high-risk exposure detected. Funds are available for trading immediately.</p></div></div><button onclick="showScreen('dashboard')" class="w-full mt-3 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground accent-bg">Start Trading →</button>`;
-      }
+      ['d-s1','d-s2','d-s3','d-s4'].forEach((id,i)=>{const el=document.getElementById(id);el.className='kyt-step pending workflow-step';el.querySelector('.step-icon').textContent=String(i+1);});
+      await animateStep('d-s1','running',500);await animateStep('d-s1','success',0);document.getElementById('d-s1').querySelector('.step-icon').textContent='✓';
+      await animateStep('d-s2','running',700);await animateStep('d-s2','success',0);document.getElementById('d-s2').querySelector('.step-icon').textContent='✓';
+      await animateStep('d-s3','running',500);
+      let res=null;
+      try{
+        const r=await fetch(`/api/workflow/${KYT_SLUG}/invoke/sync`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:s.input})});
+        if(!r.ok)throw new Error('API '+r.status);
+        const d=await r.json();res=d.output??d;
+        if(res.error)throw new Error(res.error);
+      }catch(e){res=fallbackResult(s);}
+      await animateStep('d-s3','success',0);document.getElementById('d-s3').querySelector('.step-icon').textContent='✓';
+      const flagged=res.level&&res.level!=='CLEARED';
+      await animateStep('d-s4','running',400);
+      await animateStep('d-s4',flagged?'alert':'success',0);document.getElementById('d-s4').querySelector('.step-icon').textContent=flagged?'!':'✓';
+      renderDepResult(s,res);
     }
+    function renderDepResult(s,res){
+      const el=document.getElementById('dep-result');el.style.display='';
+      const lvl=res.level||'CLEARED';
+      const usd=res.usdAmount?(' · $'+Number(res.usdAmount).toLocaleString(undefined,{maximumFractionDigits:0})):'';
+      const alertsHtml=(res.alerts||[]).map(a=>`<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold" style="background:rgba(239,68,68,.1);color:#dc2626;margin:4px 4px 0 0;">${a.level} · ${a.service||''}${a.exposureType?' · '+a.exposureType:''}</span>`).join('');
+      const deep=res.deepLink?`<a href="${res.deepLink}" target="_blank" rel="noopener" class="inline-flex items-center gap-1 mt-2 text-xs font-semibold" style="color:#6366f1;">View alert in KYT platform →</a>`:'';
+      const sandboxNote=res.sandbox?`<p class="text-xs text-muted-foreground mt-2">Sandbox preview — open this page in a new tab for a live KYT API call.</p>`:'';
+      const actions=`<div class="flex gap-2 mt-3"><button onclick="resetDeposit()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted">Screen another</button><button onclick="showScreen('dashboard')" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground accent-bg">Go to Dashboard</button></div>`;
+      let head;
+      if(lvl==='CLEARED'){
+        head=`<div class="rounded-lg bg-success/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p class="text-sm font-semibold text-success">Deposit Cleared by KYT</p><p class="text-xs text-muted-foreground mt-1"><strong>${s.amount} ${s.asset}</strong>${usd} — no high-risk exposure detected. Funds available for trading immediately.</p></div></div>`;
+      }else if(lvl==='SEVERE'||lvl==='HIGH'){
+        head=`<div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-destructive flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><p class="text-sm font-semibold text-destructive">⛔ Deposit Blocked — ${lvl} KYT Alert</p><p class="text-xs text-muted-foreground mt-1">Real KYT alert on <strong>${s.amount} ${s.asset}</strong>${usd}. Funds received from a sanctioned source — held & escalated to compliance.</p>${alertsHtml}<br/>${deep}</div></div>`;
+      }else{
+        head=`<div class="rounded-lg bg-warning/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-warning flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><p class="text-sm font-semibold text-warning">KYT Alert — Deposit Under Review (${lvl})</p><p class="text-xs text-muted-foreground mt-1">Real KYT alert on <strong>${s.amount} ${s.asset}</strong>${usd}. Exposure to a flagged source detected — held pending compliance review.</p>${alertsHtml}<br/>${deep}</div></div>`;
+      }
+      el.innerHTML=head+actions+sandboxNote;
+    }
+    function resetDeposit(){document.getElementById('dep-result').style.display='none';document.getElementById('dep-result').innerHTML='';document.getElementById('dep-kyt').style.display='none';document.getElementById('dep-form').style.display='';}
+    (function initDepScenarios(){var sel=document.getElementById('depScenario');if(sel){sel.innerHTML=KYT_DEPOSITS.map(s=>`<option value="${s.id}">${s.label}</option>`).join('');syncDepFields();}})();
 
     // =======================================================
     // DASHBOARD
