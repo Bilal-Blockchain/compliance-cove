@@ -330,6 +330,11 @@
               <div class="flex justify-between text-xs"><span class="text-muted-foreground">Rate</span><span class="text-muted-foreground">100 $BLITZ = 0.001 ETH</span></div>
               <div class="flex justify-between text-xs"><span class="text-muted-foreground">Destination</span><span class="text-muted-foreground mono" id="wdDestAddr"></span></div>
             </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium">Cash-out destination (KYT scenarios)</label>
+              <select id="wdScenario" onchange="pickWdScenario()" class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus:ring-2"></select>
+              <p id="wdScenarioStory" class="text-xs text-muted-foreground" style="display:none;line-height:1.5;"></p>
+            </div>
             <div class="rounded-lg p-3 space-y-1" style="background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.12);">
               <div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#a855f7;">KYT Monitored Withdrawal</span></div>
               <p style="font-size:10px;color:var(--muted-foreground);line-height:1.5;">Before sending, your wallet is <strong>re-screened</strong> to check if its risk status has changed since onboarding. The outbound transfer is then registered with <strong>Chainalysis KYT</strong> for continuous monitoring of where funds ultimately move.</p>
@@ -365,11 +370,24 @@
               <div class="flex justify-between"><span class="text-muted-foreground">ETH sent</span><span class="font-semibold text-success mono" id="wdSent"></span></div>
               <div class="flex justify-between"><span class="text-muted-foreground">Tx ID</span><span class="font-semibold accent mono" id="wdTxId"></span></div>
             </div>
-            <div class="rounded-lg p-3" style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.12);">
+            <div id="wdMonitorBox" class="rounded-lg p-3" style="background:rgba(34,197,94,.04);border:1px solid rgba(34,197,94,.12);">
               <div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#22c55e;">KYT Monitoring Active</span></div>
               <p style="font-size:10px;color:var(--muted-foreground);margin-top:4px;">Chainalysis KYT continues to monitor this transaction. If funds move to a high-risk destination after withdrawal, the compliance team will be alerted.</p>
             </div>
             <button onclick="resetWithdraw();showScreen('dashboard');" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground accent-bg">Back to Dashboard</button>
+          </div>
+
+          <div id="wd-blocked" style="display:none;" class="space-y-4">
+            <div style="text-align:center;padding:12px 0;">
+              <div style="width:48px;height:48px;border-radius:50%;background:rgba(239,68,68,.1);display:flex;align-items:center;justify-content:center;margin:0 auto;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+              <h3 class="text-lg font-bold" style="margin-top:8px;">Withdrawal Blocked</h3>
+              <p class="text-sm text-muted-foreground" id="wdBlockedText"></p>
+            </div>
+            <div class="rounded-lg p-3" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);">
+              <div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span style="font-size:11px;font-weight:700;color:#ef4444;">KYT Pre-Screen — Blocked</span></div>
+              <p style="font-size:10px;color:var(--muted-foreground);margin-top:4px;line-height:1.5;" id="wdBlockedReason"></p>
+            </div>
+            <button onclick="resetWithdraw();setupWithdraw();" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Cash-Out</button>
           </div>
         </div>
       </div>
@@ -843,17 +861,52 @@
     // =======================================================
     // WITHDRAW
     // =======================================================
+    // KYT cash-out scenarios — validated against live KYT (see kyt-transactions.js KYT_WITHDRAWALS).
+    // Address Screening stays the point-in-time gate; KYT adds continuous monitoring.
+    const KYT_SLUG='cove-kyt-screen';
+    let wdKind='screen', wdDestOverride=null;
+    const WD_SCENARIOS=[
+      {id:'wd-clean',label:'🟢 Clean destination',addr:'bc1qakvuk920fcal063mpvz6gym0nsse0auuz9ny0u',kind:'screen',expected:'Low',
+       sandboxReason:'Clean destination — no high-risk exposure detected.',
+       story:'A normal external wallet — Address Screening clears it and the cash-out is broadcast.'},
+      {id:'wd-sanctioned',label:'🔴 Sanctioned destination (blocked)',addr:'3JaAYDPJkwdSYtBDML3QUtaSJjB6eebd2R',kind:'screen',expected:'Severe',
+       sandboxReason:'Destination is associated with an OFAC-sanctioned entity (Chatex.com).',
+       story:'Destination is OFAC-sanctioned (Chatex.com). Address Screening blocks the cash-out before any funds leave the platform.'},
+      {id:'wd-indirect',label:'🟡 Indirect exposure — continuous monitoring',addr:'bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar',kind:'monitor',expected:'Low',
+       story:'Destination screens clean at the time of cash-out. KYT keeps monitoring the transfer and later detects the funds reaching OFAC-sanctioned Chatex.com.',
+       input:{mode:'transfer',network:'BITCOIN',asset:'BTC',direction:'sent',transferReference:'6dd7ede9526c3bb8b670696b96a6edf6d39d445f02b8496da3335d69c6640c47:bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar'}},
+    ];
+    function initWdScenarios(){
+      const sel=document.getElementById('wdScenario');
+      if(sel)sel.innerHTML='<option value="">— Player\'s connected wallet —</option>'+WD_SCENARIOS.map(s=>`<option value="${s.id}">${s.label}</option>`).join('');
+    }
+    function wdDestination(){return wdDestOverride||connectedAddress||'';}
+    function pickWdScenario(){
+      const s=WD_SCENARIOS.find(x=>x.id===document.getElementById('wdScenario').value);
+      const st=document.getElementById('wdScenarioStory');
+      wdKind=s?s.kind:'screen';
+      wdDestOverride=s?s.addr:null;
+      const d=wdDestination();
+      document.getElementById('wdDestAddr').textContent=d?(d.slice(0,6)+'…'+d.slice(-4)):'';
+      if(s){st.textContent=s.story;st.style.display='';}else{st.textContent='';st.style.display='none';}
+    }
+
     function setupWithdraw(){
       document.getElementById('wdTokens').textContent=blitzBalance;
       document.getElementById('wdAvail').textContent=blitzBalance+' $BLITZ';
       document.getElementById('wdAvailEth').textContent='≈ '+(blitzBalance*BLITZ_TO_ETH).toFixed(4)+' ETH';
-      document.getElementById('wdDestAddr').textContent=connectedAddress.slice(0,6)+'…'+connectedAddress.slice(-4);
+      initWdScenarios();
+      wdKind='screen';wdDestOverride=null;
+      const sel=document.getElementById('wdScenario');if(sel)sel.value='';
+      const st=document.getElementById('wdScenarioStory');if(st){st.textContent='';st.style.display='none';}
+      document.getElementById('wdDestAddr').textContent=connectedAddress?(connectedAddress.slice(0,6)+'…'+connectedAddress.slice(-4)):'';
       document.getElementById('wdAmountInput').value='';
       document.getElementById('wdEthPreview').textContent='0.0000 ETH';
       document.getElementById('wdBtn').disabled=true;
       document.getElementById('wd-form').style.display='';
       document.getElementById('wd-kyt').style.display='none';
       document.getElementById('wd-done').style.display='none';
+      document.getElementById('wd-blocked').style.display='none';
     }
     function updateWdPreview(){
       const amt=parseInt(document.getElementById('wdAmountInput').value)||0;
@@ -863,12 +916,44 @@
     async function processWithdraw(){
       const amt=parseInt(document.getElementById('wdAmountInput').value)||0;
       if(amt<=0||amt>blitzBalance)return;
+      const dest=wdDestination();
+      const scn=WD_SCENARIOS.find(x=>x.id===document.getElementById('wdScenario').value);
       document.getElementById('wd-form').style.display='none';
       document.getElementById('wd-kyt').style.display='';
       const ethAmt=(amt*BLITZ_TO_ETH).toFixed(4);
+
+      // Step 1: convert
       await animateStep('wd-s1','running',700);await animateStep('wd-s1','success',0);document.getElementById('wd-s1').querySelector('.step-icon').textContent='✓';
-      await animateStep('wd-s2','running',900);await animateStep('wd-s2','success',0);document.getElementById('wd-s2').querySelector('.step-icon').textContent='✓';
+
+      // Step 2: re-screen destination via Address Screening (monitor case screens clean at cash-out)
+      await animateStep('wd-s2','running',900);
+      let riskData=null,sandbox=false;
+      if(wdKind==='monitor'){
+        riskData={risk:'Low',riskReason:'No risk detected at the time of screening.'};
+      }else{
+        try{
+          const res=await fetch(`/api/workflow/${SLUG}/invoke/sync`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address:dest}})});
+          if(!res.ok)throw new Error('api');
+          const data=await res.json();riskData=data.output??data;if(riskData.error)throw new Error('api');
+        }catch(e){sandbox=true;riskData={risk:scn?.expected||'Low',riskReason:scn?.sandboxReason||'No high-risk exposure detected.'};}
+      }
+      const riskLevel=riskData?.risk||'Low';
+      const isBlocked=(riskLevel==='High'||riskLevel==='Severe');
+      if(isBlocked){
+        await animateStep('wd-s2','alert',0);document.getElementById('wd-s2').querySelector('.step-icon').textContent='✗';
+        await new Promise(r=>setTimeout(r,400));
+        const ds=dest.length>20?dest.slice(0,8)+'…'+dest.slice(-6):dest;
+        document.getElementById('wd-kyt').style.display='none';
+        document.getElementById('wd-blocked').style.display='';
+        document.getElementById('wdBlockedText').textContent='Cash-out of '+amt+' $BLITZ to '+ds+' was stopped before any funds left the platform.';
+        document.getElementById('wdBlockedReason').textContent=(riskData?.riskReason||'Destination flagged as high-risk.')+(sandbox?'  (Preview sandbox — showing the validated outcome.)':'');
+        return;
+      }
+      await animateStep('wd-s2','success',0);document.getElementById('wd-s2').querySelector('.step-icon').textContent='✓';
+
+      // Step 3: register outbound transfer
       await animateStep('wd-s3','running',1100);await animateStep('wd-s3','success',0);document.getElementById('wd-s3').querySelector('.step-icon').textContent='✓';
+      // Step 4: broadcast & monitor
       await animateStep('wd-s4','running',500);await animateStep('wd-s4','success',0);document.getElementById('wd-s4').querySelector('.step-icon').textContent='✓';
       await new Promise(r=>setTimeout(r,400));
       blitzBalance-=amt;
@@ -878,9 +963,51 @@
       document.getElementById('wdBurned').textContent=amt+' $BLITZ';
       document.getElementById('wdSent').textContent=ethAmt+' ETH';
       document.getElementById('wdTxId').textContent=Array.from({length:8},()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase();
+      if(wdKind==='monitor')await runContinuousMonitoring();
     }
+
+    // Continuous monitoring: the cash-out cleared at send, but KYT keeps tracing it and later
+    // raises a SEVERE indirect alert when the funds reach a sanctioned entity.
+    async function runContinuousMonitoring(){
+      const sc=WD_SCENARIOS.find(x=>x.id==='wd-indirect');
+      let kyt=null;
+      try{
+        const r=await fetch(`/api/workflow/${KYT_SLUG}/invoke/sync`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:sc.input})});
+        if(r.ok){const d=await r.json();kyt=d.output??d;if(kyt.error)kyt=null;}
+      }catch(e){}
+      if(!kyt)kyt={level:'SEVERE',graphLink:'https://kyt.chainalysis.com/alerts',alertLink:'https://kyt.chainalysis.com/alerts',sandbox:true};
+      const flagged=kyt&&kyt.level&&kyt.level!=='CLEARED';
+      const box=document.getElementById('wdMonitorBox');
+      if(!box)return;
+      const cont=document.createElement('div');cont.id='wdCont';
+      cont.innerHTML=`
+        <div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px;">
+          <div style="flex:1;height:1px;background:var(--border);"></div>
+          <span style="font-size:10px;font-weight:700;color:#eab308;white-space:nowrap;letter-spacing:.5px;">⏱ 6 WEEKS LATER — CONTINUOUS MONITORING</span>
+          <div style="flex:1;height:1px;background:var(--border);"></div>
+        </div>
+        <div class="kyt-step pending workflow-step" id="wd-s5"><div class="step-icon">5</div><div><div class="text-sm font-medium">Destination moves the funds onward</div><div class="text-xs text-muted-foreground">KYT keeps tracing the registered transfer</div></div></div>
+        <div class="step-connector bg-muted"></div>
+        <div class="kyt-step pending workflow-step" id="wd-s6"><div class="step-icon">6</div><div><div class="text-sm font-medium">KYT alert — funds reached a sanctioned entity</div><div class="text-xs text-muted-foreground">OFAC SDN · Chatex.com · SEVERE · indirect exposure</div></div></div>`;
+      box.insertAdjacentElement('afterend',cont);
+      await animateStep('wd-s5','running',1000);await animateStep('wd-s5','success',0);document.getElementById('wd-s5').querySelector('.step-icon').textContent='✓';
+      await animateStep('wd-s6','running',1000);await animateStep('wd-s6','alert',0);document.getElementById('wd-s6').querySelector('.step-icon').textContent='!';
+      await new Promise(r=>setTimeout(r,500));
+      if(flagged){
+        const links=`<div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">${kyt.graphLink?`<a href="${kyt.graphLink}" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:#a855f7;text-decoration:none;">↗ Open alert graph in Reactor</a>`:''}${kyt.alertLink?`<a href="${kyt.alertLink}" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:#eab308;text-decoration:none;">↗ View alert in KYT</a>`:''}</div>`;
+        box.style.background='rgba(239,68,68,.06)';box.style.borderColor='rgba(239,68,68,.2)';
+        box.innerHTML=`<div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:11px;font-weight:700;color:#ef4444;">KYT Continuous Monitoring — Alert</span></div><p style="font-size:10px;color:var(--muted-foreground);margin-top:4px;line-height:1.5;">This cash-out <strong style="color:var(--foreground);">cleared at the time of send</strong>. Six weeks later, KYT detected the funds reaching <strong style="color:var(--foreground);">OFAC-sanctioned Chatex.com</strong> (SEVERE · indirect exposure) and automatically raised an alert. Compliance has been notified.</p>${links}`;
+      }
+    }
+
     function resetWithdraw(){
       ['wd-s1','wd-s2','wd-s3','wd-s4'].forEach((id,i)=>{const s=document.getElementById(id);s.className='kyt-step pending workflow-step';s.querySelector('.step-icon').textContent=i+1;});
+      const cont=document.getElementById('wdCont');if(cont)cont.remove();
+      const box=document.getElementById('wdMonitorBox');
+      if(box){box.style.background='rgba(34,197,94,.04)';box.style.borderColor='rgba(34,197,94,.12)';box.innerHTML='<div class="flex items-center gap-1.5"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#22c55e;">KYT Monitoring Active</span></div><p style="font-size:10px;color:var(--muted-foreground);margin-top:4px;">Chainalysis KYT continues to monitor this transaction. If funds move to a high-risk destination after withdrawal, the compliance team will be alerted.</p>';}
+      wdKind='screen';wdDestOverride=null;
+      const sel=document.getElementById('wdScenario');if(sel)sel.value='';
+      const st=document.getElementById('wdScenarioStory');if(st){st.textContent='';st.style.display='none';}
     }
 
     // =======================================================

@@ -180,7 +180,7 @@ Style: `color: #a855f7`, subtle background, hover effect. Already implemented in
 
 ## 🔗 Cross-Cutting — Live KYT Integration
 
-**Status:** 🟡 Live on Exchange (VaultX) deposit, ATM (CoinVault) withdraw, and Remittance (SwiftBridge) send.
+**Status:** 🟢 Live on Exchange (VaultX) deposit, ATM (CoinVault) withdraw, Remittance (SwiftBridge) send, ArcSwap (DeFi) withdraw, and Gaming (NexusArena) cash-out.
 **Workflow:** `cove-kyt-screen` (`workflow/kyt_screen.py`, deployed to $LATEST). Uses `REACTOR_API_KEY`. Two shapes:
 - `mode:"transfer"` — monitor a real deposit (`transferReference="txhash:address"`, `direction`). Returns real alerts + exposure.
 - `mode:"withdrawal"` — pre-screen an outgoing address (address only). Returns exposure + fraud + alerts.
@@ -214,7 +214,11 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 
 ✅ **Remittance (SwiftBridge) rolled out:** the **send** flow now has a "Sample recipient (KYT scenarios)" picker reusing `KYT_WITHDRAWALS`. Clean → Address Screening clears → delivered. Sanctioned (Chatex) → Address Screening blocks before funds leave the corridor. Indirect → screens clean at send (Low), the success card shows a green **"KYT Continuous Monitoring Active"** box, then a **⏱ 5 WEEKS LATER — ONGOING CORRIDOR MONITORING** divider with steps 5–6 calls `cove-kyt-screen` (transfer/sent) and flips the box to a red **continuous-monitoring alert** (OFAC-sanctioned Chatex.com, SEVERE/indirect) with Reactor-graph + KYT-alert links. Address Screening remains the point-in-time gate; KYT is additive. Sandbox-safe fallback (validated SEVERE) when the API can't be reached from preview.
 
-**Next:** roll `cove-kyt-screen` into ArcSwap (withdraw), Gaming (cash out); then a standalone Live KYT Screener tool + interactive KYT Explainer. (Address Screening is NOT replaced anywhere — KYT is additive.)
+✅ **ArcSwap (DeFi, `demochain.html`) rolled out:** the **Withdraw** modal's old mock "Safe/Risky" buttons were replaced with a "Sample destination (KYT scenarios)" picker + a single **Pre-Screen & Withdraw** action. Clean → live Address Screening clears → broadcast. Sanctioned (Chatex) → blocked. Indirect → screens clean at send (Low), an approved result shows a green **"KYT Continuous Monitoring Active"** box, then a **⏱ 6 WEEKS LATER** divider (steps 5–6) calls `cove-kyt-screen` (transfer/sent) and flips the box to a red continuous-monitoring alert with Reactor-graph + KYT-alert links. Sandbox-safe: live Address Screening failures fall back to each scenario's validated outcome (clean/Severe) with an inline sandbox note. Redundant generic `withdrawAddress` picker removed (KYT dropdown covers it); `addressInput` picker kept.
+
+✅ **Gaming (NexusArena, `gaming-demo.html`) rolled out:** the **cash-out** flow gained a "Cash-out destination (KYT scenarios)" picker that overrides the destination wallet. Step 2 ("Re-screen destination") is now a live Address Screening gate; a sanctioned destination routes to a new **Withdrawal Blocked** screen (funds never leave). Indirect → cash-out completes with a green monitoring box, then the **⏱ 6 WEEKS LATER** continuation calls `cove-kyt-screen` and flips it to a red continuous-monitoring alert with Reactor + KYT links. Sandbox-safe validated fallbacks. Address Screening remains the point-in-time gate; KYT is additive.
+
+**Next:** standalone Live KYT Screener SA tool + make the KYT Explainer interactive. Optionally add KYT to the Stablecoin mint gate (additive to Address Screening). (Address Screening is NOT replaced anywhere — KYT is additive.)
 
 ---
 

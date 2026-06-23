@@ -858,6 +858,12 @@
           </div>
 
           <div class="space-y-2">
+            <label class="text-sm font-medium leading-none">Sample destination (KYT scenarios)</label>
+            <select id="wdScenario" onchange="pickWdScenario()" class="w-full"></select>
+            <p id="wdScenarioStory" class="text-xs text-muted-foreground" style="display:none;line-height:1.5;"></p>
+          </div>
+
+          <div class="space-y-2">
             <label class="text-sm font-medium leading-none">Destination Address</label>
             <input type="text" id="withdrawAddress" placeholder="Enter the recipient's wallet address" class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
           </div>
@@ -892,16 +898,10 @@
             <div class="kyt-step pending" id="wd-s4"><div class="step-icon">4</div><div><div class="text-sm font-medium">Allow or Block</div><div class="text-xs text-muted-foreground">Approve clean withdrawals, freeze suspicious ones for review</div></div></div>
           </div>
 
-          <div class="flex gap-2">
-            <button onclick="simulateWithdrawal(false)" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#22c55e,#16a34a);">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              Safe Withdrawal
-            </button>
-            <button onclick="simulateWithdrawal(true)" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#ef4444,#dc2626);">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-              Risky Withdrawal
-            </button>
-          </div>
+          <button onclick="runWithdrawal()" id="wdSubmitBtn" class="w-full inline-flex items-center justify-center rounded-lg h-10 gap-1.5 text-sm font-semibold text-primary-foreground transition-all" style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Pre-Screen &amp; Withdraw
+          </button>
         </div>
 
         <!-- Withdraw simulation result -->
@@ -1475,55 +1475,88 @@
       }
 
       // =====================================================
-      // WITHDRAWAL SIMULATION (KYT Pre-screening)
+      // WITHDRAWAL (KYT pre-screening + continuous monitoring)
       // =====================================================
-      async function simulateWithdrawal(forceRisky) {
-        const address = document.getElementById('withdrawAddress').value.trim() || '0x7a2B…c4f1';
+      // KYT withdrawal scenarios — validated against live KYT (see kyt-transactions.js KYT_WITHDRAWALS).
+      // Address Screening stays the point-in-time gate; KYT adds continuous monitoring.
+      const KYT_SLUG = 'cove-kyt-screen';
+      let wdKind = 'screen';
+      const WD_SCENARIOS = [
+        { id:'wd-clean', label:'🟢 Clean destination', addr:'bc1qakvuk920fcal063mpvz6gym0nsse0auuz9ny0u', asset:'BTC', amount:'0.05', kind:'screen', expected:'Low',
+          sandboxReason:'Clean destination — no high-risk exposure detected.',
+          story:'A normal external wallet — Address Screening clears it and the withdrawal is broadcast.' },
+        { id:'wd-sanctioned', label:'🔴 Sanctioned destination (blocked)', addr:'3JaAYDPJkwdSYtBDML3QUtaSJjB6eebd2R', asset:'BTC', amount:'0.05', kind:'screen', expected:'Severe',
+          sandboxReason:'Destination is associated with an OFAC-sanctioned entity (Chatex.com).',
+          story:'Destination is OFAC-sanctioned (Chatex.com). Address Screening blocks the withdrawal before any funds leave ArcSwap.' },
+        { id:'wd-indirect', label:'🟡 Indirect exposure — continuous monitoring', addr:'bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar', asset:'BTC', amount:'0.0423', kind:'monitor', expected:'Low',
+          story:'Destination screens clean at the time of send. KYT keeps monitoring the transfer and later detects the funds reaching OFAC-sanctioned Chatex.com.',
+          input:{ mode:'transfer', network:'BITCOIN', asset:'BTC', direction:'sent', transferReference:'6dd7ede9526c3bb8b670696b96a6edf6d39d445f02b8496da3335d69c6640c47:bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar' } },
+      ];
+      function initWdScenarios() {
+        const sel = document.getElementById('wdScenario');
+        if (sel) sel.innerHTML = '<option value="">— Enter address manually —</option>' + WD_SCENARIOS.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+      }
+      function pickWdScenario() {
+        const s = WD_SCENARIOS.find(x => x.id === document.getElementById('wdScenario').value);
+        const st = document.getElementById('wdScenarioStory');
+        wdKind = s ? s.kind : 'screen';
+        if (s) {
+          document.getElementById('withdrawAddress').value = s.addr;
+          document.getElementById('withdrawAsset').value = s.asset;
+          document.getElementById('withdrawAmount').value = s.amount;
+          st.textContent = s.story; st.style.display = '';
+        } else { st.textContent = ''; st.style.display = 'none'; }
+      }
+      initWdScenarios();
+
+      async function runWithdrawal() {
+        const address = document.getElementById('withdrawAddress').value.trim();
         const asset = document.getElementById('withdrawAsset').value;
         const amount = document.getElementById('withdrawAmount').value;
+        if (!address) { document.getElementById('withdrawAddress').style.borderColor = 'var(--destructive)'; return; }
+        document.getElementById('withdrawAddress').style.borderColor = '';
+        const scenario = WD_SCENARIOS.find(x => x.id === document.getElementById('wdScenario').value);
         const steps = ['wd-s1','wd-s2','wd-s3','wd-s4'];
-
-        // Reset
         steps.forEach((id,i) => { const s = document.getElementById(id); s.className = 'kyt-step pending workflow-step'; s.querySelector('.step-icon').textContent = i+1; });
 
-        // Risk is determined by button choice
-        let riskLevel = forceRisky ? 'Severe' : 'Low';
-        let riskData = forceRisky
-          ? { risk: 'Severe', riskReason: 'Destination address is associated with a sanctioned entity (OFAC SDN list). Funds trace to darknet marketplace activity.', cluster: { category: 'sanctioned entity' } }
-          : { risk: 'Low', riskReason: 'Clean destination — identified as a major exchange hot wallet with no high-risk exposure.' };
-
-        // Step 1
-        await animateStep('wd-s1', 'running', 250);
-        await animateStep('wd-s1', 'success', 0);
+        // Step 1: request
+        await animateStep('wd-s1', 'running', 250); await animateStep('wd-s1', 'success', 0);
         document.getElementById('wd-s1').querySelector('.step-icon').textContent = '✓';
 
-        // Step 2: Pre-screen
+        // Step 2: pre-screen via Address Screening (monitor case screens clean at the time of send)
         await animateStep('wd-s2', 'running', 300);
-        await animateStep('wd-s2', 'success', 0);
-        document.getElementById('wd-s2').querySelector('.step-icon').textContent = '✓';
+        let riskData = null, sandbox = false;
+        if (wdKind === 'monitor') {
+          riskData = { risk:'Low', riskReason:'No risk detected at the time of screening.' };
+        } else {
+          try {
+            const res = await fetch(`/api/workflow/${SLUG}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:{address}}) });
+            if (!res.ok) throw new Error(`API ${res.status}`);
+            const data = await res.json(); riskData = data.output ?? data;
+            if (riskData.error) throw new Error(riskData.error);
+          } catch(e) {
+            sandbox = true;
+            riskData = { risk: scenario?.expected || 'Low', riskReason: scenario?.sandboxReason || 'No high-risk exposure detected.' };
+          }
+        }
+        await animateStep('wd-s2', 'success', 0); document.getElementById('wd-s2').querySelector('.step-icon').textContent = '✓';
 
-        // Step 3: Analyze
-        await animateStep('wd-s3', 'running', 400);
-        await animateStep('wd-s3', 'success', 0);
+        // Step 3: analyze
+        await animateStep('wd-s3', 'running', 400); await animateStep('wd-s3', 'success', 0);
         document.getElementById('wd-s3').querySelector('.step-icon').textContent = '✓';
 
-        // Step 4: Decision
+        // Step 4: decision
+        const riskLevel = riskData?.risk || 'Low';
         const isBlocked = (riskLevel === 'High' || riskLevel === 'Severe');
         await animateStep('wd-s4', 'running', 250);
-        if (isBlocked) {
-          await animateStep('wd-s4', 'alert', 0);
-          document.getElementById('wd-s4').querySelector('.step-icon').textContent = '✗';
-        } else {
-          await animateStep('wd-s4', 'success', 0);
-          document.getElementById('wd-s4').querySelector('.step-icon').textContent = '✓';
-        }
+        if (isBlocked) { await animateStep('wd-s4', 'alert', 0); document.getElementById('wd-s4').querySelector('.step-icon').textContent = '✗'; }
+        else { await animateStep('wd-s4', 'success', 0); document.getElementById('wd-s4').querySelector('.step-icon').textContent = '✓'; }
 
-        // Show result
         const resultEl = document.getElementById('withdraw-result');
         resultEl.style.display = '';
-
         const addrShort = address.length > 20 ? address.slice(0,10) + '…' + address.slice(-6) : address;
         const riskBg = { Low:'bg-success/10 text-success', Medium:'bg-warning/10 text-warning', High:'bg-destructive/10 text-destructive', Severe:'bg-destructive/10 text-destructive' };
+        const sandboxNote = sandbox ? `<p class="text-xs text-muted-foreground mt-1" style="opacity:.75;">⚠ Preview sandbox can't reach the live API — showing the validated outcome for this scenario.</p>` : '';
 
         if (isBlocked) {
           resultEl.innerHTML = `
@@ -1536,6 +1569,7 @@
                   <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${riskBg[riskLevel]}">${riskLevel} Risk</span>
                   ${riskData?.cluster?.category ? `<span class="inline-flex h-5 items-center rounded-full border border-border px-2 py-0.5 text-xs font-medium text-foreground">${riskData.cluster.category}</span>` : ''}
                 </div>
+                ${sandboxNote}
               </div>
             </div>
             <button onclick="resetWithdraw()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Withdrawal</button>`;
@@ -1543,7 +1577,11 @@
           const cautionNote = riskLevel === 'Medium'
             ? `<p class="text-xs text-muted-foreground mt-1">KYT flagged moderate risk for <strong>${addrShort}</strong>: ${riskData?.riskReason || 'Some risk factors present.'}. The withdrawal proceeds but has been logged for enhanced monitoring.</p>`
             : `<p class="text-xs text-muted-foreground mt-1">KYT pre-screened the destination <strong>${addrShort}</strong> and found no high-risk exposure. Your withdrawal of <strong>${amount} ${asset}</strong> has been approved and broadcast to the network.</p>`;
-
+          const monitorBoxHtml = wdKind === 'monitor' ? `
+            <div id="wdMonitorBox" class="rounded-lg p-3" style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);">
+              <div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span style="font-size:11px;font-weight:600;color:#22c55e;">KYT Continuous Monitoring Active</span></div>
+              <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.5;">This withdrawal is registered with Chainalysis KYT and continuously monitored. Compliance is alerted automatically if the funds reach a risky or sanctioned entity after broadcast.</p>
+            </div>` : '';
           resultEl.innerHTML = `
             <div class="rounded-lg ${riskLevel==='Medium'?'bg-warning/10':'bg-success/10'} p-3 flex items-start gap-2">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="${riskLevel==='Medium'?'text-warning':'text-success'} flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -1554,9 +1592,46 @@
                   <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium ${riskBg[riskLevel]||riskBg.Low}">${riskLevel} Risk</span>
                   <span class="inline-flex h-5 items-center rounded-full border border-transparent px-2 py-0.5 text-xs font-medium bg-success/10 text-success">Tx Broadcast</span>
                 </div>
+                ${sandboxNote}
               </div>
             </div>
+            ${monitorBoxHtml}
             <button onclick="resetWithdraw()" class="w-full inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Try Another Withdrawal</button>`;
+          if (wdKind === 'monitor') await runContinuousMonitoring();
+        }
+      }
+
+      // Continuous monitoring: the withdrawal cleared at send, but KYT keeps tracing it and
+      // later raises a SEVERE indirect alert when the funds reach a sanctioned entity.
+      async function runContinuousMonitoring() {
+        const sc = WD_SCENARIOS.find(x => x.id === 'wd-indirect');
+        let kyt = null;
+        try {
+          const r = await fetch(`/api/workflow/${KYT_SLUG}/invoke/sync`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({input:sc.input}) });
+          if (r.ok) { const d = await r.json(); kyt = d.output ?? d; if (kyt.error) kyt = null; }
+        } catch(e) {}
+        if (!kyt) kyt = { level:'SEVERE', graphLink:'https://kyt.chainalysis.com/alerts', alertLink:'https://kyt.chainalysis.com/alerts', sandbox:true };
+        const flagged = kyt && kyt.level && kyt.level !== 'CLEARED';
+        const box = document.getElementById('wdMonitorBox');
+        if (!box) return;
+        const cont = document.createElement('div'); cont.id = 'wdCont';
+        cont.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;margin:14px 0 10px;">
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+            <span style="font-size:10px;font-weight:700;color:#eab308;white-space:nowrap;letter-spacing:.5px;">⏱ 6 WEEKS LATER — CONTINUOUS MONITORING</span>
+            <div style="flex:1;height:1px;background:var(--border);"></div>
+          </div>
+          <div class="kyt-step pending workflow-step" id="wd-s5"><div class="step-icon">5</div><div><div class="text-sm font-medium">Destination moves the funds onward</div><div class="text-xs text-muted-foreground">KYT keeps tracing the registered transfer</div></div></div>
+          <div class="step-connector bg-muted"></div>
+          <div class="kyt-step pending workflow-step" id="wd-s6"><div class="step-icon">6</div><div><div class="text-sm font-medium">KYT alert — funds reached a sanctioned entity</div><div class="text-xs text-muted-foreground">OFAC SDN · Chatex.com · SEVERE · indirect exposure</div></div></div>`;
+        box.insertAdjacentElement('afterend', cont);
+        await animateStep('wd-s5','running',1000); await animateStep('wd-s5','success',0); document.getElementById('wd-s5').querySelector('.step-icon').textContent = '✓';
+        await animateStep('wd-s6','running',1000); await animateStep('wd-s6','alert',0); document.getElementById('wd-s6').querySelector('.step-icon').textContent = '!';
+        await new Promise(r => setTimeout(r, 500));
+        if (flagged) {
+          const links = `<div style="display:flex;flex-direction:column;gap:4px;margin-top:6px;">${kyt.graphLink?`<a href="${kyt.graphLink}" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:#a855f7;text-decoration:none;">↗ Open alert graph in Reactor</a>`:''}${kyt.alertLink?`<a href="${kyt.alertLink}" target="_blank" rel="noopener" style="font-size:10px;font-weight:600;color:#eab308;text-decoration:none;">↗ View alert in KYT</a>`:''}</div>`;
+          box.style.background = 'rgba(239,68,68,.06)'; box.style.borderColor = 'rgba(239,68,68,.2)';
+          box.innerHTML = `<div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:11px;font-weight:700;color:#ef4444;">KYT Continuous Monitoring — Alert</span></div><p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.5;">This withdrawal <strong style="color:var(--foreground);">cleared at the time of send</strong>. Six weeks later, KYT detected the funds reaching <strong style="color:var(--foreground);">OFAC-sanctioned Chatex.com</strong> (SEVERE · indirect exposure) and automatically raised an alert. Compliance has been notified.</p>${links}`;
         }
       }
 
@@ -1564,11 +1639,15 @@
         document.getElementById('withdraw-result').style.display = 'none';
         document.getElementById('withdraw-result').innerHTML = '';
         document.getElementById('withdrawAddress').value = '';
+        document.getElementById('withdrawAddress').style.borderColor = '';
         ['wd-s1','wd-s2','wd-s3','wd-s4'].forEach((id,i) => {
           const s = document.getElementById(id);
           s.className = 'kyt-step pending workflow-step';
           s.querySelector('.step-icon').textContent = i+1;
         });
+        wdKind = 'screen';
+        const sel = document.getElementById('wdScenario'); if (sel) sel.value = '';
+        const st = document.getElementById('wdScenarioStory'); if (st) { st.textContent = ''; st.style.display = 'none'; }
       }
 
       // =====================================================
@@ -1672,7 +1751,6 @@
     }).observe(document.body,{childList:true,subtree:true,attributes:true});
     // Also try immediately
     setTimeout(()=>renderAddressPicker('addressInput'),100);
-    setTimeout(()=>renderAddressPicker('withdrawAddress'),200);
     </script>
   
     
