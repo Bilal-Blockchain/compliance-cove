@@ -516,9 +516,9 @@
       {id:'clean',label:'🟢 Clean deposit (self-custody wallet)',asset:'ETH',amount:'2.5',svc:'',
        story:'Funds from a normal self-custody wallet. No risky exposure — KYT generates no alert.',expected:'CLEARED',
        input:{mode:'withdrawal',network:'ETHEREUM',asset:'ETH',assetAmount:2.5,address:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0'}},
-      {id:'exchange',label:'🟡 Exchange-sourced deposit (Bitget)',asset:'USDT',amount:'15,982',svc:'Bitget.com',
-       story:'Funds arrived directly from a third-party exchange. KYT logs the counterparty for Travel Rule / source-of-funds — low severity, cleared with a record.',expected:'LOW',
-       input:{mode:'transfer',network:'ETHEREUM',asset:'USDT',direction:'received',transferReference:'0x92d7be10a97025f32928748a3e2415f3fa321dfc5b0f2027b0cdec5f606ca905:0xbc0235c2052844a887ab5c896018f788148e7782'}},
+      {id:'atm',label:'🟡 Crypto ATM source (RockItCoin)',asset:'BTC',amount:'0.13',svc:'RockItCoin.com',source:'RockItCoin.com',sourceCat:'Crypto ATM',
+       story:'Deposit traced to a crypto ATM — a high-risk cash-in category (FATF/FinCEN). No sanctions alert, but routed to enhanced due diligence under policy.',expected:'EDD',
+       input:{mode:'transfer',network:'BITCOIN',asset:'BTC',direction:'received',transferReference:'cc8011ecf88258fe0bc69784a667e82e66fc73d18e0dd68ee4930732b51b080b:bc1qfkneq4q4msqhxwhjhrv2pmwcmq3w4etyhazz8w'}},
       {id:'sanctioned',label:'🔴 Sanctioned source (Swapster.fi)',asset:'USDT',amount:'4,840',svc:'Swapster.fi',
        story:'Stablecoin received from an OFAC/EU-sanctioned service — severe KYT alert, funds frozen.',expected:'SEVERE',
        input:{mode:'transfer',network:'ETHEREUM',asset:'USDT',direction:'received',transferReference:'0x0f9e200d58a92d1eca9d120340a4ed18ec927055230baad3cfbc58ea5943e680:0x0c82f1b5e5acb1a63cb7aecddf389b342fb15e35'}},
@@ -530,6 +530,7 @@
     function syncDepFields(){const s=depScenario();document.getElementById('depAmt').value=s.amount;document.getElementById('depAssetLbl').textContent=s.asset;document.getElementById('depScenarioStory').textContent=s.story;}
     function fallbackResult(s){
       const map={CLEARED:{level:'CLEARED',alerts:[]},
+        EDD:{level:'CLEARED',alerts:[]},
         LOW:{level:'LOW',alerts:[{level:'LOW',service:s.svc,exposureType:'DIRECT'}]},
         MEDIUM:{level:'MEDIUM',alerts:[{level:'MEDIUM',service:s.svc,exposureType:'DIRECT'}]},
         SEVERE:{level:'SEVERE',alerts:[{level:'SEVERE',service:s.svc,exposureType:'DIRECT'}]}};
@@ -553,7 +554,7 @@
         if(res.error)throw new Error(res.error);
       }catch(e){res=fallbackResult(s);}
       await animateStep('d-s3','success',0);document.getElementById('d-s3').querySelector('.step-icon').textContent='✓';
-      const flagged=res.level&&res.level!=='CLEARED';
+      const flagged=(res.level&&res.level!=='CLEARED')||s.expected==='EDD';
       await animateStep('d-s4','running',400);
       await animateStep('d-s4',flagged?'alert':'success',0);document.getElementById('d-s4').querySelector('.step-icon').textContent=flagged?'!':'✓';
       renderDepResult(s,res);
@@ -572,7 +573,9 @@
       const sandboxNote=res.sandbox?`<p class="text-xs text-muted-foreground mt-2">Sandbox preview — open this page in a new tab for a live KYT API call.</p>`:'';
       const actions=`<div class="flex gap-2 mt-3"><button onclick="resetDeposit()" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted">Screen another</button><button onclick="showScreen('dashboard')" class="flex-1 inline-flex items-center justify-center rounded-lg h-10 text-sm font-semibold text-primary-foreground accent-bg">Go to Dashboard</button></div>`;
       let head;
-      if(lvl==='CLEARED'){
+      if(s.expected==='EDD'){
+        head=`<div class="rounded-lg bg-warning/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-warning flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><div><p class="text-sm font-semibold text-warning">Enhanced Due Diligence — High-Risk Source</p><p class="text-xs text-muted-foreground mt-1">KYT monitored <strong>${s.amount} ${s.asset}</strong>${usd}. Chainalysis attributes the source to <strong>${s.source}</strong> (${s.sourceCat}). No sanctions/illicit alert — but crypto ATMs are a high-risk cash-in category, so the deposit is routed to enhanced due diligence per policy.</p><span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold" style="background:rgba(245,158,11,.12);color:#b45309;margin:6px 4px 0 0;">${s.sourceCat} · high-risk category</span></div></div>`;
+      }else if(lvl==='CLEARED'){
         head=`<div class="rounded-lg bg-success/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-success flex-shrink-0 mt-0.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><div><p class="text-sm font-semibold text-success">Deposit Cleared by KYT</p><p class="text-xs text-muted-foreground mt-1"><strong>No alert generated. Source of funds are clean.</strong> ${s.amount} ${s.asset}${usd} cleared — funds available for trading immediately.</p></div></div>`;
       }else if(lvl==='SEVERE'||lvl==='HIGH'){
         head=`<div class="rounded-lg bg-destructive/10 p-3 flex items-start gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-destructive flex-shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><div><p class="text-sm font-semibold text-destructive">⛔ Deposit Blocked — ${lvl} KYT Alert</p><p class="text-xs text-muted-foreground mt-1">Real KYT alert on <strong>${s.amount} ${s.asset}</strong>${usd}. Funds received from a sanctioned source — held &amp; escalated to compliance.</p>${alertsHtml}${linksHtml}</div></div>`;

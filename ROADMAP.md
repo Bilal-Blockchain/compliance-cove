@@ -193,11 +193,13 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 | Scenario | Shape | Live outcome |
 |---|---|---|
 | Clean (self-custody) | withdrawal | CLEARED — "no alert, source clean" |
-| Exchange-sourced (Bitget, USDT) | transfer | LOW — source-of-funds logged |
+| Crypto ATM (RockItCoin, BTC) | transfer | No hard alert → policy-based **Enhanced Due Diligence** (high-risk category) |
 | Sanctioned (Swapster.fi, USDT) | transfer | SEVERE |
 | Sanctioned (Heleket.com, USDT) | transfer | SEVERE |
 
-> Note: dropped Tornado Cash as the "medium" tier — it's OFAC-sanctioned, which contradicts a mid-risk story. This org's KYT rules only emit MEDIUM for mixing(sanctioned)/exchange and SEVERE for sanctioned/illicit, so the coherent escalation is none → LOW (exchange) → SEVERE (sanctioned). Result panel now links to BOTH the Reactor alert graph (`graphLink`) and the KYT alert inbox (`alertLink`).
+> **Org alert-rule reality:** this shared KYT org only hard-alerts on exchanges (LOW/MED), mixing/sanctioned/illicit (MED/SEVERE). Gambling & ATM do NOT alert, and KYT doesn't return source attribution for non-alerting transfers. So the ATM "middle" tier is built as an authentic **EDD** scenario: KYT monitors the transfer (real usd/processing) + Chainalysis attributes the source as a crypto ATM (real, via Data Solutions) → policy routes high-risk categories to EDD. Distinct from a sanctioned hard alert. (Tornado was dropped — it's sanctioned, which contradicted a mid-risk story.)
+>
+> **Deep links:** result shows BOTH the Reactor alert graph (`graphLink` = `/alerts/graph-v2?alertIds={id}`, alert-specific, opens the alert in Reactor) and the KYT alert (`alertLink` = `/alerts?alertIds={id}`, best-effort alert filter; falls back to the Alerts tab).
 
 **Sourcing tx hashes:** Data Solutions `cross_chain.transfers_clustered` (filter by risky `sender_name`/`sender_category`) → register candidates → keep validated outcomes. Note: avoid `asset_symbol='ETH'` as a sole broad predicate (non-selective → 400); keep `sender_name IS NULL` style filters selective.
 

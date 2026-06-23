@@ -99,11 +99,12 @@ def handler(event: dict, context: DurableContext) -> dict:
         top = max(alerts, key=lambda a: order.get(a.get("level"), 0)) if alerts else None
         level = top["level"] if top else "CLEARED"
 
-        # KYT alert inbox (the alert itself) + Reactor graph of the alert
+        # KYT alert (filtered to this alert) + Reactor graph of the alert
         alert_link = "https://kyt.chainalysis.com/alerts"
         graph_link = None
         if top and top.get("alertId"):
             graph_link = "https://kyt.chainalysis.com/alerts/graph-v2?alertIds=" + top["alertId"]
+            alert_link = "https://kyt.chainalysis.com/alerts?alertIds=" + top["alertId"]
 
         return {
             "ok": True,

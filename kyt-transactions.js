@@ -30,14 +30,20 @@ const KYT_DEPOSITS = [
              address: '0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0' },
   },
   {
-    id: 'exchange',
-    label: '🟡 Exchange-sourced deposit (Bitget)',
-    asset: 'USDT',
-    amount: '15,982',
-    story: 'Funds received directly from a third-party exchange. KYT logs the counterparty for Travel Rule / source-of-funds — LOW severity, cleared with a record. (Non-sanctioned, so it reads as a clean "needs a note" tier — unlike a mixer/sanctioned source.)',
-    expected: 'LOW',
-    input: { mode: 'transfer', network: 'ETHEREUM', asset: 'USDT', direction: 'received',
-             transferReference: '0x92d7be10a97025f32928748a3e2415f3fa321dfc5b0f2027b0cdec5f606ca905:0xbc0235c2052844a887ab5c896018f788148e7782' },
+    id: 'atm',
+    label: '🟡 Crypto ATM source (RockItCoin)',
+    asset: 'BTC',
+    amount: '0.13',
+    source: 'RockItCoin.com',
+    sourceCat: 'Crypto ATM',
+    // KYT registers/monitors the transfer (real), and Chainalysis attributes the
+    // source as a crypto ATM (real, via Data Solutions). This org's KYT rules don't
+    // hard-alert on ATMs, so the demo frames it as policy-based Enhanced Due
+    // Diligence on a high-risk cash-in category — distinct from a sanctioned hard alert.
+    story: 'Deposit traced to a crypto ATM — a high-risk cash-in category (FATF/FinCEN). No sanctions alert, but routed to enhanced due diligence under policy.',
+    expected: 'EDD',
+    input: { mode: 'transfer', network: 'BITCOIN', asset: 'BTC', direction: 'received',
+             transferReference: 'cc8011ecf88258fe0bc69784a667e82e66fc73d18e0dd68ee4930732b51b080b:bc1qfkneq4q4msqhxwhjhrv2pmwcmq3w4etyhazz8w' },
   },
   {
     id: 'sanctioned',
