@@ -572,21 +572,8 @@
     </script>
   
   
-    <!-- Pre-seeded address picker (inline) -->
+    <!-- Reactor link helpers (inline) -->
     <script>
-    const DEMO_ADDRESSES=[
-      {id:'defi-user',label:'🟢 Typical DeFi User',address:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',risk:'Low',story:'Normal DeFi user — bridges, DEX swaps, exchange deposits. Clean profile.',category:'low'},
-      {id:'binance-hot',label:'🟢 Binance Hot Wallet',address:'0x28C6c06298d514Db089934071355E5743bf21d60',risk:'Low',story:'Major exchange hot wallet — identified as Binance.com.',category:'low'},
-      {id:'ftx-hot',label:'🟢 FTX Hot Wallet',address:'0x2FAF487A4414Fe77e2327F0bf4AE2a264a776AD2',risk:'Low',story:'FTX.com wallet — still Low risk. Risk scores reflect on-chain data, not headlines.',category:'low'},
-      {id:'unnamed-svc',label:'🟡 Unnamed Service',address:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',risk:'Medium',story:'Categorized as unnamed service — $4M+ exposure. Medium because the service isn\'t identified.',category:'medium'},
-      {id:'bayc-theft',label:'🟡 Stolen BAYC NFT',address:'0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73',risk:'Medium',story:'0.14% direct stolen funds — connected to a Bored Ape Yacht Club theft.',category:'medium'},
-      {id:'justin-sun',label:'🟡 Justin Sun (Tron Founder)',address:'0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',risk:'Medium',story:'$46B+ volume, Medium from indirect sanctioned jurisdiction exposure.',category:'medium'},
-      {id:'wintermute',label:'🟡 Wintermute (Market Maker)',address:'0x0000000fe6a514a32abdcdfcc076c85243de899b',risk:'Medium',story:'Major market maker — Medium due to >2% stolen funds from their $160M hack.',category:'medium'},
-      {id:'lazarus',label:'🔴 Lazarus Group (OFAC)',address:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',risk:'Severe',story:'OFAC-sanctioned North Korean hackers — Ronin Bridge exploit ($625M).',category:'severe'},
-      {id:'tornado',label:'🔴 Tornado Cash (Mixer)',address:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',risk:'Severe',story:'OFAC-sanctioned mixing service — $10B+ total volume.',category:'severe'},
-      {id:'vitalik',label:'🔴 Vitalik Buterin',address:'0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',risk:'Severe',story:'Surprise! Severe from dust attacks — shows why context matters.',category:'severe'},
-    ];
-    
     // Reactor deep link helper
     async function openInReactor(address, network, btn) {
       const net = (network || 'ETH').toUpperCase();
@@ -606,38 +593,6 @@
       const net = (network || 'ETH').toUpperCase();
       return '<button type="button" onclick="event.preventDefault();event.stopPropagation();openInReactor(\'' + address + '\',\'' + net + '\',this)" style="display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-size:9px;font-weight:600;color:#a855f7;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.12);cursor:pointer;transition:all .15s;margin-left:4px;" onmouseover="this.style.background=\'rgba(168,85,247,.15)\';this.style.borderColor=\'#a855f7\';" onmouseout="this.style.background=\'rgba(168,85,247,.08)\';this.style.borderColor=\'rgba(168,85,247,.12)\';"><svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 30 30\' fill=\'#a855f7\' width=\'10\' height=\'10\'><path d=\'M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z\'/></svg>Investigate in Reactor →</button>';
     }
-    function renderAddressPicker(inputId){
-      const input=document.getElementById(inputId);if(!input||input.parentNode.querySelector('.addr-picker'))return;
-      const w=document.createElement('div');w.className='addr-picker';w.style.cssText='position:relative;margin-top:6px;';
-      const btn=document.createElement('button');btn.type='button';
-      btn.style.cssText='display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--background);color:var(--muted-foreground);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;';
-      btn.innerHTML='🎯 Try a pre-screened address <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
-      btn.onmouseover=()=>{btn.style.borderColor='var(--primary)';btn.style.color='var(--foreground)';};
-      btn.onmouseout=()=>{btn.style.borderColor='var(--border)';btn.style.color='var(--muted-foreground)';};
-      const dd=document.createElement('div');
-      dd.style.cssText='display:none;position:absolute;left:0;right:0;bottom:100%;margin-bottom:4px;max-height:320px;overflow-y:auto;border-radius:12px;border:1px solid var(--border);background:var(--card);box-shadow:0 12px 40px rgba(0,0,0,.15);z-index:99;padding:6px;';
-      [{key:'low',label:'Low Risk',color:'#22c55e'},{key:'medium',label:'Medium Risk',color:'#eab308'},{key:'severe',label:'Severe Risk',color:'#ef4444'}].forEach(g=>{
-        const items=DEMO_ADDRESSES.filter(a=>a.category===g.key);if(!items.length)return;
-        const h=document.createElement('div');h.style.cssText='padding:6px 8px 2px;font-size:9px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:1px;';h.textContent=g.label;dd.appendChild(h);
-        items.forEach(a=>{
-          const r=document.createElement('div');r.style.cssText='padding:8px 10px;border-radius:8px;cursor:pointer;transition:background .1s;';
-          r.onmouseover=()=>{r.style.background='var(--muted)';};r.onmouseout=()=>{r.style.background='transparent';};
-          r.innerHTML='<div style="font-size:12px;font-weight:600;color:var(--foreground);">'+a.label+'</div><div style="font-size:10px;color:var(--muted-foreground);margin-top:2px;line-height:1.4;">'+a.story+'</div><div style="font-size:9px;color:var(--muted-foreground);margin-top:3px;font-family:monospace;opacity:.7;">'+a.address.slice(0,10)+'…'+a.address.slice(-8)+'</div>';
-          r.onclick=()=>{input.value=a.address;input.dispatchEvent(new Event('input',{bubbles:true}));dd.style.display='none';input.style.borderColor=g.color;input.style.boxShadow='0 0 0 2px '+g.color+'30';setTimeout(()=>{input.style.borderColor='';input.style.boxShadow='';},1500);};
-          dd.appendChild(r);
-        });
-      });
-      btn.onclick=(e)=>{e.preventDefault();e.stopPropagation();dd.style.display=dd.style.display==='none'?'block':'none';};
-      document.addEventListener('click',(e)=>{if(!w.contains(e.target))dd.style.display='none';});
-      w.appendChild(dd);w.appendChild(btn);input.parentNode.appendChild(w);
-    }
-    // Auto-init: watch for the input to appear and attach picker
-    new MutationObserver(()=>{
-      const el=document.getElementById('recipientAddr');
-      if(el&&!el.parentNode.querySelector('.addr-picker'))renderAddressPicker('recipientAddr');
-    }).observe(document.body,{childList:true,subtree:true,attributes:true});
-    // Also try immediately
-    setTimeout(()=>renderAddressPicker('recipientAddr'),100);
     </script>
   
     
