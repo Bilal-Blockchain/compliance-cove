@@ -4,7 +4,7 @@
 >
 > **How to use:** Tell Chain: _"Read ROADMAP.md and let's work on the next priority."_
 >
-> **Last updated:** June 15, 2026
+> **Last updated:** June 23, 2026
 
 ---
 
@@ -180,7 +180,7 @@ Style: `color: #a855f7`, subtle background, hover effect. Already implemented in
 
 ## 🔗 Cross-Cutting — Live KYT Integration
 
-**Status:** 🟡 Phase 1 done — Exchange (VaultX) deposit is live.
+**Status:** 🟡 Live on Exchange (VaultX) deposit, ATM (CoinVault) withdraw, and Remittance (SwiftBridge) send.
 **Workflow:** `cove-kyt-screen` (`workflow/kyt_screen.py`, deployed to $LATEST). Uses `REACTOR_API_KEY`. Two shapes:
 - `mode:"transfer"` — monitor a real deposit (`transferReference="txhash:address"`, `direction`). Returns real alerts + exposure.
 - `mode:"withdrawal"` — pre-screen an outgoing address (address only). Returns exposure + fraud + alerts.
@@ -212,7 +212,9 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 
 ✅ **ATM (CoinVault) rolled out:** withdraw flow has a sample-destination picker. Clean → Address-Screening approved → sent. Sanctioned → blocked. Indirect → screens clean at send, then `confirmSend` calls `cove-kyt-screen` (transfer/sent) and the "KYT Monitoring Active" box flips to a **post-send continuous-monitoring alert** (funds reached OFAC-sanctioned Chatex.com) with Reactor-graph + KYT-alert links. The continuous-monitoring tx hash was provided by the user.
 
-**Next:** roll `cove-kyt-screen` into Remittance (send), ArcSwap (withdraw), Gaming (cash out); then a standalone Live KYT Screener tool + interactive KYT Explainer. (Address Screening is NOT replaced anywhere — KYT is additive.)
+✅ **Remittance (SwiftBridge) rolled out:** the **send** flow now has a "Sample recipient (KYT scenarios)" picker reusing `KYT_WITHDRAWALS`. Clean → Address Screening clears → delivered. Sanctioned (Chatex) → Address Screening blocks before funds leave the corridor. Indirect → screens clean at send (Low), the success card shows a green **"KYT Continuous Monitoring Active"** box, then a **⏱ 5 WEEKS LATER — ONGOING CORRIDOR MONITORING** divider with steps 5–6 calls `cove-kyt-screen` (transfer/sent) and flips the box to a red **continuous-monitoring alert** (OFAC-sanctioned Chatex.com, SEVERE/indirect) with Reactor-graph + KYT-alert links. Address Screening remains the point-in-time gate; KYT is additive. Sandbox-safe fallback (validated SEVERE) when the API can't be reached from preview.
+
+**Next:** roll `cove-kyt-screen` into ArcSwap (withdraw), Gaming (cash out); then a standalone Live KYT Screener tool + interactive KYT Explainer. (Address Screening is NOT replaced anywhere — KYT is additive.)
 
 ---
 
