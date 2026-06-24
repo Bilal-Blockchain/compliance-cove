@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="cove-demo" content="Insurance Claims" />
+    <title>ChainGuard, Crypto Claims Intelligence</title>
+    <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      :root{color-scheme:dark;--cg-bg:#080d14;--cg-card:rgba(13,18,28,0.85);--cg-border:rgba(51,65,85,0.25);--cg-accent:#14b8a6;--cg-accent2:#0d9488;}
+      *{font-family:'Inter',system-ui,sans-serif;box-sizing:border-box;}
+      body{background:var(--cg-bg)!important;color:#e2e8f0!important;margin:0;}
+      .cg-nav{position:sticky;top:0;z-index:50;background:rgba(8,13,20,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--cg-border);}
+      .cg-card{border-radius:10px;background:var(--cg-card);border:1px solid var(--cg-border);transition:border-color .2s;}
+      .cg-card:hover{border-color:rgba(51,65,85,0.45);}
+      .cg-badge{display:inline-flex;padding:2px 8px;border-radius:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;}
+      .screen{display:none;}.screen.active{display:block;}
+      .claim-row{padding:12px 14px;border-radius:8px;border:1px solid var(--cg-border);margin-bottom:6px;cursor:pointer;transition:all .15s;}
+      .claim-row:hover{border-color:var(--cg-accent);background:rgba(20,184,166,0.03);}
+      .flow-line{display:flex;align-items:center;gap:0;overflow-x:auto;padding:8px 0;}
+      .flow-node{min-width:140px;padding:10px 12px;border-radius:8px;border:1px solid var(--cg-border);background:var(--cg-card);flex-shrink:0;text-align:center;}
+      .flow-arrow{color:#475569;font-size:18px;padding:0 6px;flex-shrink:0;}
+      .risk-bar{height:6px;border-radius:3px;background:#1e293b;overflow:hidden;flex:1;}
+      .risk-fill{height:100%;border-radius:3px;}
+      .section-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+      .section-head-line{flex:1;height:1px;background:var(--cg-border);}
+      .cove-disclaimer{display:flex;align-items:flex-start;gap:8px;padding:10px 14px;margin:8px 0;border-radius:8px;background:rgba(20,184,166,0.06);border:1px solid rgba(20,184,166,0.15);font-size:11px;line-height:1.5;color:#2dd4bf;}
+      .cove-disclaimer svg{flex-shrink:0;margin-top:1px;}
+      .cg-footer{border-top:1px solid var(--cg-border);padding:24px 0;background:rgba(8,13,20,0.9);}
+      .step-card{padding:14px;border-radius:10px;border:1px solid var(--cg-border);margin-bottom:10px;}
+      .step-num{width:24px;height:24px;border-radius:7px;background:linear-gradient(135deg,var(--cg-accent),var(--cg-accent2));color:white;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+      .btn-primary{padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--cg-accent),var(--cg-accent2));color:white;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s;}
+      .btn-primary:hover{opacity:.9;}
+      .btn-primary:disabled{opacity:.5;cursor:default;}
+      .btn-outline{padding:6px 14px;border-radius:7px;border:1px solid var(--cg-border);background:transparent;color:#94a3b8;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;}
+      .btn-outline:hover{border-color:var(--cg-accent);color:#e2e8f0;}
+      @keyframes spin{to{transform:rotate(360deg)}}
+      .animate-spin{animation:spin .7s linear infinite;}
+    </style>
+  </head>
+  <body>
+
+    <!-- Nav -->
+    <nav class="cg-nav">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:52px;">
+        <div class="flex items-center gap-3">
+          <div data-brand-logo style="width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#14b8a6,#0d9488);display:flex;align-items:center;justify-content:center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span class="text-sm font-bold" style="letter-spacing:-0.3px;">ChainGuard</span>
+          <span class="text-xs" style="color:#475569;">Claims Intelligence</span>
+        </div>
+        <div class="flex items-center gap-2" style="padding:3px 8px;border-radius:6px;border:1px solid var(--cg-border);">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" fill="#14b8a6" width="12" height="12"><path d="M14.5818 0C14.9085 0 15.2791.0407 15.2791.0407 14.1828 1.3506 13.5222 2.9676 13.3886 4.6679 11.323 5.0121 9.4214 6.0034 7.9598 7.4977 6.4982 8.992 5.5528 10.9115 5.2608 12.9776 3.3732 13.181 1.2377 14.0414.0095 15.2708-.2823 6.8361 6.206 0 14.5818 0ZM16.6823 25.339C16.296 25.396 15.9059 25.4241 15.5154 25.4233 14.8413 25.4153 14.1686 25.3599 13.5024 25.2576 12.9818 26.5063 12.2949 27.6794 11.4602 28.7454 8.8419 28.1702 6.4334 26.887 4.4992 25.037 2.5651 23.187 1.1802 20.8417.4967 18.2587 1.8124 16.7037 4.8523 15.8027 6.7399 15.8027 10.7659 15.8027 12.9014 17.9303 13.6424 21.2466 11.2181 20.5927 9.7798 19.2411 8.8346 17.2356 8.2822 17.0358 7.698 16.9374 7.1104 16.945 6.5801 16.9428 6.053 17.0263 5.5496 17.192 6.6173 21.2466 10.5616 24.2752 15.3666 24.2752 19.8039 24.2752 21.6915 22.0256 21.6915 22.0256V18.5843S19.5151 20.8368 16.8048 21.2873C16.5 19.185 15.5182 17.2382 14.0072 15.7396 12.4962 14.2411 10.5376 13.2718 8.4261 12.9776 9.1234 9.5392 11.7519 7.6151 15.3257 7.6151S21.7761 10.1932 21.7761 10.1932V6.7954S19.9264 5.0748 16.6415 4.7086C16.7232 3.1972 17.7092 1.3108 18.777.6133 23.2523 2.0055 27.5671 5.7723 28.7982 11.2569 28.7982 11.2569 26.8261 13.2217 23.1297 13.2217 20.0898 13.2217 18.1702 11.7074 17.0908 9.048 16.5245 8.847 15.9268 8.7486 15.3257 8.7573 14.7648 8.7512 14.2077 8.8498 13.6832 9.048 14.8735 13.306 18.6428 16.1689 22.8438 16.1689 26.9515 16.1689 29.1687 14.2884 29.1687 14.2884 29.1687 22.8016 22.6367 28.9024 14.8735 29.0652 15.7779 28.1932 16.4752 26.2807 16.6823 25.339Z"/></svg>
+          <span class="text-xs font-medium" style="color:#14b8a6;">Chainalysis</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="max-w-5xl mx-auto px-4 py-4">
+
+      <!-- ==================== CLAIMS DASHBOARD ==================== -->
+      <div class="screen active" id="screen-dashboard">
+        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Crypto Claims Intelligence.</strong> Insurance adjusters use Chainalysis Reactor to verify proof of funds, trace stolen assets, and detect fraudulent claims. Click a claim to begin the investigation.</span></div>
+
+        <!-- Stats -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
+          <div class="cg-card" style="padding:14px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#14b8a6;font-family:monospace;">7</div><div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:600;letter-spacing:.5px;margin-top:2px;">Open Claims</div></div>
+          <div class="cg-card" style="padding:14px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#eab308;font-family:monospace;">3</div><div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:600;letter-spacing:.5px;margin-top:2px;">Under Investigation</div></div>
+          <div class="cg-card" style="padding:14px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#22c55e;font-family:monospace;">45</div><div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:600;letter-spacing:.5px;margin-top:2px;">Resolved (YTD)</div></div>
+          <div class="cg-card" style="padding:14px;text-align:center;"><div style="font-size:22px;font-weight:800;color:#3b82f6;font-family:monospace;">78%</div><div style="font-size:9px;color:#475569;text-transform:uppercase;font-weight:600;letter-spacing:.5px;margin-top:2px;">Recovery Rate</div></div>
+        </div>
+
+        <!-- Claims list -->
+        <div class="cg-card" style="padding:14px;">
+          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#14b8a6;">Active Claims</span><div class="section-head-line"></div></div>
+          <div id="claimsList"></div>
+        </div>
+      </div>
+
+      <!-- ==================== CLAIM INVESTIGATION ==================== -->
+      <div class="screen" id="screen-investigation">
+        <button onclick="backToDashboard()" class="flex items-center gap-1 text-xs mb-3" style="background:none;border:none;color:#64748b;cursor:pointer;padding:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>Back to Claims</button>
+        <div id="investigationContent"></div>
+      </div>
+
+      <!-- ==================== ABOUT ==================== -->
+      <div class="screen" id="screen-about">
+        <div class="max-w-4xl mx-auto py-6 space-y-5">
+          <div style="border-radius:14px;background:linear-gradient(135deg,#14b8a6,#0d9488);padding:28px 24px;color:white;">
+            <h1 style="font-size:24px;font-weight:900;letter-spacing:-0.5px;">About ChainGuard</h1>
+            <p style="font-size:14px;margin-top:6px;opacity:.85;line-height:1.6;max-width:550px;">Insurance Claims Investigation, Compliance Cove Demo</p>
+          </div>
+          <div style="border-radius:12px;border:1px solid var(--cg-border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;">What This Demo Shows</h2>
+            <p class="text-sm" style="color:#94a3b8;margin-top:6px;line-height:1.7;">ChainGuard is an insurance claims investigation console. Adjusters receive crypto-related claims, screen the claimant's wallet with Address Screening, trace fund flows visually, open full investigations in Reactor, and render a verdict. The demo showcases three scenarios: a legitimate stolen-crypto claim, a DeFi exploit recovery, and a fraudulent self-transfer.</p>
+          </div>
+          <div style="border-radius:12px;border:1px solid var(--cg-border);padding:18px;">
+            <h2 class="text-base font-semibold" style="color:#e2e8f0;margin-bottom:10px;">Chainalysis Products Used</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;">
+              <div style="padding:10px;border-radius:8px;background:rgba(20,184,166,0.04);border:1px solid var(--cg-border);"><p class="text-sm font-semibold">Reactor</p><p class="text-xs" style="color:#64748b;margin-top:2px;">Trace fund flows, verify losses, create investigation graphs</p></div>
+              <div style="padding:10px;border-radius:8px;background:rgba(20,184,166,0.04);border:1px solid var(--cg-border);"><p class="text-sm font-semibold">Address Screening</p><p class="text-xs" style="color:#64748b;margin-top:2px;">Screen claimant wallets for risk and sanctions exposure</p></div>
+              <div style="padding:10px;border-radius:8px;background:rgba(20,184,166,0.04);border:1px solid var(--cg-border);"><p class="text-sm font-semibold">Data Solutions</p><p class="text-xs" style="color:#64748b;margin-top:2px;">Cluster intelligence and entity attribution for investigations</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="cg-footer">
+      <div class="max-w-5xl mx-auto px-4 flex items-center justify-between">
+        <div class="flex items-center gap-2"><span class="text-sm font-semibold" style="color:#475569;">ChainGuard</span><span class="text-xs" style="color:#334155;">Insurance Demo</span></div>
+        <div class="flex items-center gap-3 text-xs" style="color:#475569;">
+          <span>Reactor</span><span style="opacity:.3;">·</span><span>Address Screening</span><span style="opacity:.3;">·</span><span>Data Solutions</span>
+          <span style="opacity:.3;">|</span>
+          <span onclick="showScreen('about')" style="cursor:pointer;color:#14b8a6;">About</span>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+    function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); window.scrollTo(0,0); }
+    function backToDashboard(){ showScreen('dashboard'); }
+
+    const AS_SLUG='demochain-address-screen';
+    const GRAPH_SLUG='arcswap-reactor-graph';
+    async function wfCall(slug,input){ const r=await fetch('/api/workflow/'+slug+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input})}); if(!r.ok) throw new Error('api'); const d=await r.json(); const o=d.output??d; if(o&&o.error) throw new Error(o.error); return o; }
+    const shortA=a=>a&&a.length>16?a.slice(0,8)+'...'+a.slice(-6):a;
+    const riskColor=r=>({Low:'#22c55e',Medium:'#eab308',High:'#f97316',Severe:'#ef4444'})[r]||'#64748b';
+
+    // =====================================================
+    // CLAIM SCENARIOS
+    // =====================================================
+    const claims=[
+      {
+        id:'CG-2026-0847', type:'Wallet Compromise', status:'Under Investigation', statusColor:'#eab308',
+        policyholder:'Marcus Chen', policyType:'Crypto Custody Insurance', coverage:'$500,000',
+        date:'Jun 18, 2026', amount:'15 ETH ($42,700)',
+        description:'Policyholder reports unauthorized transfer of 15 ETH from their self-custody wallet. Claims private key was compromised via a malicious browser extension. Funds left the wallet in a single transaction on June 17.',
+        wallet:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',
+        walletLabel:'Claimant wallet (self-custody)',
+        flow:[
+          {label:'Claimant Wallet',addr:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',amount:'15 ETH',entity:null,risk:'Low',note:'Self-custody, clean history'},
+          {label:'Attacker Wallet',addr:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',amount:'15 ETH',entity:'Lazarus Group',risk:'Severe',note:'OFAC sanctioned entity'},
+          {label:'Tornado Cash',addr:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',amount:'14.8 ETH',entity:'Tornado Cash',risk:'Severe',note:'Sanctioned mixer'},
+          {label:'Exchange Deposit',addr:'0x28C6c06298d514Db089934071355E5743bf21d60',amount:'14.5 ETH',entity:'Binance.com',risk:'Low',note:'Deposit address at Binance'},
+        ],
+        finding:'Claim verified. Funds traced from claimant wallet to sanctioned entity (Lazarus Group), through Tornado Cash mixer, and into a Binance deposit address. Pattern consistent with a state-sponsored theft operation. Recommend approval with law enforcement referral.',
+        verdict:'approve',
+        reactorAddresses:['0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0','0x098B716B8Aaf21512996dC57EB0615e2383E2f96'],
+      },
+      {
+        id:'CG-2026-0812', type:'DeFi Protocol Exploit', status:'Under Investigation', statusColor:'#eab308',
+        policyholder:'NovaDEX Protocol', policyType:'DeFi Smart Contract Coverage', coverage:'$2,000,000',
+        date:'Jun 14, 2026', amount:'$487,000 USDC',
+        description:'Protocol reports a reentrancy exploit that drained $487K USDC from their lending pool. The exploit contract called the withdraw function recursively before the balance update. Attack occurred in block 20,412,847.',
+        wallet:'0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73',
+        walletLabel:'Exploit contract',
+        flow:[
+          {label:'Lending Pool',addr:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',amount:'$2.1M USDC',entity:'NovaDEX Pool',risk:'Low',note:'Protocol liquidity pool'},
+          {label:'Exploit Contract',addr:'0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73',amount:'$487K USDC',entity:null,risk:'High',note:'Malicious contract, reentrancy'},
+          {label:'Attacker EOA',addr:'0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',amount:'$487K USDC',entity:null,risk:'Medium',note:'Externally owned account'},
+          {label:'Bridge Out',addr:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',amount:'$480K USDC',entity:'Unnamed Service',risk:'Medium',note:'Cross-chain bridge, funds moved to L2'},
+        ],
+        finding:'Exploit confirmed. Reentrancy vulnerability verified in the pool contract. Attacker moved funds through an EOA to a cross-chain bridge. Partial recovery may be possible via bridge operator cooperation. Recommend approval with recovery pursuit.',
+        verdict:'approve',
+        reactorAddresses:['0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73','0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296'],
+      },
+      {
+        id:'CG-2026-0791', type:'Phishing Attack', status:'New Claim', statusColor:'#3b82f6',
+        policyholder:'Rachel Torres', policyType:'Personal Crypto Insurance', coverage:'$100,000',
+        date:'Jun 21, 2026', amount:'3.2 BTC ($218,000)',
+        description:'Policyholder claims 3.2 BTC was stolen via a phishing email that directed them to a fake exchange login page. States the funds were transferred without their authorization.',
+        wallet:'0x0000000fe6a514a32abdcdfcc076c85243de899b',
+        walletLabel:'Claimant wallet',
+        flow:[
+          {label:'Claimant Wallet',addr:'0x0000000fe6a514a32abdcdfcc076c85243de899b',amount:'3.2 BTC',entity:'Wintermute',risk:'Medium',note:'Identified as Wintermute (market maker)'},
+          {label:'Destination',addr:'0x0000000fe6a514a32abdcdfcc076c85243de899b',amount:'3.2 BTC',entity:'Wintermute',risk:'Medium',note:'Same cluster as source'},
+        ],
+        finding:'Fraud suspected. The "claimant wallet" is identified as belonging to Wintermute, an institutional market maker. The reported destination address is in the SAME cluster as the source. This is an internal transfer, not a theft. Funds never left the claimant\'s control. Recommend denial with fraud investigation referral.',
+        verdict:'deny',
+        reactorAddresses:['0x0000000fe6a514a32abdcdfcc076c85243de899b'],
+      },
+      {
+        id:'CG-2026-0756', type:'Exchange Account Takeover', status:'Resolved', statusColor:'#22c55e',
+        policyholder:'David Park', policyType:'Crypto Custody Insurance', coverage:'$250,000',
+        date:'May 28, 2026', amount:'$89,000 (mixed assets)',
+        description:'Account compromised via SIM swap attack. Attacker bypassed 2FA and withdrew funds from exchange account. Exchange confirmed unauthorized access from new IP.',
+        wallet:'0x28C6c06298d514Db089934071355E5743bf21d60',
+        walletLabel:'Exchange hot wallet (Binance)',
+        flow:[
+          {label:'Exchange Account',addr:'0x28C6c06298d514Db089934071355E5743bf21d60',amount:'$89K',entity:'Binance.com',risk:'Low',note:'Withdrawal from exchange'},
+          {label:'Attacker Wallet',addr:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',amount:'$89K',entity:'Lazarus Group',risk:'Severe',note:'Known threat actor'},
+        ],
+        finding:'Claim approved. Exchange confirmed unauthorized access. Funds traced to known threat actor. Recovery unlikely. Payout issued.',
+        verdict:'approved',
+        reactorAddresses:['0x098B716B8Aaf21512996dC57EB0615e2383E2f96'],
+      },
+    ];
+
+    // =====================================================
+    // RENDER CLAIMS LIST
+    // =====================================================
+    document.getElementById('claimsList').innerHTML=claims.map((c,i)=>`
+      <div class="claim-row" onclick="openClaim(${i})">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-bold" style="color:#14b8a6;font-family:monospace;">${c.id}</span>
+            <span class="text-sm font-semibold">${c.type}</span>
+          </div>
+          <span class="cg-badge" style="background:${c.statusColor}15;color:${c.statusColor};">${c.status}</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs" style="color:#64748b;margin-top:4px;">
+          <span>${c.policyholder}</span><span>${c.date}</span><span style="font-weight:600;color:#94a3b8;">${c.amount}</span>
+        </div>
+      </div>`).join('');
+
+    // =====================================================
+    // OPEN CLAIM INVESTIGATION
+    // =====================================================
+    async function openClaim(idx){
+      const c=claims[idx];
+      showScreen('investigation');
+      const el=document.getElementById('investigationContent');
+
+      // Build flow visualization
+      const flowHtml=c.flow.map((n,i)=>{
+        const rc=riskColor(n.risk);
+        const arrow=i<c.flow.length-1?'<div class="flow-arrow">&#8594;</div>':'';
+        return `<div class="flow-node">
+          <div class="text-xs font-bold" style="margin-bottom:4px;">${n.label}</div>
+          <div style="font-family:monospace;font-size:9px;color:#475569;margin-bottom:4px;">${shortA(n.addr)}</div>
+          <div class="text-xs font-semibold" style="color:#94a3b8;">${n.amount}</div>
+          ${n.entity?'<div class="text-xs" style="color:#64748b;margin-top:3px;">'+n.entity+'</div>':''}
+          <span class="cg-badge" style="margin-top:4px;background:${rc}15;color:${rc};">${n.risk}</span>
+          <div style="font-size:8px;color:#475569;margin-top:3px;line-height:1.3;">${n.note}</div>
+        </div>${arrow}`;
+      }).join('');
+
+      // Verdict styling
+      const vc=c.verdict==='approve'||c.verdict==='approved'?{c:'#22c55e',t:'Approve Claim',ic:'&#10003;'}:c.verdict==='deny'?{c:'#ef4444',t:'Deny Claim (Fraud Suspected)',ic:'&#10007;'}:{c:'#eab308',t:'Escalate for Review',ic:'&#9888;'};
+
+      el.innerHTML=`
+        <div class="cg-card" style="padding:16px;margin-bottom:12px;">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <span class="text-xs font-bold" style="color:#14b8a6;font-family:monospace;">${c.id}</span>
+              <span class="text-sm font-bold" style="margin-left:8px;">${c.type}</span>
+              <span class="cg-badge" style="margin-left:8px;background:${c.statusColor}15;color:${c.statusColor};">${c.status}</span>
+            </div>
+            <span class="text-xs" style="color:#475569;">${c.date}</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;font-size:11px;">
+            <div><span style="color:#475569;">Policyholder:</span> <strong>${c.policyholder}</strong></div>
+            <div><span style="color:#475569;">Policy:</span> <strong>${c.policyType}</strong></div>
+            <div><span style="color:#475569;">Coverage:</span> <strong>${c.coverage}</strong></div>
+          </div>
+          <p class="text-xs" style="color:#94a3b8;margin-top:10px;line-height:1.6;">${c.description}</p>
+        </div>
+
+        <!-- Step 1: Address Screening -->
+        <div class="step-card">
+          <div class="flex items-center gap-2 mb-2"><div class="step-num">1</div><span class="text-xs font-bold uppercase" style="color:#14b8a6;">Address Screening</span></div>
+          <p class="text-xs" style="color:#64748b;margin-bottom:8px;">Screen the claimant's wallet for risk, sanctions exposure, and entity identification.</p>
+          <div class="text-xs" style="color:#475569;margin-bottom:6px;">${c.walletLabel}: <span style="font-family:monospace;color:#94a3b8;">${shortA(c.wallet)}</span></div>
+          <div id="screening-${idx}"><div class="flex items-center gap-2"><div class="animate-spin" style="width:12px;height:12px;border:2px solid #1e293b;border-top-color:#14b8a6;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Screening wallet with Chainalysis Address Screening...</span></div></div>
+        </div>
+
+        <!-- Step 2: Fund Flow Trace -->
+        <div class="step-card">
+          <div class="flex items-center gap-2 mb-2"><div class="step-num">2</div><span class="text-xs font-bold uppercase" style="color:#14b8a6;">Fund Flow Trace</span></div>
+          <p class="text-xs" style="color:#64748b;margin-bottom:8px;">Visual trace of where the funds moved after the reported incident.</p>
+          <div class="flow-line">${flowHtml}</div>
+        </div>
+
+        <!-- Step 3: Reactor Investigation -->
+        <div class="step-card">
+          <div class="flex items-center gap-2 mb-2"><div class="step-num">3</div><span class="text-xs font-bold uppercase" style="color:#14b8a6;">Reactor Investigation</span></div>
+          <p class="text-xs" style="color:#64748b;margin-bottom:8px;">Open a full Chainalysis Reactor investigation graph to explore the fund flow, check counterparties, and build evidence for the claim.</p>
+          <div id="reactor-${idx}" class="flex items-center gap-2 flex-wrap">
+            ${c.reactorAddresses.map((a,ai)=>'<button class="btn-primary" onclick="openReactor(\''+a+'\',this,'+idx+','+ai+')">Investigate '+shortA(a)+' in Reactor</button>').join('')}
+          </div>
+        </div>
+
+        <!-- Step 4: Findings & Verdict -->
+        <div class="step-card" style="border-color:${vc.c}33;">
+          <div class="flex items-center gap-2 mb-2"><div class="step-num" style="background:${vc.c};">${vc.ic}</div><span class="text-xs font-bold uppercase" style="color:${vc.c};">Adjuster Findings</span></div>
+          <p class="text-xs" style="color:#94a3b8;line-height:1.6;margin-bottom:10px;">${c.finding}</p>
+          <div class="flex items-center gap-2">
+            <button class="btn-primary" style="background:${vc.c};" disabled>${vc.t}</button>
+            <button class="btn-outline">Export Report</button>
+          </div>
+        </div>`;
+
+      // Fire Address Screening (live)
+      screenClaimWallet(idx, c.wallet);
+      if(typeof coveTrack==='function') coveTrack('claim_opened',{demo:'Insurance',screen:c.id});
+    }
+
+    async function screenClaimWallet(idx, addr){
+      const el=document.getElementById('screening-'+idx);
+      if(!el) return;
+      let r=null;
+      try{ r=await wfCall(AS_SLUG,{address:addr}); }catch(e){}
+      if(!r){
+        el.innerHTML='<p class="text-xs" style="color:#475569;">Open in a new tab for live screening results.</p>';
+        return;
+      }
+      const rc=riskColor(r.risk||'Low');
+      let exp='';
+      if(r.exposures&&r.exposures.length){
+        const top=r.exposures.slice(0,4);
+        const max=Math.max(...top.map(e=>e.value));
+        exp=top.map(e=>{const pct=max>0?e.value/max*100:0;const v=e.value>=1e6?'$'+(e.value/1e6).toFixed(1)+'M':e.value>=1e3?'$'+(e.value/1e3).toFixed(1)+'K':'$'+e.value.toFixed(0);const bc=/scam|stolen|sanction|ransom|darknet/.test(e.category)?'#ef4444':/gambling|unnamed|mixing/.test(e.category)?'#eab308':'#22c55e';return '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;"><span style="font-size:9px;color:#64748b;min-width:100px;text-align:right;">'+e.category+'</span><div class="risk-bar"><div class="risk-fill" style="width:'+pct+'%;background:'+bc+';"></div></div><span style="font-size:9px;color:#94a3b8;min-width:44px;font-family:monospace;">'+v+'</span></div>';}).join('');
+      }
+      el.innerHTML='<div style="padding:10px;border-radius:8px;border:1px solid '+rc+'33;background:'+rc+'08;"><div class="flex items-center justify-between"><span class="cg-badge" style="background:'+rc+'15;color:'+rc+';">'+(r.risk||'Unknown')+' RISK</span><span style="font-family:monospace;font-size:10px;color:#475569;">'+shortA(r.address||addr)+'</span></div>'+(r.riskReason?'<div class="text-xs" style="color:#94a3b8;margin-top:4px;">'+r.riskReason+'</div>':'')+(r.cluster&&r.cluster.name?'<div class="text-xs" style="color:#64748b;margin-top:2px;">'+r.cluster.name+(r.cluster.category?' ('+r.cluster.category+')':'')+'</div>':'')+exp+'</div>';
+    }
+
+    async function openReactor(addr,btn,claimIdx,addrIdx){
+      btn.disabled=true;btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;vertical-align:middle;margin-right:4px;"></div>Creating graph...';
+      try{
+        const r=await fetch('/api/workflow/'+GRAPH_SLUG+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address:addr,network:'ETH'}})});
+        if(!r.ok) throw 0;
+        const d=await r.json(); const o=d.output??d;
+        if(o.graphUrl){
+          btn.innerHTML='<a href="'+o.graphUrl+'" target="_blank" style="color:white;text-decoration:none;">Open Graph &#8599;</a>';
+          btn.style.background='#22c55e';
+          btn.disabled=false;
+        } else throw 0;
+      }catch(e){
+        btn.innerHTML='Investigate '+shortA(addr);
+        btn.disabled=false;
+        btn.title='Open this page in a new tab to create a live Reactor graph.';
+      }
+    }
+    </script>
+
+    <!-- Brand customization -->
+    <script>
+    (function(){
+      var p=new URLSearchParams(window.location.search);var brand=p.get('brand');var color=p.get('color');var domain=p.get('domain');var logo=p.get('logo');
+      function applyBrand(){
+        if(brand&&brand!=='ChainGuard'){var w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);while(w.nextNode()){if(w.currentNode.textContent.includes('ChainGuard'))w.currentNode.textContent=w.currentNode.textContent.split('ChainGuard').join(brand);}document.title=document.title.split('ChainGuard').join(brand);}
+        if(color){document.documentElement.style.setProperty('--cg-accent',color);document.documentElement.style.setProperty('--cg-accent2',color+'cc');var defaults=['#14b8a6','#0d9488','#2dd4bf'];document.querySelectorAll('[style]').forEach(function(el){var st=el.getAttribute('style');var ch=false;defaults.forEach(function(d){if(st.indexOf(d)!==-1){st=st.split(d).join(color);ch=true;}});if(ch)el.setAttribute('style',st);});defaults.forEach(function(d){document.querySelectorAll('[fill="'+d+'"]').forEach(function(el){el.setAttribute('fill',color);});});document.querySelectorAll('[data-brand-logo]').forEach(function(_bl){_bl.style.background='linear-gradient(135deg,'+color+','+color+'cc)';});}
+        var logo=p.get('logo');if(logo||domain){if(!domain&&logo){try{var u=new URL(logo);domain=u.searchParams.get('domain')||'';}catch(e){}}if(domain)domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var _src=logo||('https://www.google.com/s2/favicons?domain='+domain+'&sz=128');document.querySelectorAll('[data-brand-logo]').forEach(function(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src=_src;img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){if(domain){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';}else this.style.display='none';};ch.parentNode.replaceChild(img,ch);}});}
+      }
+      if(!brand&&!color&&!domain&&!logo)return;if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyBrand);else applyBrand();
+    })();
+    </script>
+
+    <!-- Analytics -->
+    <script>
+    (function(){var S='compliance-cove-analytics';var M=document.querySelector('meta[name="cove-demo"]');var D=M?M.getAttribute('content'):'unknown';var P=new URLSearchParams(location.search);var B=P.get('brand')||'';var C=P.get('color')||'';var DM=P.get('domain')||'';window.coveTrack=function(e,d){d=d||{};fetch('/api/workflow/'+S+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{action:'track',event:e,demo:d.demo||D,screen:d.screen||'',brand:d.brand||B,color:d.color||C,domain:d.domain||DM,address:d.address||'',filter:d.filter||'',viewport:innerWidth+'x'+innerHeight,timestamp:new Date().toISOString()}})}).catch(function(){});};addEventListener('load',function(){coveTrack('demo_view',{brand:B||'(default)'});});})();
+    </script>
+  </body>
+</html>
