@@ -190,8 +190,18 @@
             <div id="trade-setup" class="trade-card"></div>
             <div id="trade-cards" class="trade-card" style="display:none;margin-top:0;"></div>
             <div id="trade-actions" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;"></div>
-
-            <div id="trade-chat" class="trade-card" style="display:none;margin-top:14px;">
+          </div>
+          <!-- RIGHT: order summary + chat -->
+          <div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:72px;">
+            <div class="trade-card">
+              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide" style="margin-bottom:10px;">Order Summary</p>
+              <div id="orderSummary" class="space-y-1.5 text-sm"></div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                <span class="text-xs text-muted-foreground">Escrow status</span>
+                <span id="escrowStatus" class="pill" style="background:var(--muted);color:var(--muted-foreground);">Not started</span>
+              </div>
+            </div>
+            <div id="trade-chat" class="trade-card" style="display:none;">
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                 <div id="chatPeerAv" class="chat-av" style="background:#16a34a;">S</div>
                 <div style="flex:1;"><div class="text-sm font-bold" id="chatPeerName">seller</div><div class="text-xs text-muted-foreground">Trade chat, escrow protected</div></div>
@@ -202,31 +212,6 @@
               <div style="display:flex;gap:8px;">
                 <input id="chatInput" type="text" placeholder="Type a message" onkeydown="if(event.key==='Enter')chatSend()" class="h-10 flex-1 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus:ring-2" />
                 <button onclick="chatSend()" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-semibold text-primary-foreground accent-bg">Send</button>
-              </div>
-            </div>
-          </div>
-          <!-- RIGHT: order summary + audit trail -->
-          <div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:72px;">
-            <div class="trade-card">
-              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide" style="margin-bottom:10px;">Order Summary</p>
-              <div id="orderSummary" class="space-y-1.5 text-sm"></div>
-              <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
-                <span class="text-xs text-muted-foreground">Escrow status</span>
-                <span id="escrowStatus" class="pill" style="background:var(--muted);color:var(--muted-foreground);">Not started</span>
-              </div>
-            </div>
-            <div class="trade-card">
-              <div class="cove-disclaimer" style="margin:0 0 8px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Internal Compliance View</strong>, only visible to the Peerly compliance team. Traders never see screening results or risk scores.</span></div>
-              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide" style="margin-bottom:8px;">Compliance Audit Trail</p>
-              <div id="auditList"></div>
-              <p id="auditEmpty" class="text-xs text-muted-foreground" style="padding:6px 0;">No compliance events yet. Start the trade to populate the trail.</p>
-            </div>
-            <div class="trade-card">
-              <p class="text-xs font-semibold text-muted-foreground uppercase tracking-wide" style="margin-bottom:8px;">Products in this journey</p>
-              <div class="space-y-2">
-                <div style="display:flex;gap:8px;align-items:start;"><span style="font-size:10px;font-weight:700;color:#16a34a;min-width:118px;">Address Screening</span><span class="text-xs text-muted-foreground">Screens the counterparty wallet before the trade.</span></div>
-                <div style="display:flex;gap:8px;align-items:start;"><span style="font-size:10px;font-weight:700;color:#16a34a;min-width:118px;">KYT</span><span class="text-xs text-muted-foreground">Monitors the escrow deposit and pre-screens the payout, then watches it after release.</span></div>
-                <div style="display:flex;gap:8px;align-items:start;"><span style="font-size:10px;font-weight:700;color:#16a34a;min-width:118px;">Reactor</span><span class="text-xs text-muted-foreground">Opens a live investigation graph on any flagged counterparty.</span></div>
               </div>
             </div>
           </div>
@@ -373,8 +358,6 @@
       document.getElementById('trade-cards').style.display='none';
       document.getElementById('trade-cards').innerHTML='';
       document.getElementById('trade-actions').innerHTML='';
-      document.getElementById('auditList').innerHTML='';
-      document.getElementById('auditEmpty').style.display='';
       setEscrow('Not started','var(--muted)','var(--muted-foreground)');
       stage='greet'; chatReset();
     }
@@ -424,7 +407,9 @@
     function setEscrow(text,bg,color){ const el=document.getElementById('escrowStatus'); el.textContent=text; el.style.background=bg; el.style.color=color; }
 
     function addAudit(product, text, status){
-      document.getElementById('auditEmpty').style.display='none';
+      const list=document.getElementById('auditList');
+      if(!list) return; // audit panel removed from the UI; dispute evidence is assembled from state
+      const empty=document.getElementById('auditEmpty'); if(empty) empty.style.display='none';
       const colors={ok:'#16a34a',warn:'#eab308',alert:'#ef4444',info:'#3b82f6'};
       const row=document.createElement('div');
       row.style.cssText='display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);';
