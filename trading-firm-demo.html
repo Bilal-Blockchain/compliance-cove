@@ -409,37 +409,48 @@
     // =====================================================
     // TRADING DESK DATA
     // =====================================================
+    function toggleDetail(id){var el=document.getElementById(id);if(!el)return;el.style.display=el.style.display==='none'?'block':'none';}
     const positions=[
-      {asset:'ETH/USDT',icon:'Ξ',bg:'#627eea',size:'4,200 ETH',entry:'$2,812',mark:'$2,847',pnl:'+$146.7K',up:true,venue:'Binance'},
-      {asset:'BTC/USDT',icon:'₿',bg:'#f7931a',size:'312 BTC',entry:'$68,100',mark:'$68,421',pnl:'+$100.2K',up:true,venue:'Coinbase'},
-      {asset:'SOL/USDC',icon:'◎',bg:'#9945FF',size:'82,400 SOL',entry:'$176.20',mark:'$178.54',pnl:'+$192.8K',up:true,venue:'Uniswap V3'},
-      {asset:'ARB/ETH',icon:'⬡',bg:'#28a0f0',size:'1.2M ARB',entry:'$1.26',mark:'$1.24',pnl:'-$24.0K',up:false,venue:'Arbitrum'},
-      {asset:'AVAX/USDC',icon:'▲',bg:'#E84142',size:'45,200 AVAX',entry:'$37.80',mark:'$38.91',pnl:'+$50.1K',up:true,venue:'Aave'},
-      {asset:'MATIC/USDT',icon:'◆',bg:'#8247E5',size:'2.8M MATIC',entry:'$0.74',mark:'$0.72',pnl:'-$56.0K',up:false,venue:'Kraken'},
-      {asset:'LINK/USDT',icon:'⬢',bg:'#2A5ADA',size:'120K LINK',entry:'$18.10',mark:'$18.43',pnl:'+$39.6K',up:true,venue:'Binance'},
-      {asset:'UNI/ETH',icon:'🦄',bg:'#FF007A',size:'85K UNI',entry:'$12.20',mark:'$11.87',pnl:'-$28.1K',up:false,venue:'Uniswap V3'},
+      {asset:'ETH/USDT',icon:'Ξ',bg:'#627eea',size:'4,200 ETH',entry:'$2,812',mark:'$2,847',pnl:'+$146.7K',up:true,venue:'Binance',cNote:'All deposits and withdrawals monitored via KYT. Venue wallet auto-screened: Low risk.',cProducts:['KYT','Address Screening']},
+      {asset:'BTC/USDT',icon:'₿',bg:'#f7931a',size:'312 BTC',entry:'$68,100',mark:'$68,421',pnl:'+$100.2K',up:true,venue:'Coinbase',cNote:'Regulated US exchange. KYT monitors every transfer. Counterparty wallets screened on deposit.',cProducts:['KYT','Address Screening']},
+      {asset:'SOL/USDC',icon:'◎',bg:'#9945FF',size:'82,400 SOL',entry:'$176.20',mark:'$178.54',pnl:'+$192.8K',up:true,venue:'Uniswap V3',cNote:'DeFi LP position. Smart contract monitored by Hexagate for exploit patterns. LP counterparties unscreened (permissionless).',cProducts:['Hexagate','Data Solutions']},
+      {asset:'ARB/ETH',icon:'⬡',bg:'#28a0f0',size:'1.2M ARB',entry:'$1.26',mark:'$1.24',pnl:'-$24.0K',up:false,venue:'Arbitrum',cNote:'L2 bridge position. Bridge contract monitored by Hexagate. Cross-chain transfers tracked via Data Solutions.',cProducts:['Hexagate','Data Solutions']},
+      {asset:'AVAX/USDC',icon:'▲',bg:'#E84142',size:'45,200 AVAX',entry:'$37.80',mark:'$38.91',pnl:'+$50.1K',up:true,venue:'Aave',cNote:'Lending protocol LP. Contract monitored by Hexagate (TVL drop, oracle deviation). Borrower exposure tracked via Data Solutions.',cProducts:['Hexagate','Data Solutions']},
+      {asset:'MATIC/USDT',icon:'◆',bg:'#8247E5',size:'2.8M MATIC',entry:'$0.74',mark:'$0.72',pnl:'-$56.0K',up:false,venue:'Kraken',cNote:'Regulated exchange. KYT monitors all transfers. Venue screened: Low risk.',cProducts:['KYT','Address Screening']},
+      {asset:'LINK/USDT',icon:'⬢',bg:'#2A5ADA',size:'120K LINK',entry:'$18.10',mark:'$18.43',pnl:'+$39.6K',up:true,venue:'Binance',cNote:'All deposits and withdrawals monitored via KYT. Venue wallet auto-screened: Low risk.',cProducts:['KYT','Address Screening']},
+      {asset:'UNI/ETH',icon:'🦄',bg:'#FF007A',size:'85K UNI',entry:'$12.20',mark:'$11.87',pnl:'-$28.1K',up:false,venue:'Uniswap V3',cNote:'DeFi LP position. Smart contract monitored by Hexagate. Pool token risk tracked via Data Solutions.',cProducts:['Hexagate','Data Solutions']},
     ];
-    document.getElementById('positionsTable').innerHTML=positions.map(p=>`
-      <div class="pos-row" style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:4px;font-size:11px;">
+    document.getElementById('positionsTable').innerHTML=positions.map((p,i)=>`
+      <div class="pos-row" onclick="toggleDetail('pos-${i}')" style="cursor:pointer;display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr;gap:4px;font-size:11px;">
         <div class="flex items-center gap-2"><div style="width:18px;height:18px;border-radius:4px;background:${p.bg};display:flex;align-items:center;justify-content:center;font-size:9px;color:white;font-weight:700;">${p.icon}</div><span class="font-semibold">${p.asset}</span></div>
         <span class="mono" style="text-align:right;color:#94a3b8;">${p.size}</span>
         <span class="mono" style="text-align:right;color:#64748b;">${p.entry}</span>
         <span class="mono" style="text-align:right;">${p.mark}</span>
         <span class="mono" style="text-align:right;${p.up?'color:#22c55e':'color:#ef4444'}">${p.pnl}</span>
-        <span style="text-align:right;font-size:10px;color:#64748b;">${p.venue}</span>
+        <span style="text-align:right;font-size:10px;color:#64748b;">${p.venue} <span style="color:#334155;">▾</span></span>
+      </div>
+      <div id="pos-${i}" style="display:none;padding:8px 12px 10px;margin:0 0 4px;border-radius:0 0 6px 6px;background:rgba(59,130,246,0.03);border:1px solid rgba(59,130,246,0.08);border-top:none;font-size:10px;">
+        <div style="color:#94a3b8;font-weight:600;margin-bottom:3px;">Chainalysis Coverage: ${p.venue}</div>
+        <div style="color:#64748b;line-height:1.6;">${p.cNote}</div>
+        <div style="margin-top:5px;display:flex;gap:4px;">${p.cProducts.map(pr=>'<span class="qd-badge" style="background:rgba(59,130,246,0.08);color:#3b82f6;">'+pr+'</span>').join('')}</div>
       </div>`).join('');
 
-    // Transfers
+    // Transfers with KYT context
     const transfers=[
-      {from:'Binance',to:'Uniswap V3',asset:'500 ETH',val:'$1.42M',time:'2 min ago',status:'✓ KYT Clear'},
-      {from:'Coinbase',to:'Aave',asset:'100 BTC',val:'$6.84M',time:'18 min ago',status:'✓ KYT Clear'},
-      {from:'Kraken',to:'Binance',asset:'1.5M MATIC',val:'$1.08M',time:'1 hr ago',status:'✓ KYT Clear'},
-      {from:'Uniswap V3',to:'Coinbase',asset:'200K USDC',val:'$200K',time:'3 hr ago',status:'⚠ Review'},
+      {from:'Binance',to:'Uniswap V3',asset:'500 ETH',val:'$1.42M',time:'2 min ago',status:'✓ KYT Clear',kyt:'Transfer registered with KYT (direction: sent). No alerts. Exposure: 100% exchange. Cleared automatically.',alerts:'0 alerts'},
+      {from:'Coinbase',to:'Aave',asset:'100 BTC',val:'$6.84M',time:'18 min ago',status:'✓ KYT Clear',kyt:'Transfer registered with KYT (direction: sent). Large value flagged for review, cleared by compliance. No sanctioned exposure.',alerts:'0 alerts'},
+      {from:'Kraken',to:'Binance',asset:'1.5M MATIC',val:'$1.08M',time:'1 hr ago',status:'✓ KYT Clear',kyt:'Inter-exchange rebalance. Both venues screened and cleared. Transfer monitored, no indirect exposure detected.',alerts:'0 alerts'},
+      {from:'Uniswap V3',to:'Coinbase',asset:'200K USDC',val:'$200K',time:'3 hr ago',status:'⚠ Review',kyt:'Transfer from DeFi LP withdrawal. KYT flagged indirect exposure to unnamed service (2.1%). Under compliance review. Continuous monitoring active.',alerts:'1 alert (Medium)'},
     ];
-    document.getElementById('transferList').innerHTML=transfers.map(t=>`
-      <div style="padding:6px 0;border-bottom:1px solid rgba(51,65,85,0.15);font-size:11px;">
-        <div class="flex items-center justify-between"><span>${t.from} → ${t.to}</span><span class="mono" style="color:#64748b;">${t.val}</span></div>
+    document.getElementById('transferList').innerHTML=transfers.map((t,i)=>`
+      <div onclick="toggleDetail('xfer-${i}')" style="padding:6px 0;border-bottom:1px solid rgba(51,65,85,0.15);font-size:11px;cursor:pointer;">
+        <div class="flex items-center justify-between"><span>${t.from} → ${t.to} <span style="color:#334155;font-size:9px;">▾</span></span><span class="mono" style="color:#64748b;">${t.val}</span></div>
         <div class="flex items-center justify-between" style="margin-top:2px;"><span style="color:#64748b;">${t.asset}</span><span style="font-size:10px;color:${t.status.includes('Review')?'#eab308':'#22c55e'}">${t.status}</span></div>
+      </div>
+      <div id="xfer-${i}" style="display:none;padding:6px 8px 8px;margin:-1px 0 2px;border-radius:0 0 6px 6px;background:rgba(59,130,246,0.03);border:1px solid rgba(59,130,246,0.08);border-top:none;font-size:10px;">
+        <div style="color:#94a3b8;font-weight:600;margin-bottom:2px;">KYT Analysis</div>
+        <div style="color:#64748b;line-height:1.6;">${t.kyt}</div>
+        <div style="margin-top:4px;display:flex;gap:4px;"><span class="qd-badge" style="background:rgba(59,130,246,0.08);color:#3b82f6;">KYT</span><span class="text-xs" style="color:#475569;">${t.alerts}</span></div>
       </div>`).join('');
 
     // Venue chart
@@ -449,22 +460,45 @@
     // PROTOCOL RISK DATA (Hexagate)
     // =====================================================
     const protocols=[
-      {name:'Aave V3',chain:'Ethereum',tvl:'$12.4B',ourLp:'$95M',risk:'Low',monitors:8,pct:5},
-      {name:'Uniswap V3',chain:'Ethereum',tvl:'$4.2B',ourLp:'$210M',risk:'Low',monitors:6,pct:10},
-      {name:'Compound V3',chain:'Ethereum',tvl:'$2.1B',ourLp:'$45M',risk:'Low',monitors:5,pct:8},
-      {name:'GMX',chain:'Arbitrum',tvl:'$890M',ourLp:'$32M',risk:'Medium',monitors:7,pct:35},
-      {name:'Curve Finance',chain:'Ethereum',tvl:'$1.8B',ourLp:'$68M',risk:'Low',monitors:9,pct:12},
-      {name:'Lido',chain:'Ethereum',tvl:'$14.2B',ourLp:'$120M',risk:'Low',monitors:4,pct:3},
+      {name:'Aave V3',chain:'Ethereum',tvl:'$12.4B',ourLp:'$95M',risk:'Low',monitors:8,pct:5,
+       addr:'0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2',
+       mons:[{t:'Price Oracle',d:'Chainlink feed deviation > 2%',s:'Active',last:'Never'},{t:'TVL Drop',d:'Pool TVL drops > 15% in 1 hour',s:'Active',last:'3 days ago'},{t:'Reentrancy Guard',d:'Reentrancy attack pattern detection',s:'Active',last:'Never'},{t:'Large Withdrawal',d:'Single withdrawal > $5M',s:'Active',last:'2 hr ago'}]},
+      {name:'Uniswap V3',chain:'Ethereum',tvl:'$4.2B',ourLp:'$210M',risk:'Low',monitors:6,pct:10,
+       addr:'0x1F98431c8aD98523631AE4a59f267346ea31F984',
+       mons:[{t:'Pool Imbalance',d:'Token ratio deviation > 5%',s:'Active',last:'12 hr ago'},{t:'Flash Loan',d:'Flash loan interaction detected',s:'Active',last:'Never'},{t:'Large Swap',d:'Single swap > $2M impact',s:'Active',last:'4 hr ago'}]},
+      {name:'Compound V3',chain:'Ethereum',tvl:'$2.1B',ourLp:'$45M',risk:'Low',monitors:5,pct:8,
+       addr:'0xc3d688B66703497DAA19211EEdff47f25384cdc3',
+       mons:[{t:'Interest Rate Spike',d:'Utilization > 90%, rate model change',s:'Active',last:'Never'},{t:'Governance',d:'New proposal or parameter change',s:'Active',last:'5 hr ago'}]},
+      {name:'GMX',chain:'Arbitrum',tvl:'$890M',ourLp:'$32M',risk:'Medium',monitors:7,pct:35,
+       addr:'0xfc5A1A6EB076a2C7aD06eD22C90d7E710E35ad0a',
+       mons:[{t:'Price Oracle',d:'ARB/USD feed deviation > 2% from TWAP',s:'Triggered',last:'34 min ago'},{t:'Open Interest',d:'Total OI exceeds $500M',s:'Active',last:'2 days ago'},{t:'Liquidation Cascade',d:'> 50 liquidations in 1 block',s:'Active',last:'Never'},{t:'Fee Spike',d:'Dynamic fee exceeds 0.5%',s:'Active',last:'8 hr ago'}]},
+      {name:'Curve Finance',chain:'Ethereum',tvl:'$1.8B',ourLp:'$68M',risk:'Low',monitors:9,pct:12,
+       addr:'0xD51a44d3FaE010294C616388b506AcdA1bfAAE46',
+       mons:[{t:'Pool Depeg',d:'Stableswap asset depegs > 0.5%',s:'Active',last:'Never'},{t:'Admin Key',d:'Admin function call detected',s:'Active',last:'14 days ago'},{t:'Large Withdrawal',d:'Single withdrawal > $10M',s:'Active',last:'6 hr ago'}]},
+      {name:'Lido',chain:'Ethereum',tvl:'$14.2B',ourLp:'$120M',risk:'Low',monitors:4,pct:3,
+       addr:'0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84',
+       mons:[{t:'stETH Depeg',d:'stETH/ETH ratio deviation > 0.3%',s:'Active',last:'Never'},{t:'Validator Slashing',d:'Lido validator slashed',s:'Active',last:'Never'}]},
     ];
     const riskColors={Low:'#22c55e',Medium:'#eab308',High:'#f97316'};
-    document.getElementById('protocolList').innerHTML=protocols.map(p=>`
-      <div style="padding:8px 10px;border-radius:6px;border-bottom:1px solid rgba(51,65,85,0.15);">
-        <div class="flex items-center justify-between"><span class="text-xs font-semibold">${p.name}</span><span class="qd-badge" style="background:${riskColors[p.risk]}15;color:${riskColors[p.risk]};">${p.risk}</span></div>
+    document.getElementById('protocolList').innerHTML=protocols.map((p,i)=>{
+      const monRows=p.mons.map(m=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(51,65,85,0.08);font-size:9px;"><div><span style="color:#94a3b8;font-weight:600;">'+m.t+'</span> <span style="color:#475569;">'+m.d+'</span></div><div style="display:flex;gap:6px;align-items:center;"><span style="color:#475569;">Last: '+m.last+'</span><span class="qd-badge" style="background:'+(m.s==='Triggered'?'#eab30815':'#22c55e15')+';color:'+(m.s==='Triggered'?'#eab308':'#22c55e')+';">'+m.s+'</span></div></div>').join('');
+      return `
+      <div onclick="toggleDetail('proto-${i}')" style="padding:8px 10px;border-radius:6px;border-bottom:1px solid rgba(51,65,85,0.15);cursor:pointer;">
+        <div class="flex items-center justify-between"><span class="text-xs font-semibold">${p.name} <span style="color:#334155;font-size:9px;">▾</span></span><span class="qd-badge" style="background:${riskColors[p.risk]}15;color:${riskColors[p.risk]};">${p.risk}</span></div>
         <div class="flex items-center gap-4" style="margin-top:4px;font-size:10px;color:#64748b;">
           <span>${p.chain}</span><span>TVL: ${p.tvl}</span><span>Our LP: ${p.ourLp}</span><span>${p.monitors} monitors</span>
         </div>
         <div class="flex items-center gap-2" style="margin-top:4px;"><div class="risk-bar"><div class="risk-fill" style="width:${p.pct}%;background:${riskColors[p.risk]};"></div></div><span class="mono" style="font-size:9px;color:#475569;">${p.pct}%</span></div>
-      </div>`).join('');
+      </div>
+      <div id="proto-${i}" style="display:none;padding:8px 12px 10px;margin:-2px 0 4px;border-radius:0 0 6px 6px;background:rgba(6,182,212,0.03);border:1px solid rgba(6,182,212,0.1);border-top:none;">
+        <div style="font-size:10px;color:#94a3b8;font-weight:600;margin-bottom:4px;">Hexagate Monitors for ${p.name}</div>
+        ${monRows}
+        <div style="margin-top:6px;display:flex;align-items:center;gap:8px;">
+          <span class="mono" style="font-size:9px;color:#475569;">${p.addr.slice(0,10)}...${p.addr.slice(-6)}</span>
+          <span class="qd-badge" style="background:rgba(6,182,212,0.08);color:#06b6d4;">Hexagate</span>
+          <span class="qd-badge" style="background:rgba(168,85,247,0.08);color:#a855f7;">Reactor</span>
+        </div>
+      </div>`;}).join('');
 
     const hexAlerts=[
       {sev:'medium',title:'Price Oracle Deviation',protocol:'GMX',desc:'Chainlink price feed for ARB/USD deviated >2% from TWAP.',time:'34 min ago'},
@@ -677,12 +711,12 @@
 
     function startPrefetch(){
       if(_prefetching) return; _prefetching=true;
-      // One call returns aggregate risk data for all 5 tokens
+      // One call for all tokens' risk data (Data Solutions)
       wfCall(TI_SLUG,{mode:'risk_profiles'}).then(r=>{
         if(r.ok){ riskProfiles={}; (r.profiles||[]).forEach(p=>{riskProfiles[p.symbol]=p;}); }
         if(tokenCache[tokSel]) rerenderToken();
       }).catch(()=>{});
-      // Pre-fetch detail data for every token in parallel
+      // Only analyze_address per token (fast, ~3s each)
       STABLES.forEach(s=>fetchTokenDetail(s.sym));
     }
 
@@ -691,23 +725,32 @@
       if(tokenFetches[sym]) return tokenFetches[sym];
       const t=STABLES.find(x=>x.sym===sym);
       const p=(async()=>{
-        let hx,gt,ex,sandbox=false;
-        try{
-          [hx,gt,ex]=await Promise.all([
-            wfCall(HEX_SLUG,{mode:'analyze_address',address:t.addr}),
-            wfCall(HEX_SLUG,{mode:'gate_validate',gate:tokGate(t.addr),chainId:1}),
-            wfCall(TI_SLUG,{mode:'token_exposure',address:t.addr}).catch(()=>null)
-          ]);
-        }catch(e){
-          sandbox=true;
-          hx={risk_level:'LOW',type:'ERC20',name:t.name,age:'n/a',issues:[],checks:21};
-          gt={trace:{transfers:{_count:0},blockVolume:0}};
-        }
-        tokenCache[sym]={hx,gt,ex,sandbox};
+        let hx, sandbox=false;
+        try{ hx=await wfCall(HEX_SLUG,{mode:'analyze_address',address:t.addr}); }
+        catch(e){ sandbox=true; hx={risk_level:'LOW',type:'ERC20',name:t.name,age:'n/a',issues:[],checks:21}; }
+        tokenCache[sym]={hx,sandbox};
         if(sym===tokSel) rerenderToken();
       })();
       tokenFetches[sym]=p;
       return p;
+    }
+
+    async function loadGateDSL(sym){
+      const t=STABLES.find(x=>x.sym===sym), c=tokenCache[sym]; if(!c) return;
+      const btn=document.getElementById('gateBtn'); if(btn) btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;vertical-align:middle;"></div> Reading block...';
+      try{
+        const gt=await wfCall(HEX_SLUG,{mode:'gate_validate',gate:tokGate(t.addr),chainId:1});
+        c.gt=gt;
+      }catch(e){ c.gt={trace:{transfers:{_count:0},blockVolume:0},block:'n/a'}; }
+      if(sym===tokSel) rerenderToken();
+    }
+
+    async function loadExposure(sym){
+      const t=STABLES.find(x=>x.sym===sym), c=tokenCache[sym]; if(!c) return;
+      const btn=document.getElementById('expBtn'); if(btn) btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid #1e293b;border-top-color:#eab308;border-radius:50%;vertical-align:middle;"></div> Querying...';
+      try{ c.ex=await wfCall(TI_SLUG,{mode:'token_exposure',address:t.addr}); }
+      catch(e){ c.ex={ok:false}; }
+      if(sym===tokSel) rerenderToken();
     }
 
     function rerenderToken(){
@@ -729,14 +772,11 @@
     function renderTokenIntel(t,hx,gt,ex,rp,sandbox){
       const rl=hx.risk_level||'LOW', rc=hexRiskColor(rl);
       const issues=hx.issues||[], checks=hx.checks||21;
-      const tr=(gt&&gt.trace)||{};
-      const cnt=tr.transfers&&typeof tr.transfers==='object'?(tr.transfers._count||0):(Array.isArray(tr.transfers)?tr.transfers.length:0);
-      const volRaw=tr.blockVolume||0, vol=volRaw/Math.pow(10,t.dec), block=(gt&&gt.block)||'latest';
-      // Hero stat from Data Solutions risk profiles
+      // Hero stat from Data Solutions
       const riskyPct=rp?rp.risky_pct:null;
       const sanctionsPct=rp?rp.sanctions_pct:null;
       const heroC=riskyPct===null?'#64748b':riskyPct>1?'#ef4444':riskyPct>0.1?'#eab308':'#22c55e';
-      // Smarter verdict: references actual Data Solutions findings
+      // Verdict referencing DS findings
       let verdict;
       if(rl!=='LOW'){
         verdict={txt:'Elevated risk',c:'#ef4444',sub:'Contract security issues detected by Hexagate. Escalate before making markets.'};
@@ -745,9 +785,9 @@
       } else if(riskyPct!==null&&riskyPct>0.1){
         verdict={txt:'Cleared with monitoring',c:'#eab308',sub:'Contract secure. '+riskyPct.toFixed(3)+'% of 7-day volume touches risky categories (sanctions, mixers, darknet, illicit, gambling). Standard KYT monitoring recommended.'};
       } else {
-        verdict={txt:'Cleared to make markets',c:'#22c55e',sub:'Contract secure, active on-chain'+(riskyPct!==null?', risky volume at '+riskyPct.toFixed(3)+'%':'')+'. Standard compliance posture.'};
+        verdict={txt:'Cleared to make markets',c:'#22c55e',sub:'Contract secure'+(riskyPct!==null?', risky volume at '+riskyPct.toFixed(3)+'%':'')+'. Standard compliance posture.'};
       }
-      // Risk Exposure breakdown (Data Solutions risk_profiles per-category)
+      // Risk rows from risk_profiles
       let riskRows='';
       if(rp){
         [{l:'Sanctions',p:rp.sanctions_pct,u:rp.sanctions_usd},{l:'Mixer',p:rp.mixer_pct,u:rp.mixer_usd},{l:'Darknet',p:rp.darknet_pct,u:rp.darknet_usd},{l:'Illicit',p:rp.illicit_pct,u:rp.illicit_usd},{l:'Gambling',p:rp.gambling_pct,u:rp.gambling_usd},{l:'No KYC',p:rp.no_kyc_pct,u:rp.no_kyc_usd}].forEach(c=>{
@@ -756,60 +796,36 @@
           riskRows+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(51,65,85,0.12);font-size:10px;"><span style="color:#94a3b8;">'+c.l+'</span><div style="display:flex;align-items:center;gap:6px;"><span class="mono" style="color:#475569;">'+v+'</span><span class="mono" style="font-weight:700;color:'+cl+';">'+c.p.toFixed(3)+'%</span></div></div>';
         });
       } else { riskRows='<div class="flex items-center gap-2" style="padding:4px 0;"><div class="animate-spin" style="width:10px;height:10px;border:2px solid #1e293b;border-top-color:#eab308;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Loading risk data...</span></div>'; }
-      // Source category breakdown (Data Solutions token_exposure)
+      // Gate DSL card: on-demand or cached
+      let gateContent;
+      if(gt){
+        const tr=gt.trace||{};
+        const cnt=tr.transfers&&typeof tr.transfers==='object'?(tr.transfers._count||0):0;
+        const volRaw=tr.blockVolume||0, vol=volRaw/Math.pow(10,t.dec), block=gt.block||'latest';
+        gateContent='<div class="qd-stat-val" style="color:#22c55e;font-size:22px;">'+fmtUsd0(vol)+'</div><div class="text-xs" style="color:#64748b;margin-top:2px;">'+t.sym+' volume in block #'+block+'</div><div class="text-xs" style="color:#64748b;margin-top:6px;">'+cnt+' transfers in the block</div><div class="text-xs" style="color:#475569;margin-top:6px;">Live from Ethereum via Gate DSL.</div>';
+      } else {
+        gateContent='<button id="gateBtn" onclick="loadGateDSL(\''+t.sym+'\')" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(59,130,246,0.2);background:rgba(59,130,246,0.04);color:#3b82f6;font-size:11px;font-weight:600;cursor:pointer;">Check live block volume</button><p class="text-xs" style="color:#475569;margin-top:6px;line-height:1.5;">Reads '+t.sym+' Transfer events from the latest Ethereum block via Hexagate Gate DSL (~3s).</p>';
+      }
+      // Source breakdown: on-demand
       let expHtml='';
       if(ex&&ex.ok&&ex.categories&&ex.categories.length){
         const cats=ex.categories.slice(0,10);
         const maxV=Math.max(...cats.map(c=>c.volume_usd));
         const catC=c=>/sanction|stolen|ransom|darknet|drug|fraud|malware|terrorist|child/.test(c)?'#ef4444':/gambling|mixing|no kyc/.test(c)?'#eab308':'#22c55e';
         const bars=cats.map(c=>{const pct=maxV>0?c.volume_usd/maxV*100:0;const v=c.volume_usd>=1e9?'$'+(c.volume_usd/1e9).toFixed(1)+'B':c.volume_usd>=1e6?'$'+(c.volume_usd/1e6).toFixed(0)+'M':'$'+c.volume_usd.toFixed(0);return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="font-size:9px;color:#64748b;min-width:120px;text-align:right;text-transform:capitalize;">'+c.category+'</span><div class="risk-bar"><div class="risk-fill" style="width:'+pct+'%;background:'+catC(c.category)+';"></div></div><span class="mono" style="font-size:9px;color:#94a3b8;min-width:50px;">'+v+'</span><span class="mono" style="font-size:8px;color:#475569;">'+c.pct+'%</span></div>';}).join('');
-        expHtml=`<div class="qd-card" style="padding:14px;margin-top:12px;">
-          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Source Breakdown, Data Solutions</span><div class="section-head-line"></div></div>
-          <div class="text-xs" style="color:#64748b;margin-bottom:8px;">Who is sending ${t.sym}? Full sender-category breakdown, ${ex.days||7}-day window. Total: ${fmtUsd0(ex.total_volume_usd)}.</div>
-          ${bars}
-          <p class="text-xs" style="color:#475569;margin-top:8px;line-height:1.4;">Queried live from ethereum.transfers_clustered via Chainalysis Data Solutions.</p>
-        </div>`;
+        expHtml='<div class="qd-card" style="padding:14px;margin-top:12px;"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Source Breakdown, Data Solutions</span><div class="section-head-line"></div></div><div class="text-xs" style="color:#64748b;margin-bottom:8px;">Who is sending '+t.sym+'? Sender-category breakdown, '+(ex.days||7)+'-day window. Total: '+fmtUsd0(ex.total_volume_usd)+'.</div>'+bars+'<p class="text-xs" style="color:#475569;margin-top:8px;line-height:1.4;">Queried live from ethereum.transfers_clustered via Chainalysis Data Solutions.</p></div>';
       }
-      document.getElementById('tokenIntel').innerHTML=`
-        <div class="qd-card" style="padding:14px;margin-bottom:12px;">
-          <div class="flex items-center justify-between flex-wrap gap-2">
-            <div><span class="text-sm font-bold">${t.name}</span> <span style="color:#475569;font-size:11px;">${t.sym}</span></div>
-            <div class="flex items-center gap-3">
-              <span class="mono" style="font-size:10px;color:#475569;">${shortA(t.addr)}</span>
-              ${riskyPct!==null?'<span class="qd-badge" style="background:'+heroC+'15;color:'+heroC+';">'+riskyPct.toFixed(3)+'% risky volume (7d)</span>':''}
-            </div>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div class="qd-card" style="padding:14px;">
-            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Contract Security, Hexagate</span><div class="section-head-line"></div></div>
-            <div class="flex items-center justify-between" style="margin-bottom:8px;"><span class="qd-badge" style="background:${rc}15;color:${rc};">${rl} RISK</span><span class="text-xs" style="color:#64748b;">${hx.type||'ERC20'}${hx.age?' · '+hx.age:''}</span></div>
-            <div class="text-xs" style="color:#94a3b8;margin-bottom:8px;">${hx.name||t.name}</div>
-            <div class="text-xs" style="color:#64748b;margin-bottom:6px;">${issues.length} of ${checks} security checks flagged</div>
-            ${issues.length?issues.map(i=>'<div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:3px 0;border-bottom:1px solid rgba(51,65,85,0.15);"><span style="color:#94a3b8;">'+i.type+'</span><span style="color:'+hexRiskColor(i.risk_level)+';">'+i.risk_level+'</span></div>').join(''):'<div class="text-xs" style="color:#22c55e;">No issues flagged</div>'}
-          </div>
-          <div class="qd-card" style="padding:14px;">
-            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">On-Chain Pulse, Gate DSL</span><div class="section-head-line"></div></div>
-            <div class="qd-stat-val" style="color:#22c55e;font-size:22px;">${fmtUsd0(vol)}</div>
-            <div class="text-xs" style="color:#64748b;margin-top:2px;">${t.sym} transfer volume in block #${block}</div>
-            <div class="text-xs" style="color:#64748b;margin-top:8px;">${cnt} transfers in the block</div>
-            <div class="text-xs" style="color:#475569;margin-top:8px;line-height:1.5;">Pulled live from Ethereum via Hexagate Gate DSL.</div>
-          </div>
-          <div class="qd-card" style="padding:14px;">
-            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Risk Exposure, Data Solutions</span><div class="section-head-line"></div></div>
-            <div class="text-xs" style="color:#64748b;margin-bottom:6px;">% of 7-day transfer volume touching risky categories:</div>
-            ${riskRows}
-            ${rp?'<div class="text-xs" style="color:#475569;margin-top:6px;">Total 7d volume: '+fmtVol(rp.volume_usd)+'</div>':''}
-          </div>
-        </div>
-        ${expHtml}
-        <div class="qd-card" style="padding:14px;margin-top:12px;">
-          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:${verdict.c};">Compliance Verdict</span><div class="section-head-line"></div></div>
-          <div class="flex items-center gap-2"><span style="width:10px;height:10px;border-radius:50%;background:${verdict.c};"></span><span class="text-sm font-bold" style="color:${verdict.c};">${verdict.txt}</span></div>
-          <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.5;">${verdict.sub}</p>
-          <div style="margin-top:10px;">${reactorLinkHtml(t.addr)}</div>
-          ${sandbox?'<p class="text-xs" style="color:#475569;margin-top:8px;line-height:1.5;">Preview sandbox cannot reach the live API. Open this page in a new tab for live data.</p>':''}
-        </div>`;
+      let expBtn='';
+      if(!ex&&!sandbox) expBtn='<button id="expBtn" onclick="loadExposure(\''+t.sym+'\')" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;color:#eab308;background:rgba(234,179,8,.06);border:1px solid rgba(234,179,8,.15);cursor:pointer;margin-left:8px;">View full source breakdown</button>';
+      document.getElementById('tokenIntel').innerHTML=
+        '<div class="qd-card" style="padding:14px;margin-bottom:12px;"><div class="flex items-center justify-between flex-wrap gap-2"><div><span class="text-sm font-bold">'+t.name+'</span> <span style="color:#475569;font-size:11px;">'+t.sym+'</span></div><div class="flex items-center gap-3"><span class="mono" style="font-size:10px;color:#475569;">'+shortA(t.addr)+'</span>'+(riskyPct!==null?'<span class="qd-badge" style="background:'+heroC+'15;color:'+heroC+';">'+riskyPct.toFixed(3)+'% risky volume (7d)</span>':'')+'</div></div></div>'+
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">'+
+          '<div class="qd-card" style="padding:14px;"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Contract Security, Hexagate</span><div class="section-head-line"></div></div><div class="flex items-center justify-between" style="margin-bottom:8px;"><span class="qd-badge" style="background:'+rc+'15;color:'+rc+';">'+rl+' RISK</span><span class="text-xs" style="color:#64748b;">'+(hx.type||'ERC20')+(hx.age?' · '+hx.age:'')+'</span></div><div class="text-xs" style="color:#94a3b8;margin-bottom:8px;">'+(hx.name||t.name)+'</div><div class="text-xs" style="color:#64748b;margin-bottom:6px;">'+issues.length+' of '+checks+' security checks flagged</div>'+(issues.length?issues.map(function(i){return '<div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:3px 0;border-bottom:1px solid rgba(51,65,85,0.15);"><span style="color:#94a3b8;">'+i.type+'</span><span style="color:'+hexRiskColor(i.risk_level)+';">'+i.risk_level+'</span></div>';}).join(''):'<div class="text-xs" style="color:#22c55e;">No issues flagged</div>')+'</div>'+
+          '<div class="qd-card" style="padding:14px;"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">On-Chain Pulse, Gate DSL</span><div class="section-head-line"></div></div>'+gateContent+'</div>'+
+          '<div class="qd-card" style="padding:14px;"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Risk Exposure, Data Solutions</span><div class="section-head-line"></div></div><div class="text-xs" style="color:#64748b;margin-bottom:6px;">% of 7-day transfer volume touching risky categories:</div>'+riskRows+(rp?'<div class="text-xs" style="color:#475569;margin-top:6px;">Total 7d volume: '+fmtVol(rp.volume_usd)+'</div>':'')+'</div>'+
+        '</div>'+
+        expHtml+
+        '<div class="qd-card" style="padding:14px;margin-top:12px;"><div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:'+verdict.c+';">Compliance Verdict</span><div class="section-head-line"></div></div><div class="flex items-center gap-2"><span style="width:10px;height:10px;border-radius:50%;background:'+verdict.c+';"></span><span class="text-sm font-bold" style="color:'+verdict.c+';">'+verdict.txt+'</span></div><p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.5;">'+verdict.sub+'</p><div style="margin-top:10px;">'+reactorLinkHtml(t.addr)+expBtn+'</div>'+(sandbox?'<p class="text-xs" style="color:#475569;margin-top:8px;line-height:1.5;">Preview sandbox cannot reach the live API. Open this page in a new tab for live data.</p>':'')+'</div>';
     }
 
     async function screenCounterparty(){
