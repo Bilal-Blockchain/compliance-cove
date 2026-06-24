@@ -126,7 +126,7 @@
     function backToDashboard(){ showScreen('dashboard'); }
 
     const AS_SLUG='demochain-address-screen';
-    const GRAPH_SLUG='arcswap-reactor-graph';
+    const GRAPH_SLUG='cove-insurance-graph';
     async function wfCall(slug,input){ const r=await fetch('/api/workflow/'+slug+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input})}); if(!r.ok) throw new Error('api'); const d=await r.json(); const o=d.output??d; if(o&&o.error) throw new Error(o.error); return o; }
     const shortA=a=>a&&a.length>16?a.slice(0,8)+'...'+a.slice(-6):a;
     const riskColor=r=>({Low:'#22c55e',Medium:'#eab308',High:'#f97316',Severe:'#ef4444'})[r]||'#64748b';
@@ -136,68 +136,56 @@
     // =====================================================
     const claims=[
       {
-        id:'CG-2026-0847', type:'Wallet Compromise', status:'Under Investigation', statusColor:'#eab308',
+        id:'CG-2026-0847', type:'Crypto Scam (Social Engineering)', status:'Under Investigation', statusColor:'#eab308',
         policyholder:'Marcus Chen', policyType:'Crypto Custody Insurance', coverage:'$500,000',
-        date:'Jun 18, 2026', amount:'15 ETH ($42,700)',
-        description:'Policyholder reports unauthorized transfer of 15 ETH from their self-custody wallet. Claims private key was compromised via a malicious browser extension. Funds left the wallet in a single transaction on June 17.',
-        wallet:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',
-        walletLabel:'Claimant wallet (self-custody)',
+        date:'Jun 18, 2026', amount:'158 ETH ($232,600)',
+        description:'Policyholder reports being directed to send 158 ETH from their Coinbase account to a wallet address provided by someone impersonating a trading platform. Funds were withdrawn in a single transaction (0x53717b...bf5e) and have not been recovered.',
+        wallet:'0x76fbb69ff6e3ec366671da195e58733d44225640',
+        walletLabel:'Recipient wallet (first hop from victim)',
+        scenario:'theft',
         flow:[
-          {label:'Claimant Wallet',addr:'0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0',amount:'15 ETH',entity:null,risk:'Low',note:'Self-custody, clean history'},
-          {label:'Attacker Wallet',addr:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',amount:'15 ETH',entity:'Lazarus Group',risk:'Severe',note:'OFAC sanctioned entity'},
-          {label:'Tornado Cash',addr:'0xd90e2f925DA726b50C4Ed8D0Fb90Ad053324F31b',amount:'14.8 ETH',entity:'Tornado Cash',risk:'Severe',note:'Sanctioned mixer'},
-          {label:'Exchange Deposit',addr:'0x28C6c06298d514Db089934071355E5743bf21d60',amount:'14.5 ETH',entity:'Binance.com',risk:'Low',note:'Deposit address at Binance'},
+          {label:'Victim (Coinbase)',addr:'0x0861274b53277e7f3cceb0bb5780fcd350416a23',amount:'158 ETH',entity:'Coinbase.com',risk:'Low',note:'Victim withdrew from Coinbase exchange'},
+          {label:'First Hop',addr:'0x76fbb69ff6e3ec366671da195e58733d44225640',amount:'158 ETH',entity:null,risk:'High',note:'Immediate recipient of stolen funds'},
+          {label:'Swap (Paraswap)',addr:'0x4c6f7ae61fa1ecd509189dce0ff33629b9d94c29',amount:'$399K USDC',entity:null,risk:'High',note:'ETH swapped to USDC via Paraswap DEX'},
+          {label:'Consolidation',addr:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',amount:'$399K USDC',entity:null,risk:'High',note:'High-volume consolidation wallet'},
+          {label:'Scammer Wallet',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$100K+',entity:null,risk:'High',note:'Distributed to exchanges in batches'},
+          {label:'Cashout (Backpack)',addr:'0x678a902df7ac39a1e1bafe594f0e053097bf811c',amount:'$100K+',entity:'Backpack.Exchange',risk:'Low',note:'Scammer cashed out at Backpack Exchange'},
         ],
-        finding:'Claim verified. Funds traced from claimant wallet to sanctioned entity (Lazarus Group), through Tornado Cash mixer, and into a Binance deposit address. Pattern consistent with a state-sponsored theft operation. Recommend approval with law enforcement referral.',
+        finding:'Claim verified. Funds traced through 4 intermediate wallets from Coinbase withdrawal to Backpack Exchange cashout. Scammer swapped ETH to USDC via Paraswap, consolidated through a high-volume wallet, then distributed to exchange deposit addresses in batches. A secondary wallet (0xfada78...) also sent funds to Backpack, VALR, and LBank. Pattern consistent with a social engineering scam with organized laundering. Recommend approval with law enforcement referral and exchange freeze requests.',
         verdict:'approve',
-        reactorAddresses:['0x5b5bC1Cc56508eE85353E2483B496746fB3fC2b0','0x098B716B8Aaf21512996dC57EB0615e2383E2f96'],
       },
       {
-        id:'CG-2026-0812', type:'DeFi Protocol Exploit', status:'Under Investigation', statusColor:'#eab308',
+        id:'CG-2026-0812', type:'Fund Laundering (Related Wallets)', status:'Under Investigation', statusColor:'#eab308',
         policyholder:'NovaDEX Protocol', policyType:'DeFi Smart Contract Coverage', coverage:'$2,000,000',
-        date:'Jun 14, 2026', amount:'$487,000 USDC',
-        description:'Protocol reports a reentrancy exploit that drained $487K USDC from their lending pool. The exploit contract called the withdraw function recursively before the balance update. Attack occurred in block 20,412,847.',
-        wallet:'0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73',
-        walletLabel:'Exploit contract',
+        date:'Jun 14, 2026', amount:'$100,000+ (multiple assets)',
+        description:'Follow-up investigation on the suspected secondary wallet linked to claim CG-2026-0847. This wallet received funds from the scammer\'s main wallet and cashed out at multiple exchanges including Backpack, VALR, and LBank.',
+        wallet:'0xfada7810576254bed369065f988b6377a97fc7f1',
+        walletLabel:'Suspected secondary scammer wallet',
+        scenario:'exploit',
         flow:[
-          {label:'Lending Pool',addr:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',amount:'$2.1M USDC',entity:'NovaDEX Pool',risk:'Low',note:'Protocol liquidity pool'},
-          {label:'Exploit Contract',addr:'0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73',amount:'$487K USDC',entity:null,risk:'High',note:'Malicious contract, reentrancy'},
-          {label:'Attacker EOA',addr:'0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',amount:'$487K USDC',entity:null,risk:'Medium',note:'Externally owned account'},
-          {label:'Bridge Out',addr:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',amount:'$480K USDC',entity:'Unnamed Service',risk:'Medium',note:'Cross-chain bridge, funds moved to L2'},
+          {label:'Scammer Wallet',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$100K+',entity:null,risk:'High',note:'Source: main scammer wallet'},
+          {label:'Secondary Wallet',addr:'0xfada7810576254bed369065f988b6377a97fc7f1',amount:'$100K+',entity:null,risk:'High',note:'Suspected accomplice or same operator'},
+          {label:'Backpack Deposit',addr:'0x678a902df7ac39a1e1bafe594f0e053097bf811c',amount:'$99K+',entity:'Backpack.Exchange',risk:'Low',note:'Cashout: $70K USDC + $29K ETH'},
+          {label:'VALR Deposit',addr:'0xfada7810576254bed369065f988b6377a97fc7f1',amount:'$88K ETH',entity:'VALR.com',risk:'Low',note:'South African exchange cashout'},
         ],
-        finding:'Exploit confirmed. Reentrancy vulnerability verified in the pool contract. Attacker moved funds through an EOA to a cross-chain bridge. Partial recovery may be possible via bridge operator cooperation. Recommend approval with recovery pursuit.',
+        finding:'Secondary wallet confirmed as part of the same laundering operation. Funds traced from the main scammer wallet through this secondary address to three exchanges: Backpack ($99K), VALR ($88K), and LBank ($23K). Recommend coordinating freeze requests across all three exchanges and sharing intelligence with relevant law enforcement jurisdictions.',
         verdict:'approve',
-        reactorAddresses:['0x8ae0E03AF14AC64918c48D858a4F9400Ca5A2a73','0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296'],
-      },
-      {
-        id:'CG-2026-0791', type:'Phishing Attack', status:'New Claim', statusColor:'#3b82f6',
-        policyholder:'Rachel Torres', policyType:'Personal Crypto Insurance', coverage:'$100,000',
-        date:'Jun 21, 2026', amount:'3.2 BTC ($218,000)',
-        description:'Policyholder claims 3.2 BTC was stolen via a phishing email that directed them to a fake exchange login page. States the funds were transferred without their authorization.',
-        wallet:'0x0000000fe6a514a32abdcdfcc076c85243de899b',
-        walletLabel:'Claimant wallet',
-        flow:[
-          {label:'Claimant Wallet',addr:'0x0000000fe6a514a32abdcdfcc076c85243de899b',amount:'3.2 BTC',entity:'Wintermute',risk:'Medium',note:'Identified as Wintermute (market maker)'},
-          {label:'Destination',addr:'0x0000000fe6a514a32abdcdfcc076c85243de899b',amount:'3.2 BTC',entity:'Wintermute',risk:'Medium',note:'Same cluster as source'},
-        ],
-        finding:'Fraud suspected. The "claimant wallet" is identified as belonging to Wintermute, an institutional market maker. The reported destination address is in the SAME cluster as the source. This is an internal transfer, not a theft. Funds never left the claimant\'s control. Recommend denial with fraud investigation referral.',
-        verdict:'deny',
-        reactorAddresses:['0x0000000fe6a514a32abdcdfcc076c85243de899b'],
       },
       {
         id:'CG-2026-0756', type:'Exchange Account Takeover', status:'Resolved', statusColor:'#22c55e',
         policyholder:'David Park', policyType:'Crypto Custody Insurance', coverage:'$250,000',
         date:'May 28, 2026', amount:'$89,000 (mixed assets)',
-        description:'Account compromised via SIM swap attack. Attacker bypassed 2FA and withdrew funds from exchange account. Exchange confirmed unauthorized access from new IP.',
-        wallet:'0x28C6c06298d514Db089934071355E5743bf21d60',
-        walletLabel:'Exchange hot wallet (Binance)',
+        description:'Account compromised via SIM swap attack. Attacker bypassed 2FA and withdrew funds from exchange account. Exchange confirmed unauthorized access from a new IP address and device fingerprint.',
+        wallet:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',
+        walletLabel:'Recipient of stolen funds',
+        scenario:'theft',
         flow:[
-          {label:'Exchange Account',addr:'0x28C6c06298d514Db089934071355E5743bf21d60',amount:'$89K',entity:'Binance.com',risk:'Low',note:'Withdrawal from exchange'},
-          {label:'Attacker Wallet',addr:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',amount:'$89K',entity:'Lazarus Group',risk:'Severe',note:'Known threat actor'},
+          {label:'Exchange Account',addr:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',amount:'$89K',entity:null,risk:'High',note:'Funds withdrawn via compromised account'},
+          {label:'Layering',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$89K',entity:null,risk:'High',note:'Same cluster as other scam wallets'},
+          {label:'Cashout',addr:'0x678a902df7ac39a1e1bafe594f0e053097bf811c',amount:'$85K',entity:'Backpack.Exchange',risk:'Low',note:'Final cashout at Backpack Exchange'},
         ],
-        finding:'Claim approved. Exchange confirmed unauthorized access. Funds traced to known threat actor. Recovery unlikely. Payout issued.',
+        finding:'Claim approved. Exchange confirmed unauthorized SIM swap access. Funds traced to same wallet cluster identified in claim CG-2026-0847, suggesting a connected threat actor. Recovery pursued via Backpack Exchange cooperation. Partial recovery ($32K) achieved.',
         verdict:'approved',
-        reactorAddresses:['0x098B716B8Aaf21512996dC57EB0615e2383E2f96'],
       },
     ];
 
@@ -279,9 +267,9 @@
         <!-- Step 3: Reactor Investigation -->
         <div class="step-card">
           <div class="flex items-center gap-2 mb-2"><div class="step-num">3</div><span class="text-xs font-bold uppercase" style="color:#14b8a6;">Reactor Investigation</span></div>
-          <p class="text-xs" style="color:#64748b;margin-bottom:8px;">Open a full Chainalysis Reactor investigation graph to explore the fund flow, check counterparties, and build evidence for the claim.</p>
+          <p class="text-xs" style="color:#64748b;margin-bottom:8px;">Create a full Chainalysis Reactor investigation graph with all addresses in the fund flow. Explore counterparties, trace additional hops, and build evidence for the claim decision.</p>
           <div id="reactor-${idx}" class="flex items-center gap-2 flex-wrap">
-            ${c.reactorAddresses.map((a,ai)=>'<button class="btn-primary" onclick="openReactor(\''+a+'\',this,'+idx+','+ai+')">Investigate '+shortA(a)+' in Reactor</button>').join('')}
+            <button class="btn-primary" onclick="openInvestigation('${c.scenario||'theft'}',this)">Open Full Investigation in Reactor (${c.flow.length} nodes)</button>
           </div>
         </div>
 
@@ -319,21 +307,21 @@
       el.innerHTML='<div style="padding:10px;border-radius:8px;border:1px solid '+rc+'33;background:'+rc+'08;"><div class="flex items-center justify-between"><span class="cg-badge" style="background:'+rc+'15;color:'+rc+';">'+(r.risk||'Unknown')+' RISK</span><span style="font-family:monospace;font-size:10px;color:#475569;">'+shortA(r.address||addr)+'</span></div>'+(r.riskReason?'<div class="text-xs" style="color:#94a3b8;margin-top:4px;">'+r.riskReason+'</div>':'')+(r.cluster&&r.cluster.name?'<div class="text-xs" style="color:#64748b;margin-top:2px;">'+r.cluster.name+(r.cluster.category?' ('+r.cluster.category+')':'')+'</div>':'')+exp+'</div>';
     }
 
-    async function openReactor(addr,btn,claimIdx,addrIdx){
-      btn.disabled=true;btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;vertical-align:middle;margin-right:4px;"></div>Creating graph...';
+    async function openInvestigation(scenario,btn){
+      btn.disabled=true;btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;vertical-align:middle;margin-right:4px;"></div>Building investigation graph...';
       try{
-        const r=await fetch('/api/workflow/'+GRAPH_SLUG+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address:addr,network:'ETH'}})});
+        const r=await fetch('/api/workflow/'+GRAPH_SLUG+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{scenario:scenario}})});
         if(!r.ok) throw 0;
         const d=await r.json(); const o=d.output??d;
         if(o.graphUrl){
-          btn.innerHTML='<a href="'+o.graphUrl+'" target="_blank" style="color:white;text-decoration:none;">Open Graph &#8599;</a>';
+          btn.innerHTML='<a href="'+o.graphUrl+'" target="_blank" style="color:white;text-decoration:none;">Open Investigation Graph ('+o.nodes+' nodes) &#8599;</a>';
           btn.style.background='#22c55e';
           btn.disabled=false;
         } else throw 0;
       }catch(e){
-        btn.innerHTML='Investigate '+shortA(addr);
+        btn.innerHTML='Open Full Investigation in Reactor';
         btn.disabled=false;
-        btn.title='Open this page in a new tab to create a live Reactor graph.';
+        btn.title='Open this page in a new tab to create a live Reactor investigation graph.';
       }
     }
     </script>
