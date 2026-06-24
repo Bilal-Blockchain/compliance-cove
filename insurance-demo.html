@@ -143,48 +143,51 @@
         wallet:'0x76fbb69ff6e3ec366671da195e58733d44225640',
         walletLabel:'Recipient wallet (first hop from victim)',
         scenario:'theft',
+        cashout:'Backpack.Exchange',
         flow:[
           {label:'Victim (Coinbase)',addr:'0x0861274b53277e7f3cceb0bb5780fcd350416a23',amount:'158 ETH',entity:'Coinbase.com',risk:'Low',note:'Victim withdrew from Coinbase exchange'},
-          {label:'First Hop',addr:'0x76fbb69ff6e3ec366671da195e58733d44225640',amount:'158 ETH',entity:null,risk:'High',note:'Immediate recipient of stolen funds'},
+          {label:'First Hop',addr:'0x76fbb69ff6e3ec366671da195e58733d44225640',amount:'158 ETH',entity:null,risk:'High',note:'Immediate recipient of the funds'},
           {label:'Swap (Paraswap)',addr:'0x4c6f7ae61fa1ecd509189dce0ff33629b9d94c29',amount:'$399K USDC',entity:null,risk:'High',note:'ETH swapped to USDC via Paraswap DEX'},
           {label:'Consolidation',addr:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',amount:'$399K USDC',entity:null,risk:'High',note:'High-volume consolidation wallet'},
-          {label:'Scammer Wallet',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$100K+',entity:null,risk:'High',note:'Distributed to exchanges in batches'},
-          {label:'Cashout (Backpack)',addr:'0x678a902df7ac39a1e1bafe594f0e053097bf811c',amount:'$100K+',entity:'Backpack.Exchange',risk:'Low',note:'Scammer cashed out at Backpack Exchange'},
+          {label:'Scammer Wallet',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$46K USDC',entity:null,risk:'High',note:'Sent in batches to exchange deposits'},
+          {label:'Cashout',addr:'0x2228e5704b637131a3798a186caf18366c146f74',amount:'$46K',entity:'Backpack.Exchange',risk:'Low',note:'Scammer cashed out at Backpack Exchange'},
         ],
-        finding:'Claim verified. Funds traced through 4 intermediate wallets from Coinbase withdrawal to Backpack Exchange cashout. Scammer swapped ETH to USDC via Paraswap, consolidated through a high-volume wallet, then distributed to exchange deposit addresses in batches. A secondary wallet (0xfada78...) also sent funds to Backpack, VALR, and LBank. Pattern consistent with a social engineering scam with organized laundering. Recommend approval with law enforcement referral and exchange freeze requests.',
+        finding:'Claim verified. Funds traced from the Coinbase withdrawal through a Paraswap swap (ETH to USDC), a high-volume consolidation wallet, and the scammer wallet, ending in a cashout at Backpack.Exchange. Pattern consistent with a social engineering scam with organized laundering. Recommend approval with law enforcement referral and a freeze request to Backpack.',
         verdict:'approve',
       },
       {
-        id:'CG-2026-0812', type:'Fund Laundering (Related Wallets)', status:'Under Investigation', statusColor:'#eab308',
-        policyholder:'NovaDEX Protocol', policyType:'DeFi Smart Contract Coverage', coverage:'$2,000,000',
-        date:'Jun 14, 2026', amount:'$100,000+ (multiple assets)',
-        description:'Follow-up investigation on the suspected secondary wallet linked to claim CG-2026-0847. This wallet received funds from the scammer\'s main wallet and cashed out at multiple exchanges including Backpack, VALR, and LBank.',
+        id:'CG-2026-0791', type:'Investment Scam (Pig Butchering)', status:'Under Investigation', statusColor:'#eab308',
+        policyholder:'Diane Whitfield', policyType:'Personal Crypto Insurance', coverage:'$150,000',
+        date:'Jun 11, 2026', amount:'$23,000 (mixed tokens)',
+        description:'Policyholder was convinced over several weeks to "invest" through a fraudulent platform. Funds were moved out in multiple small token transfers and laundered through a wallet later confirmed to belong to the same network as claim CG-2026-0847.',
         wallet:'0xfada7810576254bed369065f988b6377a97fc7f1',
-        walletLabel:'Suspected secondary scammer wallet',
-        scenario:'laundering',
+        walletLabel:'Laundering wallet (confirmed network member)',
+        scenario:'lbank',
+        cashout:'LBank.com',
         flow:[
-          {label:'Scammer Wallet',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$100K+',entity:null,risk:'High',note:'Source: main scammer wallet'},
-          {label:'Secondary Wallet',addr:'0xfada7810576254bed369065f988b6377a97fc7f1',amount:'$100K+',entity:null,risk:'High',note:'Suspected accomplice or same operator'},
-          {label:'Backpack Deposit',addr:'0x678a902df7ac39a1e1bafe594f0e053097bf811c',amount:'$99K+',entity:'Backpack.Exchange',risk:'Low',note:'Cashout: $70K USDC + $29K ETH'},
-          {label:'VALR Deposit',addr:'0xfada7810576254bed369065f988b6377a97fc7f1',amount:'$88K ETH',entity:'VALR.com',risk:'Low',note:'South African exchange cashout'},
+          {label:'Consolidation',addr:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',amount:'$23K',entity:null,risk:'High',note:'Shared laundering hub'},
+          {label:'Scammer Wallet',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$23K',entity:null,risk:'High',note:'Main wallet of the scam network'},
+          {label:'Layering Wallet',addr:'0xfada7810576254bed369065f988b6377a97fc7f1',amount:'$23K',entity:null,risk:'High',note:'Converted to obscure tokens before cashout'},
+          {label:'Cashout',addr:'0x120051a72966950b8ce12eb5496b5d1eeec1541b',amount:'$23K',entity:'LBank.com',risk:'Low',note:'Cashed out at LBank in 3 transactions'},
         ],
-        finding:'Secondary wallet confirmed as part of the same laundering operation. Funds traced from the main scammer wallet through this secondary address to three exchanges: Backpack ($99K), VALR ($88K), and LBank ($23K). Recommend coordinating freeze requests across all three exchanges and sharing intelligence with relevant law enforcement jurisdictions.',
+        finding:'Claim verified. Reactor links this claim to the same network as CG-2026-0847. The layering wallet converted funds to low-liquidity tokens (FNXAI and others) before cashing out at LBank.com across 3 transactions. Recommend approval, a freeze request to LBank, and consolidating this claim with the broader network investigation.',
         verdict:'approve',
       },
       {
-        id:'CG-2026-0756', type:'Exchange Account Takeover', status:'Resolved', statusColor:'#22c55e',
+        id:'CG-2026-0756', type:'Account Takeover (SIM Swap)', status:'Resolved', statusColor:'#22c55e',
         policyholder:'David Park', policyType:'Crypto Custody Insurance', coverage:'$250,000',
-        date:'May 28, 2026', amount:'$89,000 (mixed assets)',
-        description:'Account compromised via SIM swap attack. Attacker bypassed 2FA and withdrew funds from exchange account. Exchange confirmed unauthorized access from a new IP address and device fingerprint.',
-        wallet:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',
-        walletLabel:'Recipient of stolen funds',
-        scenario:'takeover',
+        date:'May 28, 2026', amount:'$88,000 (ETH)',
+        description:'Account compromised via SIM swap. Attacker bypassed 2FA and withdrew funds. The stolen ETH was traced through the same laundering infrastructure and cashed out at a South African exchange.',
+        wallet:'0xfada773a097b62d8fb08cf56811edbfff7ea230d',
+        walletLabel:'Cashout wallet',
+        scenario:'valr',
+        cashout:'VALR.com',
         flow:[
-          {label:'Exchange Account',addr:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',amount:'$89K',entity:null,risk:'High',note:'Funds withdrawn via compromised account'},
-          {label:'Layering',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$89K',entity:null,risk:'High',note:'Same cluster as other scam wallets'},
-          {label:'Cashout',addr:'0x678a902df7ac39a1e1bafe594f0e053097bf811c',amount:'$85K',entity:'Backpack.Exchange',risk:'Low',note:'Final cashout at Backpack Exchange'},
+          {label:'Consolidation',addr:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',amount:'$88K',entity:null,risk:'High',note:'Shared laundering hub'},
+          {label:'Cashout Wallet',addr:'0xfada773a097b62d8fb08cf56811edbfff7ea230d',amount:'$88K ETH',entity:null,risk:'High',note:'Connected to the same network'},
+          {label:'Cashout',addr:'0x05cdb1526f6e224e02919a4c018d9784ea25eb3d',amount:'$88K ETH',entity:'VALR.com',risk:'Low',note:'Cashed out at VALR (South African exchange)'},
         ],
-        finding:'Claim approved. Exchange confirmed unauthorized SIM swap access. Funds traced to same wallet cluster identified in claim CG-2026-0847, suggesting a connected threat actor. Recovery pursued via Backpack Exchange cooperation. Partial recovery ($32K) achieved.',
+        finding:'Claim approved. Exchange confirmed unauthorized SIM swap access. Stolen ETH traced through the shared laundering hub to a cashout at VALR.com. Reactor connected this case to the same network behind claims CG-2026-0847 and CG-2026-0791. Recovery pursued via VALR cooperation; partial recovery achieved.',
         verdict:'approved',
       },
     ];
@@ -267,9 +270,9 @@
         <!-- Step 3: Reactor Investigation -->
         <div class="step-card">
           <div class="flex items-center gap-2 mb-2"><div class="step-num">3</div><span class="text-xs font-bold uppercase" style="color:#14b8a6;">Reactor Investigation</span></div>
-          <p class="text-xs" style="color:#64748b;margin-bottom:8px;">Create a full Chainalysis Reactor investigation graph with all addresses in the fund flow. Explore counterparties, trace additional hops, and build evidence for the claim decision.</p>
+          <p class="text-xs" style="color:#64748b;margin-bottom:8px;">Create a full Chainalysis Reactor investigation graph tracing the funds from source to the cashout at <strong style="color:#94a3b8;">${c.cashout}</strong>. Each hop is a real on-chain wallet with labeled fund-flow edges. Explore counterparties and build evidence for the claim decision.</p>
           <div id="reactor-${idx}" class="flex items-center gap-2 flex-wrap">
-            <button class="btn-primary" onclick="openInvestigation('${c.scenario||'theft'}',this)">Open Full Investigation in Reactor (${c.flow.length} nodes)</button>
+            <button class="btn-primary" onclick="openInvestigation('${c.scenario||'theft'}',this)">Open Investigation in Reactor (traces to ${c.cashout})</button>
           </div>
         </div>
 
@@ -319,7 +322,7 @@
           btn.disabled=false;
         } else throw 0;
       }catch(e){
-        btn.innerHTML='Open Full Investigation in Reactor';
+        btn.innerHTML='Open Investigation in Reactor';
         btn.disabled=false;
         btn.title='Open this page in a new tab to create a live Reactor investigation graph.';
       }

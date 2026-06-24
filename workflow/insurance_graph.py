@@ -2,54 +2,56 @@ from skills_core.workflow import chainalysis_workflow
 from aws_durable_execution_sdk_python import DurableContext
 
 
-# Pre-built investigation scenarios with real addresses and flow edges.
-# Each node has an address; each edge connects consecutive nodes with a label
-# describing the fund movement.
+# Real addresses traced from a verified scam network (root tx
+# 0x53717bed...bf5e: victim withdrew from Coinbase, funds laundered and
+# cashed out at multiple exchanges). Each scenario ends at a NAMED exchange
+# cluster so the cashout point is unmistakable.
+#
+# Named exchange cluster IDs (render as "Backpack.Exchange" etc. in Reactor):
+#   Backpack.Exchange : 0x2228e5704b637131a3798a186caf18366c146f74
+#   LBank.com         : 0x120051a72966950b8ce12eb5496b5d1eeec1541b
+#   VALR.com          : 0x05cdb1526f6e224e02919a4c018d9784ea25eb3d
 SCENARIOS = {
     "theft": {
-        "name": "CG-2026-0847: Wallet Compromise (158 ETH Stolen from Coinbase)",
+        "name": "CG-2026-0847: 158 ETH Scam (Coinbase victim to Backpack cashout)",
         "nodes": [
-            {"addr": "76fbb69ff6e3ec366671da195e58733d44225640"},
-            {"addr": "4c6f7ae61fa1ecd509189dce0ff33629b9d94c29"},
-            {"addr": "eefb36c4458da7798742cf038c5c27e07ab9c51e"},
-            {"addr": "9b2a3b92b1d869384f6a51e104f9e49fba6a6d09"},
-            {"addr": "fada7810576254bed369065f988b6377a97fc7f1"},
-            {"addr": "678a902df7ac39a1e1bafe594f0e053097bf811c"},
+            {"addr": "76fbb69ff6e3ec366671da195e58733d44225640"},      # first hop
+            {"addr": "4c6f7ae61fa1ecd509189dce0ff33629b9d94c29"},      # Paraswap swap
+            {"addr": "eefb36c4458da7798742cf038c5c27e07ab9c51e"},      # consolidation
+            {"addr": "9b2a3b92b1d869384f6a51e104f9e49fba6a6d09"},      # scammer main
+            {"addr": "2228e5704b637131a3798a186caf18366c146f74"},      # Backpack.Exchange (named)
         ],
         "edges": [
             {"from": 0, "to": 1, "label": "158 ETH ($233K)"},
             {"from": 1, "to": 2, "label": "$399K USDC (swapped via Paraswap)"},
             {"from": 2, "to": 3, "label": "$12K USDC batches"},
-            {"from": 3, "to": 4, "label": "Multiple tokens"},
-            {"from": 4, "to": 5, "label": "$99K cashout (Backpack)"},
-            {"from": 3, "to": 5, "label": "$46K USDC direct"},
+            {"from": 3, "to": 4, "label": "$46K cashout at Backpack"},
         ],
     },
-    "laundering": {
-        "name": "CG-2026-0812: Secondary Wallet Laundering Network",
+    "lbank": {
+        "name": "CG-2026-0812: Laundering Branch (cashout at LBank.com)",
         "nodes": [
-            {"addr": "9b2a3b92b1d869384f6a51e104f9e49fba6a6d09"},
-            {"addr": "fada7810576254bed369065f988b6377a97fc7f1"},
-            {"addr": "678a902df7ac39a1e1bafe594f0e053097bf811c"},
+            {"addr": "eefb36c4458da7798742cf038c5c27e07ab9c51e"},      # consolidation
+            {"addr": "9b2a3b92b1d869384f6a51e104f9e49fba6a6d09"},      # scammer main
+            {"addr": "fada7810576254bed369065f988b6377a97fc7f1"},      # secondary wallet
+            {"addr": "120051a72966950b8ce12eb5496b5d1eeec1541b"},      # LBank.com (named)
         ],
         "edges": [
-            {"from": 0, "to": 1, "label": "Tokens + ETH"},
-            {"from": 1, "to": 2, "label": "$99K to Backpack.Exchange"},
-            {"from": 0, "to": 2, "label": "$46K USDC direct"},
+            {"from": 0, "to": 1, "label": "$12K USDC batches"},
+            {"from": 1, "to": 2, "label": "Multiple tokens"},
+            {"from": 2, "to": 3, "label": "$23K cashout at LBank"},
         ],
     },
-    "takeover": {
-        "name": "CG-2026-0756: Exchange Account Takeover (Connected to CG-0847)",
+    "valr": {
+        "name": "CG-2026-0756: Connected Wallet (cashout at VALR.com)",
         "nodes": [
-            {"addr": "eefb36c4458da7798742cf038c5c27e07ab9c51e"},
-            {"addr": "9b2a3b92b1d869384f6a51e104f9e49fba6a6d09"},
-            {"addr": "fada7810576254bed369065f988b6377a97fc7f1"},
-            {"addr": "678a902df7ac39a1e1bafe594f0e053097bf811c"},
+            {"addr": "eefb36c4458da7798742cf038c5c27e07ab9c51e"},      # consolidation
+            {"addr": "fada773a097b62d8fb08cf56811edbfff7ea230d"},      # VALR cashout wallet
+            {"addr": "05cdb1526f6e224e02919a4c018d9784ea25eb3d"},      # VALR.com (named)
         ],
         "edges": [
-            {"from": 0, "to": 1, "label": "$12K batches"},
-            {"from": 1, "to": 2, "label": "Layering"},
-            {"from": 2, "to": 3, "label": "$99K cashout"},
+            {"from": 0, "to": 1, "label": "Layered funds"},
+            {"from": 1, "to": 2, "label": "$88K ETH cashout at VALR"},
         ],
     },
 }
@@ -57,14 +59,14 @@ SCENARIOS = {
 
 @chainalysis_workflow
 def handler(event: dict, context: DurableContext) -> dict:
-    """Build a multi-node Reactor investigation graph with annotation edges.
+    """Build a multi-node Reactor investigation graph with labeled flow edges.
 
-    Creates a persistent graph with cluster nodes laid out left-to-right
-    and labeled edges showing the fund flow between them.
+    Each scenario lays cluster nodes left-to-right and draws annotation edges
+    showing the fund movement, ending at a NAMED exchange cluster (the cashout).
     Used by insurance-demo.html.
 
     Input:
-      - scenario: key from SCENARIOS ("theft", "laundering", "takeover")
+      - scenario: "theft" | "lbank" | "valr"
     """
     from chainalysis_skill_graph import (
         GraphClient,
@@ -75,7 +77,6 @@ def handler(event: dict, context: DurableContext) -> dict:
     from chainalysis_skill_graph.commands import Network
 
     scenario_key = event.get("scenario", "theft")
-
     if scenario_key not in SCENARIOS:
         return {"ok": False, "error": f"Unknown scenario: {scenario_key}"}
 
@@ -89,59 +90,46 @@ def handler(event: dict, context: DurableContext) -> dict:
         result = client.create_graph(graph_name)
         graph_id = result["graph"]["id"]
 
-        # Phase 1: add all cluster nodes, spaced left-to-right
+        # Phase 1: cluster nodes laid out left-to-right with slight stagger
         node_commands = []
-        spacing_x = 40
         for i, node in enumerate(nodes):
             addr = node["addr"].lower().replace("0x", "")
-            # Slight vertical stagger for readability
             y = (i % 2) * 15
-            cmd = add_cluster(
-                graph_id,
-                Network.ETHEREUM_MAINNET,
-                addr,
-                {"x": i * spacing_x, "y": y},
+            node_commands.append(
+                add_cluster(
+                    graph_id,
+                    Network.ETHEREUM_MAINNET,
+                    addr,
+                    {"x": i * 40, "y": y},
+                )
             )
-            node_commands.append(cmd)
-
-        # Add a title annotation
-        title_cmd = add_annotation(
-            graph_id,
-            graph_name,
-            {"x": 0, "y": -25},
+        node_commands.append(
+            add_annotation(graph_id, graph_name, {"x": 0, "y": -25})
         )
-        node_commands.append(title_cmd)
-
         client.execute_commands(graph_id, node_commands)
 
-        # Phase 2: add annotation edges between nodes to show fund flow
-        # We need the node IDs from the commands we just executed.
-        # add_cluster returns a command dict with an "id" field.
+        # Phase 2: labeled flow edges between nodes
         if edges:
             edge_commands = []
             for edge in edges:
-                src_idx = edge["from"]
-                dst_idx = edge["to"]
-                label = edge.get("label", "")
-                if src_idx < len(node_commands) and dst_idx < len(node_commands):
-                    src_id = node_commands[src_idx]["id"]
-                    dst_id = node_commands[dst_idx]["id"]
-                    edge_cmd = add_annotation_edge(
-                        graph_id,
-                        src_id,
-                        dst_id,
-                        label=label,
-                        pointer="SOURCE",
+                s, d = edge["from"], edge["to"]
+                if s < len(node_commands) and d < len(node_commands):
+                    edge_commands.append(
+                        add_annotation_edge(
+                            graph_id,
+                            node_commands[s]["id"],
+                            node_commands[d]["id"],
+                            label=edge.get("label", ""),
+                            pointer="SOURCE",
+                        )
                     )
-                    edge_commands.append(edge_cmd)
             if edge_commands:
                 client.execute_commands(graph_id, edge_commands)
 
-        graph_url = f"https://reactor.chainalysis.com/graph-v2/{graph_id}"
         return {
             "ok": True,
             "graphId": graph_id,
-            "graphUrl": graph_url,
+            "graphUrl": f"https://reactor.chainalysis.com/graph-v2/{graph_id}",
             "nodes": len(nodes),
             "edges": len(edges),
             "scenario": scenario_key,
