@@ -287,18 +287,12 @@
     // ---------- Monitoring ----------
     const HEX_APP='https://app.hexagate.com/monitors';
     const extLink='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-left:3px;"><path d="M7 17L17 7M8 7h9v9"/></svg>';
-    const ACTIVE_MONITORS={
-      protocol:[
-        {name:'USDC contract | large outflow', type:'Address Fund Movement', sev:'Critical', target:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', condition:'Outbound transfer over $1,000,000', created:'Created 12 days ago'},
-        {name:'USDC contract | ownership or upgrade change', type:'Admin / Upgrade', sev:'High', target:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', condition:'Owner, admin, or implementation changes', created:'Created 30 days ago'},
-        {name:'USDC contract | abnormal block volume', type:'Gate DSL', sev:'High', target:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', condition:'Block transfer volume over 3x the trailing average', created:'Created 5 days ago'},
-      ],
-      exchange:[
-        {name:'Hot Wallet 01 | wallet drain pattern', type:'Wallet Drain', sev:'Critical', target:'0x28C6c06298d514Db089934071355E5743bf21d60', condition:'Rapid sequential outflows draining the balance', created:'Created 21 days ago'},
-        {name:'Hot Wallet 01 | abnormal withdrawal burst', type:'Abnormal Burst', sev:'High', target:'0x28C6c06298d514Db089934071355E5743bf21d60', condition:'Withdrawal count far above the hourly baseline', created:'Created 21 days ago'},
-        {name:'Hot Wallet 01 | outflow over policy', type:'Address Fund Movement', sev:'High', target:'0x28C6c06298d514Db089934071355E5743bf21d60', condition:'Single outbound transfer over $100,000', created:'Created 9 days ago'},
-      ],
-    };
+    // Fallback only, shown when the live Hexagate call cannot be reached (preview sandbox).
+    const FALLBACK_MONITORS=[
+      {id:284825,name:'Compliance Cove demo | hot wallet outflow',severity:'High',createdBy:'shieldfi.ops',address:'0x28C6c06298d514Db089934071355E5743bf21d60',disabled:false},
+      {id:284812,name:'Stablecoin contract | large outflow',severity:'Critical',createdBy:'shieldfi.ops',address:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',disabled:false},
+      {id:284811,name:'Hot Wallet 01 | wallet drain pattern',severity:'Critical',createdBy:'shieldfi.ops',address:'0x28C6c06298d514Db089934071355E5743bf21d60',disabled:false},
+    ];
     const RECENT_TRIGGERS={
       protocol:[
         {sev:'Critical', title:'Large outflow from contract', detail:'$4.2M moved out in a single transaction', amount:'$4,200,000', condition:'Outbound transfer over $1,000,000', block:25384531, addr:'0x12d9b4c3746b7664fd57250b6a5c1d660593161d', txFull:'0x9c3f8a1d4e7b2c0f5a6d8e9b0c1a2f3d4e5b6c7a8d9e0f1a2b3c4d5e6f70e041', time:'2m ago'},
@@ -319,24 +313,27 @@
       useCase=k;
       const pb=document.getElementById('uc-protocol'), eb=document.getElementById('uc-exchange');
       if(pb&&eb){ pb.classList.toggle('active',k==='protocol'); eb.classList.toggle('active',k==='exchange'); }
-      renderActiveMonitors(); renderTriggers();
+      renderTriggers();
       const cr=document.getElementById('monCreateResult'); if(cr) cr.innerHTML='';
     }
     const detRow=(k,v,mono,col)=>`<div style="display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#64748b;margin-bottom:3px;"><span>${k}</span><span class="${mono?'mono':''}" style="color:${col||'#cbd5e1'};text-align:right;">${v}</span></div>`;
-    function renderActiveMonitors(){
+    const monUrl=id=>HEX_APP+'/'+id;
+    function renderLiveMonitors(list, live){
       const el=document.getElementById('monList'); if(!el)return;
-      el.innerHTML=ACTIVE_MONITORS[useCase].map((m,i)=>`<div class="mon-row" style="cursor:pointer;" onclick="toggleMon(${i})">
-        <span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span>
-        <div style="flex:1;min-width:0;"><div class="text-xs font-semibold" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div><div style="font-size:10px;color:#475569;">${m.type} · evaluating every block</div></div>
-        <span class="sev-badge ${sevClass(m.sev)}">${m.sev}</span>
+      if(!list||!list.length){ el.innerHTML='<p class="text-xs" style="color:#64748b;">No monitors found.</p>'; return; }
+      el.innerHTML=list.slice(0,8).map((m,i)=>`<div class="mon-row" style="cursor:pointer;" onclick="toggleMon(${i})">
+        <span ${m.disabled?'':'class="pulse"'} style="width:8px;height:8px;border-radius:50%;background:${m.disabled?'#475569':'#22c55e'};flex-shrink:0;"></span>
+        <div style="flex:1;min-width:0;"><div class="text-xs font-semibold" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name||('Monitor '+m.id)}</div><div style="font-size:10px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.createdBy?('by '+m.createdBy):'monitor'} · evaluating every block</div></div>
+        ${m.severity!=null?`<span class="sev-badge ${sevClass(m.severity)}">${sevLabel(m.severity)}</span>`:''}
         <svg id="monchev-${i}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" style="flex-shrink:0;transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div id="mondet-${i}" style="display:none;margin:2px 0 8px;border-radius:10px;border:1px solid var(--sf-border);padding:10px 12px;background:rgba(14,165,233,0.04);">
-        ${detRow('Target', shortAddr(m.target), true)}
-        ${detRow('Condition', m.condition)}
-        ${detRow('Severity', m.sev)}
-        ${detRow('Status', 'Live · '+m.created, false, '#22c55e')}
-        <a href="${HEX_APP}" target="_blank" rel="noopener" class="sf-btn sf-btn-ghost" style="text-decoration:none;font-size:11px;margin-top:6px;">View monitor in Hexagate${extLink}</a>
+        ${detRow('Monitor ID', '#'+m.id, true)}
+        ${m.address?detRow('Watching', shortAddr(m.address), true):''}
+        ${m.severity!=null?detRow('Severity', sevLabel(m.severity)):''}
+        ${detRow('Created by', m.createdBy||'unknown')}
+        ${detRow('Status', m.disabled?'Disabled':'Live · evaluating every block', false, m.disabled?'#94a3b8':'#22c55e')}
+        ${live?`<a href="${monUrl(m.id)}" target="_blank" rel="noopener" class="sf-btn sf-btn-ghost" style="text-decoration:none;font-size:11px;margin-top:6px;">View monitor in Hexagate${extLink}</a>`:'<p class="text-xs" style="color:#64748b;margin-top:4px;opacity:.85;">Open this page in a new tab for the live Hexagate link.</p>'}
       </div>`).join('');
     }
     function toggleMon(i){ const d=document.getElementById('mondet-'+i),c=document.getElementById('monchev-'+i); if(!d)return; const open=d.style.display==='none'; d.style.display=open?'block':'none'; if(c)c.style.transform=open?'rotate(180deg)':''; }
@@ -357,9 +354,16 @@
     }
     function toggleTrig(i){ const d=document.getElementById('trigdet-'+i),c=document.getElementById('trigchev-'+i); if(!d)return; const open=d.style.display==='none'; d.style.display=open?'block':'none'; if(c)c.style.transform=open?'rotate(180deg)':''; }
     async function loadMonitors(){
-      const el=document.getElementById('monLiveCount'); if(!el)return;
-      try{ const out=await hexCall({mode:'list_monitors'}); if(out&&out.count){ el.innerHTML='<span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>'+out.count+' live in this org'; } }
-      catch(e){ el.innerHTML='<span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>live'; }
+      const cnt=document.getElementById('monLiveCount');
+      let out=null;
+      try{ out=await hexCall({mode:'list_monitors'}); }catch(e){}
+      if(out&&out.monitors&&out.monitors.length){
+        renderLiveMonitors(out.monitors, true);
+        if(cnt) cnt.innerHTML='<span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>'+(out.count||out.monitors.length)+' live in this org';
+      } else {
+        renderLiveMonitors(FALLBACK_MONITORS, false);
+        if(cnt) cnt.innerHTML='<span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>sample';
+      }
     }
     async function createMonitor(){
       const uc=USE_CASES[useCase];
@@ -567,6 +571,7 @@ blockVolume <span style="color:#86efac;">${fmtUsd(volUsd)}</span></div>
 
     // ---------- Init ----------
     setUseCase('protocol');
+    loadMonitors();
     updateGateCode();
     renderAlerts();
     (async function(){ try{ const out=await hexCall({mode:'list_monitors'}); const el=document.getElementById('ovMonCount'); if(el&&out.count) el.textContent=out.count; }catch(e){ const el=document.getElementById('ovMonCount'); if(el) el.textContent='30+'; } })();

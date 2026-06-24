@@ -88,19 +88,26 @@ def handler(event: dict, context: DurableContext) -> dict:
 
         if mode == "list_monitors":
             from chainalysis_skill_hexagate.monitoring import MonitoringClient
+            raw = _items(MonitoringClient().list_monitors())
             out = []
-            for m in _items(MonitoringClient().list_monitors())[:30]:
+            for m in raw[:40]:
                 params = m.get("params") or {}
+                ents = m.get("entities") or []
+                addr = None
+                if ents:
+                    ep = ents[0].get("params") or {}
+                    addr = ep.get("address")
                 out.append({
                     "id": m.get("id"),
                     "name": m.get("name"),
-                    "type": m.get("monitor_id") or params.get("type"),
+                    "type": params.get("type") or m.get("monitor_id"),
                     "severity": params.get("severity"),
                     "disabled": m.get("disabled"),
                     "createdBy": m.get("created_by"),
-                    "entities": len(m.get("entities") or []),
+                    "entities": len(ents),
+                    "address": addr,
                 })
-            return {"ok": True, "mode": mode, "count": len(out), "monitors": out}
+            return {"ok": True, "mode": mode, "count": len(raw), "monitors": out}
 
         if mode == "list_events":
             from chainalysis_skill_hexagate.monitoring import MonitoringClient
