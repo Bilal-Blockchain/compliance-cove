@@ -287,7 +287,7 @@
       <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:56px;">
         <div class="flex items-center gap-6">
           <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('trade')">
-            <div style="width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#06b6d4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(99,102,241,0.3);">
+            <div data-brand-logo style="width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#06b6d4);display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(99,102,241,0.3);">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M7 16V4m0 0L3 8m4-4l4 4"/><path d="M17 8v12m0 0l4-4m-4 4l-4-4"/>
               </svg>
@@ -1806,22 +1806,9 @@
             st=st.replace(/244,\s*63,\s*94/g,r+','+g+','+b);
             el.setAttribute('style',st);
           });
-        }
+        var _bl=document.querySelector('[data-brand-logo]');if(_bl)_bl.style.background='linear-gradient(135deg,'+color+','+color+'cc)';}
 
-        if(domain){
-          domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();
-          var els=document.querySelectorAll('[style*="linear-gradient"]');
-          for(var i=0;i<els.length;i++){
-            var el=els[i],sv=el.querySelector('svg');
-            if(sv&&el.offsetWidth<60){
-              var img=document.createElement('img');
-              img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';
-              img.style.cssText='width:18px;height:18px;object-fit:contain;border-radius:3px;';
-              img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};
-              sv.parentNode.replaceChild(img,sv);break;
-            }
-          }
-        }
+        if(domain){domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var logoEl=document.querySelector('[data-brand-logo]');if(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};ch.parentNode.replaceChild(img,ch);}}}
       }
 
       if(!brand&&!color&&!domain)return;

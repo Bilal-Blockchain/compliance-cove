@@ -164,7 +164,7 @@
       <div class="max-w-5xl mx-auto px-4 flex items-center justify-between" style="height:56px;">
         <div class="flex items-center gap-6">
           <div class="flex items-center gap-2 cursor-pointer" onclick="showPage('shop')">
-            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;">
+            <div data-brand-logo style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#f97316,#ea580c);display:flex;align-items:center;justify-content:center;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
               </svg>
@@ -1444,22 +1444,9 @@
             st=st.replace(/244,\s*63,\s*94/g,r+','+g+','+b);
             el.setAttribute('style',st);
           });
-        }
+        var _bl=document.querySelector('[data-brand-logo]');if(_bl)_bl.style.background='linear-gradient(135deg,'+color+','+color+'cc)';}
 
-        if(domain){
-          domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();
-          var els=document.querySelectorAll('[style*="linear-gradient"]');
-          for(var i=0;i<els.length;i++){
-            var el=els[i],sv=el.querySelector('svg');
-            if(sv&&el.offsetWidth<60){
-              var img=document.createElement('img');
-              img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';
-              img.style.cssText='width:18px;height:18px;object-fit:contain;border-radius:3px;';
-              img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};
-              sv.parentNode.replaceChild(img,sv);break;
-            }
-          }
-        }
+        if(domain){domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var logoEl=document.querySelector('[data-brand-logo]');if(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};ch.parentNode.replaceChild(img,ch);}}}
       }
 
       if(!brand&&!color&&!domain)return;
