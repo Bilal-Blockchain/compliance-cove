@@ -386,7 +386,7 @@ Sandbox-safe validated fallbacks throughout; brand-swap (?brand=&color=&domain=)
 | I.1 | Consolidate `reactorLinkHtml()` into `addresses.js` | High | 20 min | ⬜ | Currently duplicated in 3 files. Add to shared script. |
 | I.2 | Add more addresses to `addresses.js` | Medium | 15 min | ⬜ | Add BTC addresses (currently ETH-only), add Hexagate-relevant addresses |
 | I.3 | Add `addresses.js` script tag to all demos | Medium | 10 min | ⬜ | Currently no demos load it via `<script src>` — they use inline address lists |
-| I.4 | Standardize branding customization | Low | 30 min | ⬜ | Some demos handle `?brand=` differently. Create a shared `applyBranding()` helper. |
+| I.4 | Standardize branding customization | Low | 30 min | ✅ | All 12 demos use the same brand-swap pattern: `data-brand-logo` + `&brand=&color=&domain=&logo=` params. BRAND_LOOKUP auto-detects 35 companies. |
 | I.5 | Add usage tracking to new demos | Low | 10 min | ⬜ | See `tracking/apps-script.js` and `tracking/setup.md` for the Google Sheets tracking setup |
 
 ### Quality & Consistency
@@ -414,7 +414,7 @@ Tools that make **every existing demo** more powerful during live customer calls
 |---|------|--------|--------|-------|
 | T1.1 | Build branding overlay panel on hub page | ✅ | 1.5 hr | Paint palette icon on each card footer → opens modal with company name, color picker (6 presets + custom hex + native picker), logo URL field. Live preview. Apply & Launch / Reset / Cancel actions. Keyboard: Enter=apply, Esc=close. |
 | T1.2 | Extend `?brand=` params to include `&color=` and `&logo=` | ✅ | 30 min | Hub page card onclick now passes `?brand=X&color=%23hex&logo=URL`. ArcSwap's brand-swap script updated to handle all three — swaps text, overrides `--primary` CSS var, replaces nav logo SVG with img. |
-| T1.3 | Shared `applyBranding()` helper | ⬜ | 30 min | ArcSwap has the full brand-swap logic. Other demos still use name-only swap. Need to propagate the color+logo handling to all demos. |
+| T1.3 | Shared `applyBranding()` helper | ✅ | 30 min | All 12 demos now have standardized brand-swap: `data-brand-logo` attribute on all nav logos, `querySelectorAll` for multi-screen support, `&logo=` param for direct favicon URL, color tint on logo container. Domain-first Branding Studio with 35-company auto-detect lookup. |
 | T1.4 | Preview in hub card | ✅ | 20 min | After applying branding, card footer shows a colored dot + company name. Card banner gradient tints to the brand color. Reset restores defaults. |
 
 ---
@@ -526,27 +526,26 @@ Scenarios: Clean Exchange User, Unnamed Service (enhanced review), OFAC Sanction
 
 ## 🎯 Prioritization Summary
 
-### Short-Term (Next 1–2 Sessions)
-1. ~~**📘 KYT API Explainer** (E1)~~ ✅ · ~~**🔍 Screening Explainer** (E2)~~ ✅ · ~~**📈 Analytics** (T5)~~ ✅
-2. ~~**ArcSwap Polish** (Task 1)~~ ✅ · ~~**Branding Studio** (T1)~~ ✅ · ~~**Address Screener** (T3)~~ ✅
-3. **🏗️ Hexagate Demo** (Task 2) — ~4–6 hrs — 🟡 In development — DeFi protocol security dashboard
+### Completed
+- ~~**📘 KYT API Explainer** (E1)~~ ✅ · ~~**🔍 Screening Explainer** (E2)~~ ✅
+- ~~**ArcSwap Polish** (Task 1)~~ ✅ · ~~**Branding Studio** (T1)~~ ✅ · ~~**Address Screener** (T3)~~ ✅
+- ~~**Hexagate Demo** (Task 2)~~ ✅ Built (ShieldFi) · ~~**Trading Firm** (Task 7)~~ ✅ Built (QuantDesk)
+- ~~**Stablecoin Issuer** (Task 5)~~ ✅ Built (Meridian/USDM) · ~~**P2P Marketplace** (Task 4)~~ ✅ Built (Peerly)
+- ~~**Prediction Markets** (Task 6)~~ ✅ Built (ForecastX) · ~~**Branding standardization** (I.4 + T1.3)~~ ✅
+- ~~**cove-token-intel** Data Solutions workflow~~ ✅ Deployed, pre-baked data for instant render
 
-### Medium-Term (Next 3–5 Sessions)
-5. **📋 SA Presenter Mode** (T2) — ~4–5 hrs — Guided pitch for every demo
-6. **🎯 Scenario Presets** (T4) — ~2 hrs — Named compliance stories
-7. **🏗️ Hexagate Demo** (Task 2) — ~4–6 hrs — New product coverage
-8. **📊 Trading Firm / Market Maker** (Task 7) — ~5–6 hrs — Multi-product, high-value prospect segment
-9. **🏛️ Compliance Command Center** (T6) — ~5–6 hrs — Platform story demo
-10. **Infrastructure cleanup** (I.1–I.5) — ~1.5 hrs — Tech debt
+### Next Up
+1. 🟡 **Insurance Claims** (Task 3) — ~4 hrs — Reactor headline demo, last "Coming Soon"
+2. **📋 SA Presenter Mode** (T2) — ~3 hrs — Per-demo guided tours (hub engine done)
+3. **🎯 Scenario Presets** (T4) — ~2 hrs — Named compliance stories for screener
+4. **📈 Analytics Dashboard** (T5) — ~3 hrs — Usage tracking (events already firing)
+5. **🏛️ Compliance Command Center** (T6) — ~5 hrs — Platform story meta-demo
 
-### Long-Term (Backlog)
-10. ~~**Stablecoin Issuer** (Task 5)~~ ✅ Built (Meridian/USDM) — Data Solutions headline demo
-11. **Insurance Claims** (Task 3) — ~4–5 hrs
-12. **🤖 AI Demo Narrator** (T7) — ~5–6 hrs
-13. **💳 Crypto Payroll** (T8) — ~4 hrs
-14. **⚖️ Travel Rule** (T9) — ~4 hrs
-15. ~~**P2P Marketplace** (Task 4)~~ ✅ Built (Peerly) — counterparty screening + escrow + continuous monitoring
-16. **Prediction Markets** (Task 6) — ~3–4 hrs
+### Backlog
+- **🤖 AI Demo Narrator** (T7) — ~5 hrs
+- **💳 Crypto Payroll** (T8) — ~4 hrs
+- **⚖️ Travel Rule** (T9) — ~4 hrs
+- **Infrastructure cleanup** (I.1–I.3, I.5) — ~1 hr remaining tech debt
 
 ---
 
@@ -554,8 +553,8 @@ Scenarios: Clean Exchange User, Unnamed Service (enhanced review), OFAC Sanction
 
 ### File Structure
 ```
-compliance-cove.html      # Hub page — demo card grid (data-driven from `demos[]` array)
-demochain.html            # DeFi Trading (ArcSwap) — page-view architecture, forced dark, canvas particle bg
+compliance-cove.html      # Hub page — demo card grid, Branding Studio, guided tour
+demochain.html            # DeFi Trading (ArcSwap) — forced dark, canvas particle bg
 banking-demo.html         # Banking — 5-stage scroll journey (forced light mode)
 merchant-demo.html        # Merchant Services (Basecamp) — page-view architecture
 exchange-demo.html        # Exchange Onboarding (VaultX) — screen architecture
@@ -563,13 +562,22 @@ nft-demo.html             # Digital Marketplace (NovaMint) — page-view archite
 atm-demo.html             # Crypto ATM (CoinVault) — screen architecture
 gaming-demo.html          # Gaming (NexusArena) — screen architecture
 remittance-demo.html      # Remittance (SwiftBridge) — screen architecture
-screener.html             # Live Address Screener — SA tool for ad-hoc address risk assessment
+hexagate-demo.html        # Protocol & Wallet Security (ShieldFi) — live Hexagate
+trading-firm-demo.html    # Trading Firm (QuantDesk) — multi-product, pre-baked Token Intel
+stablecoin-demo.html      # Stablecoin Issuer (Meridian/USDM) — Data Solutions headline
+prediction-demo.html      # Prediction Markets (ForecastX) — wash trading detection
+p2p-marketplace-demo.html # P2P Marketplace (Peerly) — escrow + continuous monitoring
+screener.html             # Live Address Screener — SA tool
+screening-explainer.html  # Address Screening API walkthrough
+kyt-explainer.html        # KYT API walkthrough
 addresses.js              # Shared address library + picker UI component
-workflow/workflow.py       # Address Screening backend (Chainalysis Workflow)
+kyt-transactions.js       # Curated KYT transaction library (validated scenarios)
+workflow/workflow.py       # Address Screening backend (demochain-address-screen)
+workflow/kyt_screen.py     # KYT screening backend (cove-kyt-screen)
 workflow/token_intel.py    # Data Solutions token risk analytics (cove-token-intel)
-workflow/reactor-graph.py  # Reactor graph creation (creates graph-v2 URL on demand)
-tracking/apps-script.js   # Google Sheets usage tracking
-tracking/setup.md          # Tracking setup instructions
+workflow/hexagate.py       # Hexagate monitoring + Gate DSL (cove-hexagate)
+workflow/reactor-graph.py  # Reactor graph creation (arcswap-reactor-graph)
+workflow/analytics.py      # Usage tracking (compliance-cove-analytics)
 ROADMAP.md                # ← This file
 ```
 
@@ -579,7 +587,7 @@ ROADMAP.md                # ← This file
 - **Charts:** `/assets/chart.min.js` (Chart.js) where needed
 - **Navigation:** Multi-screen (`showScreen()`) or multi-page (`showPage()`) within single HTML files
 - **Hub linking:** `buildPageUrl(filePath)` resolves demo URLs within Chain's session-scoped page system
-- **Branding:** `?brand=CompanyName` URL param swaps brand name throughout on load
+- **Branding:** `?brand=&color=&domain=&logo=` URL params. `data-brand-logo` on all nav logo containers; `querySelectorAll` for multi-screen demos. BRAND_LOOKUP auto-detects 35 companies from domain.
 - **Address picker:** `renderAddressPicker('inputId')` from `addresses.js` — categorized dropdown
 
 ### Adding a New Demo (Checklist)
