@@ -4,7 +4,7 @@
 >
 > **How to use:** Tell Chain: _"Read ROADMAP.md and let's work on the next priority."_
 >
-> **Last updated:** June 23, 2026
+> **Last updated:** June 24, 2026
 
 ---
 
@@ -347,7 +347,13 @@ Sandbox-safe validated fallbacks throughout; brand-swap (?brand=&color=&domain=)
 **Products:** Hexagate, Data Solutions, KYT, Address Screening  
 **Industry:** Trading / Market Making
 
-**Live data added:** A new **Token Intel** tab runs live on a real stablecoin (USDC, USDT, PYUSD, DAI, USDe): **Hexagate `analyze_address`** for contract security (risk level, type, contract age, flagged checks), **Gate DSL `gate_validate`** for the live per-block transfer volume, and a synthesized make-markets verdict + Reactor link. **Counterparty screening** is now live via `demochain-address-screen` (risk, reason, exposure bars, Reactor). Both via the deployed `cove-hexagate` + Address Screening workflows; sandbox-safe fallbacks. The rest of the desk (positions, venue flows, whale tracker) stays as illustrative context.
+**Live data added:** A new **Token Intel** tab runs live on a real stablecoin (USDC, USDT, PYUSD, DAI, USDe): **Hexagate `analyze_address`** for contract security (risk level, type, contract age, flagged checks), **Gate DSL `gate_validate`** for the live per-block transfer volume, a synthesized make-markets verdict + Reactor link, and now a **Data Solutions "Exposure by Category" card** showing the full sender-category breakdown (via `cove-token-intel`). **Counterparty screening** is now live via `demochain-address-screen` (risk, reason, exposure bars, Reactor). Both via the deployed `cove-hexagate` + Address Screening workflows; sandbox-safe fallbacks. The rest of the desk (positions, venue flows, whale tracker) stays as illustrative context.
+
+**Data Solutions workflow (`cove-token-intel`):** New workflow (`workflow/token_intel.py`, deployed to $LATEST, org-public). Queries `ethereum.transfers_clustered` with a 7-day window. Two modes:
+- `risk_profiles`: Returns sanctions %, mixer %, darknet %, illicit %, gambling %, no-KYC %, and composite risk level for all 5 tracked stablecoins. ~5s query. Powers the **Market Intel** tab's "Token Risk Profiles" table (live on panel open, sandbox fallback to validated mock).
+- `token_exposure`: Returns the full sender-category breakdown for a single token (top 20 categories by volume). ~4s query. Powers the **Token Intel** tab's new "Exposure by Category, Data Solutions" card.
+- Asset IDs derived from contract addresses: `eip155:1:<lowercase_no_0x>`.
+- Stablecoin supply section updated to match tracked tokens.
 
 **Concept:** An institutional crypto trading desk dashboard. Market makers need to monitor smart contract risk on protocols they provide liquidity to, understand token exposure across venues, track counterparty risk, and stay compliant across DeFi and CeFi simultaneously.
 
@@ -355,7 +361,7 @@ Sandbox-safe validated fallbacks throughout; brand-swap (?brand=&color=&domain=)
 |---|------|--------|-------|
 | 7.1 | Trading desk dashboard | 60 min | Portfolio overview: positions across venues, PnL, exposure heatmap by token/protocol. Dark theme to match Bloomberg-style trading UIs. |
 | 7.2 | Smart contract risk monitor (Hexagate) | 45 min | Real-time monitoring of protocols the firm provides liquidity to. Reentrancy detection, price oracle manipulation, exploit alerts. Show how Hexagate protects LP positions. |
-| 7.3 | Token exposure analytics (Data Solutions) | 60 min | Per-token risk profiles: what % of a token's volume touches sanctioned entities, mixers, or darknet markets? Useful for deciding which tokens to make markets in. |
+| 7.3 | Token exposure analytics (Data Solutions) | ✅ | **Live.** `cove-token-intel` workflow queries `ethereum.transfers_clustered` (7d). Token Risk Profiles table in Market Intel loads live data. Token Intel tab shows per-token exposure-by-category card. |
 | 7.4 | Cross-venue surveillance | 45 min | Monitor the firm's activity across DEXs and CEXs. KYT tracks transfers between venues. Flag unusual patterns (potential wash trading by counterparties). |
 | 7.5 | Counterparty screening | 30 min | Address Screening for every new counterparty wallet the firm interacts with on-chain. Auto-screen LP pool participants. |
 | 7.6 | Compliance reporting | 30 min | Exportable compliance summary: screened addresses, flagged transactions, alert history. What the compliance officer shows to regulators. |
@@ -560,6 +566,7 @@ remittance-demo.html      # Remittance (SwiftBridge) — screen architecture
 screener.html             # Live Address Screener — SA tool for ad-hoc address risk assessment
 addresses.js              # Shared address library + picker UI component
 workflow/workflow.py       # Address Screening backend (Chainalysis Workflow)
+workflow/token_intel.py    # Data Solutions token risk analytics (cove-token-intel)
 workflow/reactor-graph.py  # Reactor graph creation (creates graph-v2 URL on demand)
 tracking/apps-script.js   # Google Sheets usage tracking
 tracking/setup.md          # Tracking setup instructions
