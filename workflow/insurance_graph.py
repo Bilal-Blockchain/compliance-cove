@@ -2,56 +2,49 @@ from skills_core.workflow import chainalysis_workflow
 from aws_durable_execution_sdk_python import DurableContext
 
 
-# Real addresses traced from a verified scam network (root tx
-# 0x53717bed...bf5e: victim withdrew from Coinbase, funds laundered and
-# cashed out at multiple exchanges). Each scenario ends at a NAMED exchange
-# cluster so the cashout point is unmistakable.
+# Real, publicly documented stolen-funds clusters traced via Chainalysis.
+# Source nodes are NAMED stolen-funds clusters; final nodes are NAMED
+# cashout exchanges, so both ends of the flow are unmistakable in Reactor.
 #
-# Named exchange cluster IDs (render as "Backpack.Exchange" etc. in Reactor):
-#   Backpack.Exchange : 0x2228e5704b637131a3798a186caf18366c146f74
-#   LBank.com         : 0x120051a72966950b8ce12eb5496b5d1eeec1541b
-#   VALR.com          : 0x05cdb1526f6e224e02919a4c018d9784ea25eb3d
+# Cases:
+#   ascendex : AscendEX.com exchange hack (Dec 2021, ~$80M) -> KuCoin.com
+#   atomic   : Atomic Wallet hack (Jun 2023, ~$100M, Lazarus) -> HTX.com
+#   alphapo  : AlphaPo.net hack (Jul 2023, Lazarus) -> Binance.com
 SCENARIOS = {
-    "theft": {
-        "name": "CG-2026-0847: 158 ETH Scam (Coinbase victim to Backpack cashout)",
+    "ascendex": {
+        "name": "CG-2026-0847: AscendEX Exchange Hack ($74M) - cashout at KuCoin",
         "nodes": [
-            {"addr": "76fbb69ff6e3ec366671da195e58733d44225640"},      # first hop
-            {"addr": "4c6f7ae61fa1ecd509189dce0ff33629b9d94c29"},      # Paraswap swap
-            {"addr": "eefb36c4458da7798742cf038c5c27e07ab9c51e"},      # consolidation
-            {"addr": "9b2a3b92b1d869384f6a51e104f9e49fba6a6d09"},      # scammer main
-            {"addr": "2228e5704b637131a3798a186caf18366c146f74"},      # Backpack.Exchange (named)
+            {"addr": "2c6900b24221de2b4a45c8c89482fff96ffb7e55"},  # AscendEX Stolen Funds (named)
+            {"addr": "9eee6862b78fb6f9627d7d5a908d2114814fcecd"},  # laundering wallet
+            {"addr": "03e6fa590cadcf15a38e86158e9b3d06ff3399ba"},  # KuCoin.com (named)
         ],
         "edges": [
-            {"from": 0, "to": 1, "label": "158 ETH ($233K)"},
-            {"from": 1, "to": 2, "label": "$399K USDC (swapped via Paraswap)"},
-            {"from": 2, "to": 3, "label": "$12K USDC batches"},
-            {"from": 3, "to": 4, "label": "$46K cashout at Backpack"},
+            {"from": 0, "to": 1, "label": "$53.5M (primary laundering wallet)"},
+            {"from": 1, "to": 2, "label": "$7.6M traced to KuCoin (indirect)"},
         ],
     },
-    "lbank": {
-        "name": "CG-2026-0812: Laundering Branch (cashout at LBank.com)",
+    "atomic": {
+        "name": "CG-2026-0812: Atomic Wallet Hack ($100M, Lazarus) - cashout at HTX",
         "nodes": [
-            {"addr": "eefb36c4458da7798742cf038c5c27e07ab9c51e"},      # consolidation
-            {"addr": "9b2a3b92b1d869384f6a51e104f9e49fba6a6d09"},      # scammer main
-            {"addr": "fada7810576254bed369065f988b6377a97fc7f1"},      # secondary wallet
-            {"addr": "120051a72966950b8ce12eb5496b5d1eeec1541b"},      # LBank.com (named)
+            {"addr": "d29061b76101c5fa086694bd034a88e43594d30f"},  # Atomic Wallet Stolen Funds (named)
+            {"addr": "7f691eba903423900b40a397d94f9062cae72dbf"},  # laundering wallet
+            {"addr": "5910a9f4a27d3905b70372efa6f766ddc982e697"},  # HTX.com (named)
         ],
         "edges": [
-            {"from": 0, "to": 1, "label": "$12K USDC batches"},
-            {"from": 1, "to": 2, "label": "Multiple tokens"},
-            {"from": 2, "to": 3, "label": "$23K cashout at LBank"},
+            {"from": 0, "to": 1, "label": "$3.6M (laundering wallet)"},
+            {"from": 1, "to": 2, "label": "$7.7M traced to HTX (indirect)"},
         ],
     },
-    "valr": {
-        "name": "CG-2026-0756: Connected Wallet (cashout at VALR.com)",
+    "alphapo": {
+        "name": "CG-2026-0756: AlphaPo Hack (Lazarus) - cashout at Binance",
         "nodes": [
-            {"addr": "eefb36c4458da7798742cf038c5c27e07ab9c51e"},      # consolidation
-            {"addr": "fada773a097b62d8fb08cf56811edbfff7ea230d"},      # VALR cashout wallet
-            {"addr": "05cdb1526f6e224e02919a4c018d9784ea25eb3d"},      # VALR.com (named)
+            {"addr": "040a96659fd7118259ebcd547771f6ecb9580d17"},  # AlphaPo Stolen Funds (named)
+            {"addr": "8dc4f02e620fb24d07208c09950b9cba343805e8"},  # laundering wallet
+            {"addr": "001866ae5b3de6caa5a51543fd9fb64f524f5478"},  # Binance.com (named)
         ],
         "edges": [
-            {"from": 0, "to": 1, "label": "Layered funds"},
-            {"from": 1, "to": 2, "label": "$88K ETH cashout at VALR"},
+            {"from": 0, "to": 1, "label": "$11.1M (laundering wallet)"},
+            {"from": 1, "to": 2, "label": "$44K traced to Binance (indirect)"},
         ],
     },
 }
@@ -61,12 +54,11 @@ SCENARIOS = {
 def handler(event: dict, context: DurableContext) -> dict:
     """Build a multi-node Reactor investigation graph with labeled flow edges.
 
-    Each scenario lays cluster nodes left-to-right and draws annotation edges
-    showing the fund movement, ending at a NAMED exchange cluster (the cashout).
+    Source = named stolen-funds cluster, end = named cashout exchange.
     Used by insurance-demo.html.
 
     Input:
-      - scenario: "theft" | "lbank" | "valr"
+      - scenario: "ascendex" | "atomic" | "alphapo"
     """
     from chainalysis_skill_graph import (
         GraphClient,
@@ -76,7 +68,7 @@ def handler(event: dict, context: DurableContext) -> dict:
     )
     from chainalysis_skill_graph.commands import Network
 
-    scenario_key = event.get("scenario", "theft")
+    scenario_key = event.get("scenario", "ascendex")
     if scenario_key not in SCENARIOS:
         return {"ok": False, "error": f"Unknown scenario: {scenario_key}"}
 
@@ -90,7 +82,7 @@ def handler(event: dict, context: DurableContext) -> dict:
         result = client.create_graph(graph_name)
         graph_id = result["graph"]["id"]
 
-        # Phase 1: cluster nodes laid out left-to-right with slight stagger
+        # Phase 1: cluster nodes, spaced left-to-right with slight stagger
         node_commands = []
         for i, node in enumerate(nodes):
             addr = node["addr"].lower().replace("0x", "")
@@ -100,7 +92,7 @@ def handler(event: dict, context: DurableContext) -> dict:
                     graph_id,
                     Network.ETHEREUM_MAINNET,
                     addr,
-                    {"x": i * 40, "y": y},
+                    {"x": i * 45, "y": y},
                 )
             )
         node_commands.append(
@@ -108,7 +100,7 @@ def handler(event: dict, context: DurableContext) -> dict:
         )
         client.execute_commands(graph_id, node_commands)
 
-        # Phase 2: labeled flow edges between nodes
+        # Phase 2: labeled flow edges
         if edges:
             edge_commands = []
             for edge in edges:
