@@ -102,11 +102,20 @@ Interactive reference pages that make Chainalysis APIs **dead simple** for CSMs,
 
 ---
 
-### 2. 🏗️ Build New Demo — DeFi Protocol Security (Hexagate) `hexagate-demo.html`
-**Priority:** 🔥 HIGH — Only "Coming Soon" demo covering a unique product (Hexagate)  
-**Effort:** ~4–6 hours total  
-**Goal:** Build a DeFi protocol admin dashboard showing Hexagate's smart contract security monitoring  
-**Why:** Hexagate is a newer acquisition with growing sales motion. No other cove covers protocol security — this fills a product gap and differentiates from compliance-focused demos (this is *security*, not just compliance).
+### 2. 🏗️ Hexagate — Protocol & Wallet Security `hexagate-demo.html`
+**Priority:** 🔥 HIGH — Only cove covering a unique product (Hexagate)  
+**Status:** ✅ Built, then **reworked to live per Hexagate team feedback (ShieldFi)**.  
+**Goal:** A protocol and wallet security console showing live Hexagate Monitoring + Gate DSL, with Chainalysis Address Screening.  
+**Why:** Hexagate is a newer acquisition with growing sales motion. No other cove covers protocol/wallet *security*.
+
+**v2 rework (live Hexagate, per Hexagate team feedback):**
+- **New `cove-hexagate` workflow** (`workflow/hexagate.py`, deployed to $LATEST, org-public). Modes: `gate_validate`, `create_monitor` (auto-cleans prior demo monitors), `list_monitors`, `list_events`, `analyze_transaction`. Requires Hexagate connected in Chainalysis Connections (now connected).
+- **Removed Hexagate address analysis**; replaced with a live **Address Screening** tab (`demochain-address-screen`).
+- **De-emphasized Gate Signer / approvals** (removed). **Monitoring is the centerpiece.**
+- **Monitoring panel (live Monitor API):** Protocol/Stablecoin and Exchange use cases. **Create a real monitor** on a contract or hot wallet, and see it join the org's live monitors (`list_monitors`).
+- **Gate DSL panel (live):** edit contract + threshold, see the gate code, **Run on live chain data** → real `validate_gate` returns the block, transfer count, and computed volume, then the comparison and PASS/breach result. Lower the threshold to trigger a real alert. This is the customizable "input → query on-chain data → comparison → result" story.
+- Sandbox-safe fallbacks; brand-swap + analytics; em-dash free.
+- **Use cases:** Protocol/Stablecoin (monitor contracts), Exchange (monitor hot wallets).
 
 | # | Task | Status | Effort | Notes |
 |---|------|--------|--------|-------|
