@@ -403,10 +403,22 @@
           </button>
         </div>
         <div class="brand-panel-body">
-          <!-- Company Name -->
+          <!-- Website (primary input, auto-detects everything) -->
+          <div class="brand-field">
+            <label>Prospect Website</label>
+            <div class="flex gap-2 items-center">
+              <input id="brandDomain" type="text" placeholder="e.g. coinbase.com" class="h-10 flex-1 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" oninput="onDomainInput()" />
+              <div id="brandLogoStatus" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
+                <span class="text-xs text-muted-foreground">-</span>
+              </div>
+            </div>
+            <p class="text-xs text-muted-foreground" style="margin-top:4px;">Enter a website to auto-fill company name, logo, and brand color.</p>
+          </div>
+
+          <!-- Company Name (auto-filled from domain, editable) -->
           <div class="brand-field">
             <label>Company Name</label>
-            <input id="brandName" type="text" placeholder="e.g. Chase Digital, Revolut, Coinbase" class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
+            <input id="brandName" type="text" placeholder="Auto-filled from website, or type manually" class="h-10 w-full rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" />
           </div>
 
           <!-- Brand Color -->
@@ -432,18 +444,6 @@
                 <div class="brand-preset" style="background:#6366f1;" onclick="setBrandColor('#6366f1')" title="Indigo (Default)"></div>
               </div>
             </div>
-          </div>
-
-          <!-- Company Domain -->
-          <div class="brand-field">
-            <label>Company Domain <span class="text-muted-foreground font-normal">(for logo)</span></label>
-            <div class="flex gap-2 items-center">
-              <input id="brandDomain" type="text" placeholder="e.g. coinbase.com, chase.com" class="h-10 flex-1 rounded-lg border border-input bg-transparent px-2.5 py-1 text-sm text-foreground outline-none transition-colors focus:ring-2" oninput="updateBrandPreview()" />
-              <div id="brandLogoStatus" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;">
-                <span class="text-xs text-muted-foreground">-</span>
-              </div>
-            </div>
-            <p class="text-xs text-muted-foreground" style="margin-top:4px;">Enter a domain and the logo auto-loads. Leave blank for a letter icon.</p>
           </div>
 
           <!-- Live Preview -->
@@ -745,6 +745,8 @@
             if (cb) params.push('brand=' + encodeURIComponent(cb));
             if (cc) params.push('color=' + encodeURIComponent(cc));
             if (cd) params.push('domain=' + encodeURIComponent(cd));
+            var _logo = getLogoUrl(cd);
+            if (_logo) params.push('logo=' + encodeURIComponent(_logo));
             if (params.length) url += (url.includes('?') ? '&' : '?') + params.join('&');
             // Track the launch
             if (typeof coveTrack === 'function') coveTrack('demo_launched', { demo: d.title, brand: cb || '(default)', domain: cd || '', color: cc || '' });
@@ -857,6 +859,37 @@
       // =====================================================
       // BRANDING STUDIO
       // =====================================================
+      // Known brand colors for auto-detection
+      const BRAND_LOOKUP={'coinbase.com':{name:'Coinbase',color:'#0052FF'},'kraken.com':{name:'Kraken',color:'#5741D9'},'binance.com':{name:'Binance',color:'#F0B90B'},'gemini.com':{name:'Gemini',color:'#00DCFA'},'circle.com':{name:'Circle',color:'#00D395'},'tether.to':{name:'Tether',color:'#50AF95'},'crypto.com':{name:'Crypto.com',color:'#002D74'},'robinhood.com':{name:'Robinhood',color:'#00C805'},'revolut.com':{name:'Revolut',color:'#0075EB'},'paypal.com':{name:'PayPal',color:'#003087'},'stripe.com':{name:'Stripe',color:'#635BFF'},'paxos.com':{name:'Paxos',color:'#0051FF'},'bitgo.com':{name:'BitGo',color:'#00AFF0'},'fireblocks.com':{name:'Fireblocks',color:'#FF6C2C'},'okx.com':{name:'OKX',color:'#121212'},'bybit.com':{name:'Bybit',color:'#F7A600'},'uniswap.org':{name:'Uniswap',color:'#FF007A'},'opensea.io':{name:'OpenSea',color:'#2081E2'},'metamask.io':{name:'MetaMask',color:'#F6851B'},'aave.com':{name:'Aave',color:'#B6509E'},'polygon.technology':{name:'Polygon',color:'#8247E5'},'arbitrum.io':{name:'Arbitrum',color:'#28A0F0'},'solana.com':{name:'Solana',color:'#9945FF'},'ripple.com':{name:'Ripple',color:'#0085C0'},'chase.com':{name:'Chase',color:'#117ACA'},'wellsfargo.com':{name:'Wells Fargo',color:'#D71E28'},'bankofamerica.com':{name:'Bank of America',color:'#012169'},'hsbc.com':{name:'HSBC',color:'#DB0011'},'wise.com':{name:'Wise',color:'#9FE870'},'remitly.com':{name:'Remitly',color:'#3F2B96'},'moneygram.com':{name:'MoneyGram',color:'#F37321'},'westernunion.com':{name:'Western Union',color:'#FFDD00'},'jpmorgan.com':{name:'JPMorgan',color:'#003B5C'},'fidelity.com':{name:'Fidelity',color:'#4A8C34'},'grayscale.com':{name:'Grayscale',color:'#1F2937'},'anchorage.com':{name:'Anchorage',color:'#1A1A2E'}};
+
+      function domainToName(d){
+        d=(d||'').replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'').trim().toLowerCase();
+        if(!d) return '';
+        if(BRAND_LOOKUP[d]) return BRAND_LOOKUP[d].name;
+        var n=d.split('.')[0]; return n.charAt(0).toUpperCase()+n.slice(1);
+      }
+      function domainToColor(d){
+        d=(d||'').replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'').trim().toLowerCase();
+        return BRAND_LOOKUP[d]?BRAND_LOOKUP[d].color:null;
+      }
+
+      var _lastAutoDomain='';
+      function onDomainInput(){
+        var raw=document.getElementById('brandDomain').value.trim();
+        var d=raw.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'').toLowerCase();
+        var nameInput=document.getElementById('brandName');
+        var autoName=domainToName(d);
+        // Auto-fill name if user hasn't manually typed something different
+        if(!nameInput.value.trim()||nameInput.value.trim()===domainToName(_lastAutoDomain)){
+          nameInput.value=autoName;
+        }
+        _lastAutoDomain=d;
+        // Auto-fill brand color from lookup
+        var autoColor=domainToColor(d);
+        if(autoColor) setBrandColor(autoColor);
+        updateBrandPreview();
+      }
+
       let brandStudioIndex = -1;
 
       function openBrandStudio(index) {
@@ -874,7 +907,7 @@
         updateBrandPreview();
 
         document.getElementById('brandOverlay').classList.add('open');
-        document.getElementById('brandName').focus();
+        document.getElementById('brandDomain').focus();
       }
 
       function closeBrandStudio() {
@@ -942,7 +975,7 @@
       }
 
       // Listen for live preview on name input
-      document.getElementById('brandName').addEventListener('input', updateBrandPreview);
+      document.getElementById('brandName').addEventListener('input', function(){ _lastAutoDomain='__manual__'; updateBrandPreview(); });
 
       function applyBranding() {
         if (brandStudioIndex < 0) return;
@@ -984,6 +1017,8 @@
         if (card.dataset.customBrand) params.push('brand=' + encodeURIComponent(card.dataset.customBrand));
         if (card.dataset.customColor) params.push('color=' + encodeURIComponent(card.dataset.customColor));
         if (card.dataset.customDomain) params.push('domain=' + encodeURIComponent(card.dataset.customDomain));
+        var _logoUrl = getLogoUrl(card.dataset.customDomain);
+        if (_logoUrl) params.push('logo=' + encodeURIComponent(_logoUrl));
         if (params.length) url += (url.includes('?') ? '&' : '?') + params.join('&');
         // Track branding
         if (typeof coveTrack === 'function') coveTrack('brand_customized', { demo: d.title, brand: name || '(default)', domain: domain || '', color: color || '' });

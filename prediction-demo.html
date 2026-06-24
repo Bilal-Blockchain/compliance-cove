@@ -751,7 +751,7 @@
       var p=new URLSearchParams(window.location.search);
       var brand=p.get('brand');
       var color=p.get('color');
-      var domain=p.get('domain');
+      var domain=p.get('domain');var logo=p.get('logo');
 
       function applyBrand(){
         if(brand && brand!=='ForecastX'){
@@ -780,9 +780,9 @@
             document.querySelectorAll('[fill="'+d+'"]').forEach(function(el){el.setAttribute('fill',color);});
           });
         var _bl=document.querySelector('[data-brand-logo]');if(_bl)_bl.style.background='linear-gradient(135deg,'+color+','+color+'cc)';}
-        if(domain){domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var logoEl=document.querySelector('[data-brand-logo]');if(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src='https://www.google.com/s2/favicons?domain='+domain+'&sz=128';img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';};ch.parentNode.replaceChild(img,ch);}}}
+        var logo=p.get('logo');if(logo||domain){if(!domain&&logo){try{var u=new URL(logo);domain=u.searchParams.get('domain')||'';}catch(e){}}if(domain)domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var logoEl=document.querySelector('[data-brand-logo]');if(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src=logo||('https://www.google.com/s2/favicons?domain='+domain+'&sz=128');img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){if(domain){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';}else this.style.display='none';};ch.parentNode.replaceChild(img,ch);}}}
       }
-      if(!brand&&!color&&!domain)return;
+      if(!brand&&!color&&!domain&&!logo)return;
       if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyBrand);
       else applyBrand();
     })();
