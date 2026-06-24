@@ -61,6 +61,7 @@
           <div class="flex gap-1">
             <button class="qd-tab active" onclick="showPanel('desk')">Trading Desk</button>
             <button class="qd-tab" onclick="showPanel('risk')">Protocol Risk</button>
+            <button class="qd-tab" onclick="showPanel('token')">Token Intel</button>
             <button class="qd-tab" onclick="showPanel('exposure')">Market Intel</button>
             <button class="qd-tab" onclick="showPanel('screening')">Counterparty</button>
             <button class="qd-tab" onclick="showPanel('compliance')">Compliance</button>
@@ -125,6 +126,16 @@
             <div id="hexAlerts"></div>
           </div>
         </div>
+      </div>
+
+      <!-- ==================== TOKEN INTEL (live) ==================== -->
+      <div class="page-panel" id="panel-token">
+        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Live data.</strong> Before you make markets in a token, check its contract security and on-chain activity. Hexagate analyzes the contract, and Gate DSL reads the live chain. Pick a stablecoin to run it now.</span></div>
+        <div class="qd-card" style="padding:14px;margin-bottom:12px;">
+          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Stablecoin Intelligence, live</span><div class="section-head-line"></div></div>
+          <div id="tokenBtns" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+        <div id="tokenIntel"></div>
       </div>
 
       <!-- ==================== MARKET INTELLIGENCE ==================== -->
@@ -206,7 +217,8 @@
             <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#8b5cf6;">Screen New Counterparty</span><div class="section-head-line"></div></div>
             <p class="text-xs" style="color:#64748b;margin-bottom:10px;">Every new on-chain counterparty is auto-screened via Address Screening before the firm can trade with them.</p>
             <input id="cpAddress" type="text" placeholder="0x... counterparty wallet address" style="width:100%;box-sizing:border-box;height:40px;border-radius:8px;border:1px solid var(--qd-border);background:rgba(8,11,20,0.6);padding:0 12px;font-size:12px;font-family:'JetBrains Mono',monospace;color:#e2e8f0;outline:none;" />
-            <button onclick="alert('Screening... (Demo)')" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:12px;font-weight:700;cursor:pointer;">Screen Counterparty</button>
+            <button onclick="screenCounterparty()" style="width:100%;margin-top:8px;padding:8px;border-radius:8px;border:none;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;font-size:12px;font-weight:700;cursor:pointer;">Screen Counterparty</button>
+            <div id="cpResult" style="margin-top:10px;"></div>
           </div>
         </div>
       </div>
@@ -376,6 +388,7 @@
       document.getElementById('panel-'+id).classList.add('active');
       document.querySelectorAll('.qd-tab').forEach(t=>t.classList.remove('active'));
       document.querySelectorAll('.qd-tab').forEach(t=>{if(t.textContent.toLowerCase().includes(id.slice(0,4)))t.classList.add('active');});
+      if(id==='token'){ renderTokenBtns(); if(!window._tokInit){ window._tokInit=1; selectToken(tokSel); } }
     }
 
     // =====================================================
@@ -603,6 +616,94 @@
     // Compliance chart
     const days=Array.from({length:30},(_,i)=>{const d=new Date();d.setDate(d.getDate()-29+i);return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});});
     new Chart(document.getElementById('complianceChart'),{type:'line',data:{labels:days,datasets:[{label:'Screens',data:Array.from({length:30},()=>20+Math.random()*20),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.05)',fill:true,tension:0.3,borderWidth:1.5,pointRadius:0},{label:'Alerts',data:Array.from({length:30},()=>Math.random()*2),borderColor:'#eab308',backgroundColor:'rgba(234,179,8,0.05)',fill:true,tension:0.3,borderWidth:1.5,pointRadius:0}]},options:{responsive:true,plugins:{legend:{position:'top',align:'end',labels:{usePointStyle:true,pointStyle:'circle',padding:8,font:{size:9},color:'#94a3b8'}}},scales:{x:{grid:{display:false},ticks:{font:{size:8},color:'#475569',maxTicksLimit:8}},y:{grid:{color:'rgba(51,65,85,0.1)'},ticks:{font:{size:9},color:'#475569'}}}}});
+    // =====================================================
+    // LIVE: Token Intel (Hexagate + Gate DSL) and Counterparty (Address Screening)
+    // =====================================================
+    const HEX_SLUG='cove-hexagate', AS_SLUG='demochain-address-screen';
+    async function wfCall(slug,input){ const r=await fetch('/api/workflow/'+slug+'/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input})}); if(!r.ok) throw new Error('api'); const d=await r.json(); const o=d.output??d; if(o&&o.error) throw new Error(o.error); return o; }
+    const fmtUsd0=n=>'$'+Number(n).toLocaleString(undefined,{maximumFractionDigits:0});
+    const shortA=a=>a&&a.length>16?a.slice(0,8)+'...'+a.slice(-6):a;
+    const hexRiskColor=l=>({LOW:'#22c55e',MEDIUM:'#eab308',HIGH:'#f97316',CRITICAL:'#ef4444'})[l]||'#64748b';
+
+    async function openInReactor(address,btn){ if(btn){btn.disabled=true;btn.style.opacity='.6';} try{ const r=await fetch('/api/workflow/arcswap-reactor-graph/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address,network:'ETH'}})}); if(!r.ok)throw 0; const d=await r.json(); const o=d.output??d; if(o.graphUrl)window.open(o.graphUrl,'_blank'); else throw 0; }catch(e){ if(btn)btn.title='Open this page in a new tab to create a live Reactor graph.'; }finally{ if(btn){btn.disabled=false;btn.style.opacity='';} } }
+    function reactorLinkHtml(a){ return '<button type="button" onclick="openInReactor(\''+a+'\',this)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;color:#a855f7;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);cursor:pointer;">Investigate in Reactor</button>'; }
+
+    const STABLES=[
+      {sym:'USDC',name:'USD Coin',addr:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',dec:6},
+      {sym:'USDT',name:'Tether',addr:'0xdAC17F958D2ee523a2206206994597C13D831ec7',dec:6},
+      {sym:'PYUSD',name:'PayPal USD',addr:'0x6c3ea9036406852006290770BEdFcAbA0e23A0e8',dec:6},
+      {sym:'DAI',name:'Dai',addr:'0x6B175474E89094C44Da98b954EedeAC495271d0F',dec:18},
+      {sym:'USDe',name:'Ethena USDe',addr:'0x4c9EDD5852cd905f086C759E8383e09bff1E68B3',dec:18},
+    ];
+    let tokSel='USDC';
+    function renderTokenBtns(){ const el=document.getElementById('tokenBtns'); if(!el)return; el.innerHTML=STABLES.map(s=>`<button class="qd-tab ${s.sym===tokSel?'active':''}" onclick="selectToken('${s.sym}')" style="font-size:12px;padding:7px 14px;">${s.sym}</button>`).join(''); }
+    function tokGate(addr){ return 'use Events, Sum from hexagate;\nsource token: address = '+addr+';\nsource transfers: list<tuple<address, address, integer>> = Events { contract: token, signature: "event Transfer(address indexed from, address indexed to, uint256 value)" };\nsource blockVolume: integer = Sum { sequence: [t[2] for t in transfers] };\nrule { description: "volume", condition: blockVolume >= 0, severity: "LOW" };'; }
+
+    async function selectToken(sym){
+      tokSel=sym; renderTokenBtns();
+      const t=STABLES.find(x=>x.sym===sym);
+      const el=document.getElementById('tokenIntel');
+      el.innerHTML='<div class="qd-card" style="padding:18px;"><div class="flex items-center gap-2"><div class="animate-spin" style="width:16px;height:16px;border:2px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Querying Hexagate and live chain data for '+sym+'...</span></div></div>';
+      let hx=null, gt=null, sandbox=false;
+      try{ [hx,gt]=await Promise.all([ wfCall(HEX_SLUG,{mode:'analyze_address',address:t.addr}), wfCall(HEX_SLUG,{mode:'gate_validate',gate:tokGate(t.addr),chainId:1}) ]); }
+      catch(e){ sandbox=true; hx={risk_level:'LOW',type:'ERC20',name:t.name,age:'n/a',issues:[],checks:21}; gt={trace:{transfers:{_count:0},blockVolume:0}}; }
+      renderTokenIntel(t,hx,gt,sandbox);
+      if(typeof coveTrack==='function') coveTrack('token_intel',{demo:'Trading Firm',address:t.addr});
+    }
+    function renderTokenIntel(t,hx,gt,sandbox){
+      const rl=hx.risk_level||'LOW', rc=hexRiskColor(rl);
+      const issues=hx.issues||[], checks=hx.checks||21;
+      const tr=(gt&&gt.trace)||{}; const cnt=tr.transfers&&typeof tr.transfers==='object'?(tr.transfers._count||0):(Array.isArray(tr.transfers)?tr.transfers.length:0);
+      const volRaw=tr.blockVolume||0, vol=volRaw/Math.pow(10,t.dec), block=(gt&&gt.block)||'latest';
+      const verdict = rl==='LOW' ? {txt:'Cleared to make markets',c:'#22c55e',sub:'Contract checks pass with no critical security issues.'} : (rl==='MEDIUM' ? {txt:'Proceed with review',c:'#eab308',sub:'Some security findings. Review before sizing up.'} : {txt:'Elevated risk',c:'#ef4444',sub:'Significant findings. Escalate before making markets.'});
+      document.getElementById('tokenIntel').innerHTML=`
+        <div class="qd-card" style="padding:14px;margin-bottom:12px;">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div><span class="text-sm font-bold">${t.name}</span> <span style="color:#475569;font-size:11px;">${t.sym}</span></div>
+            <span class="mono" style="font-size:10px;color:#475569;">${shortA(t.addr)}</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;">
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Contract Security, Hexagate</span><div class="section-head-line"></div></div>
+            <div class="flex items-center justify-between" style="margin-bottom:8px;"><span class="qd-badge" style="background:${rc}15;color:${rc};">${rl} RISK</span><span class="text-xs" style="color:#64748b;">${hx.type||'ERC20'}${hx.age?' · '+hx.age:''}</span></div>
+            <div class="text-xs" style="color:#94a3b8;margin-bottom:8px;">${hx.name||t.name}</div>
+            <div class="text-xs" style="color:#64748b;margin-bottom:6px;">${issues.length} of ${checks} security checks flagged</div>
+            ${issues.length?issues.map(i=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:3px 0;border-bottom:1px solid rgba(51,65,85,0.15);"><span style="color:#94a3b8;">${i.type}</span><span style="color:${hexRiskColor(i.risk_level)};">${i.risk_level}</span></div>`).join(''):'<div class="text-xs" style="color:#22c55e;">No issues flagged</div>'}
+          </div>
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Live On-Chain Activity, Gate DSL</span><div class="section-head-line"></div></div>
+            <div class="qd-stat-val" style="color:#22c55e;font-size:22px;">${fmtUsd0(vol)}</div>
+            <div class="text-xs" style="color:#64748b;margin-top:2px;">${t.sym} transfer volume in block #${block}</div>
+            <div class="text-xs" style="color:#64748b;margin-top:8px;">${cnt} transfers in the block</div>
+            <div class="text-xs" style="color:#475569;margin-top:8px;line-height:1.5;">Pulled live from Ethereum via Hexagate Gate DSL.</div>
+          </div>
+          <div class="qd-card" style="padding:14px;">
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:${verdict.c};">Make-Markets Verdict</span><div class="section-head-line"></div></div>
+            <div class="flex items-center gap-2"><span style="width:10px;height:10px;border-radius:50%;background:${verdict.c};"></span><span class="text-sm font-bold" style="color:${verdict.c};">${verdict.txt}</span></div>
+            <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.5;">${verdict.sub}</p>
+            <div style="margin-top:10px;">${reactorLinkHtml(t.addr)}</div>
+            ${sandbox?'<p class="text-xs" style="color:#475569;margin-top:8px;line-height:1.5;">Preview sandbox cannot reach the live API. Open this page in a new tab for live Hexagate and chain data.</p>':''}
+          </div>
+        </div>`;
+    }
+
+    async function screenCounterparty(){
+      const inp=document.getElementById('cpAddress'); const addr=(inp.value||'').trim();
+      const el=document.getElementById('cpResult');
+      if(!addr){ inp.style.borderColor='#ef4444'; el.innerHTML=''; return; }
+      inp.style.borderColor='';
+      el.innerHTML='<div class="flex items-center gap-2" style="padding:6px 0;"><div class="animate-spin" style="width:14px;height:14px;border:2px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Screening with Chainalysis Address Screening...</span></div>';
+      let r=null, sandbox=false;
+      try{ r=await wfCall(AS_SLUG,{address:addr}); }catch(e){ sandbox=true; }
+      if(!r){ el.innerHTML='<p class="text-xs" style="color:#475569;">Open this page in a new tab to run live screening.</p>'; return; }
+      const rc={Low:'#22c55e',Medium:'#eab308',High:'#f97316',Severe:'#ef4444'}[r.risk]||'#64748b';
+      let exp='';
+      if(r.exposures&&r.exposures.length){ const top=r.exposures.slice(0,3); const max=Math.max(...top.map(e=>e.value)); exp=top.map(e=>{const pct=max>0?e.value/max*100:0;const v=e.value>=1e6?'$'+(e.value/1e6).toFixed(1)+'M':e.value>=1e3?'$'+(e.value/1e3).toFixed(1)+'K':'$'+e.value.toFixed(0);const bc=/scam|stolen|sanction|ransom|darknet/.test(e.category)?'#ef4444':/gambling|unnamed|mixing/.test(e.category)?'#eab308':'#22c55e';return '<div style="display:flex;align-items:center;gap:6px;margin-top:4px;"><span style="font-size:9px;color:#64748b;min-width:96px;text-align:right;">'+e.category+'</span><div class="risk-bar"><div class="risk-fill" style="width:'+pct+'%;background:'+bc+';"></div></div><span class="mono" style="font-size:9px;color:#94a3b8;min-width:46px;">'+v+'</span></div>';}).join(''); }
+      el.innerHTML='<div class="alert-row"><div class="flex items-center justify-between"><span class="qd-badge" style="background:'+rc+'15;color:'+rc+';">'+(r.risk||'Unknown')+' RISK</span><span class="mono text-xs" style="color:#475569;">'+shortA(r.address||addr)+'</span></div><div class="text-xs" style="color:#94a3b8;margin-top:4px;line-height:1.4;">'+(r.riskReason||'')+'</div>'+(r.cluster&&r.cluster.name?'<div class="text-xs" style="color:#64748b;margin-top:2px;">'+r.cluster.name+(r.cluster.category?' · '+r.cluster.category:'')+'</div>':'')+exp+'<div style="margin-top:8px;">'+reactorLinkHtml(r.address||addr)+'</div>'+(sandbox?'<p class="text-xs" style="color:#475569;margin-top:6px;">Open in a new tab for live screening.</p>':'')+'</div>';
+      if(typeof coveTrack==='function') coveTrack('counterparty_screened',{demo:'Trading Firm',address:addr});
+    }
+    renderTokenBtns();
     </script>
 
     <!-- Brand customization -->

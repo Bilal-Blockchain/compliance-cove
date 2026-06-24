@@ -343,9 +343,11 @@ Sandbox-safe validated fallbacks throughout; brand-swap (?brand=&color=&domain=)
 
 ### 7. 📊 Trading Firm / Market Maker `trading-firm-demo.html`
 **Priority:** Medium — High-value prospect segment (Cumberland, Jump, Jane Street, Wintermute)  
-**Effort:** ~5–6 hours  
+**Status:** ✅ Built (QuantDesk), then **wired with live calls**.  
 **Products:** Hexagate, Data Solutions, KYT, Address Screening  
 **Industry:** Trading / Market Making
+
+**Live data added:** A new **Token Intel** tab runs live on a real stablecoin (USDC, USDT, PYUSD, DAI, USDe): **Hexagate `analyze_address`** for contract security (risk level, type, contract age, flagged checks), **Gate DSL `gate_validate`** for the live per-block transfer volume, and a synthesized make-markets verdict + Reactor link. **Counterparty screening** is now live via `demochain-address-screen` (risk, reason, exposure bars, Reactor). Both via the deployed `cove-hexagate` + Address Screening workflows; sandbox-safe fallbacks. The rest of the desk (positions, venue flows, whale tracker) stays as illustrative context.
 
 **Concept:** An institutional crypto trading desk dashboard. Market makers need to monitor smart contract risk on protocols they provide liquidity to, understand token exposure across venues, track counterparty risk, and stay compliant across DeFi and CeFi simultaneously.
 

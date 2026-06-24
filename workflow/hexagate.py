@@ -114,6 +114,25 @@ def handler(event: dict, context: DurableContext) -> dict:
             return {"ok": True, "mode": mode,
                     "result": MonitoringClient().list_events(event.get("monitorId"))}
 
+        if mode == "analyze_address":
+            from chainalysis_skill_hexagate import HexagateClient
+            r = HexagateClient().analyze_address(
+                event.get("address"),
+                blockchain=event.get("blockchain", "ethereum"),
+                chain=event.get("chain", "mainnet"),
+            )
+            issues = [{"type": i.get("type"), "risk_level": i.get("risk_level")}
+                      for i in (r.get("security_issues") or []) if i.get("result")]
+            age = None
+            for i in (r.get("security_issues") or []):
+                ed = i.get("extra_details") or {}
+                if isinstance(ed, dict) and ed.get("age_of_contract"):
+                    age = ed.get("age_of_contract")
+                    break
+            return {"ok": True, "mode": mode, "risk_level": r.get("risk_level"),
+                    "type": r.get("type"), "name": r.get("name"), "age": age,
+                    "issues": issues, "checks": len(r.get("security_issues") or [])}
+
         if mode == "analyze_transaction":
             from chainalysis_skill_hexagate import HexagateClient
             return {"ok": True, "mode": mode,
