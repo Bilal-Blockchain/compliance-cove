@@ -130,9 +130,12 @@
 
       <!-- ==================== TOKEN INTEL (live) ==================== -->
       <div class="page-panel" id="panel-token">
-        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Token Due Diligence.</strong> Before making markets in a stablecoin, run the full compliance check. Contract security (Hexagate), live on-chain activity (Gate DSL), and risk exposure analysis (Data Solutions, 7-day window). All tokens pre-load in the background for instant switching.</span></div>
+        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Token Due Diligence.</strong> Before making markets in a stablecoin, run the full compliance check. Contract security (Hexagate), live on-chain activity (Gate DSL), and risk exposure analysis (Data Solutions, 7-day window).</span></div>
         <div class="qd-card" style="padding:14px;margin-bottom:12px;">
-          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Token Due Diligence, live</span><div class="section-head-line"></div></div>
+          <div class="flex items-center justify-between" style="margin-bottom:8px;">
+            <div class="section-head" style="margin-bottom:0;"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Token Due Diligence</span><div class="section-head-line"></div></div>
+            <button id="refreshBtn" onclick="refreshTokenIntel()" style="padding:3px 10px;border-radius:5px;border:1px solid rgba(6,182,212,0.2);background:rgba(6,182,212,0.04);color:#06b6d4;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;">↻ Refresh live</button>
+          </div>
           <div id="tokenBtns" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
         <div id="tokenIntel"></div>
@@ -402,7 +405,7 @@
       document.getElementById('panel-'+id).classList.add('active');
       document.querySelectorAll('.qd-tab').forEach(t=>t.classList.remove('active'));
       document.querySelectorAll('.qd-tab').forEach(t=>{if(t.textContent.toLowerCase().includes(id.slice(0,4)))t.classList.add('active');});
-      if(id==='token'){ renderTokenBtns(); startPrefetch(); if(!window._tokInit){ window._tokInit=1; selectToken(tokSel); } }
+      if(id==='token'){ renderTokenBtns(); if(!window._tokInit){ window._tokInit=1; selectToken(tokSel); } }
       if(id==='exposure'){ loadTokenRiskProfiles(); }
     }
 
@@ -705,68 +708,59 @@
     function renderTokenBtns(){ const el=document.getElementById('tokenBtns'); if(!el)return; el.innerHTML=STABLES.map(s=>`<button class="qd-tab ${s.sym===tokSel?'active':''}" onclick="selectToken('${s.sym}')" style="font-size:12px;padding:7px 14px;">${s.sym}</button>`).join(''); }
     function tokGate(addr){ return 'use Events, Sum from hexagate;\nsource token: address = '+addr+';\nsource transfers: list<tuple<address, address, integer>> = Events { contract: token, signature: "event Transfer(address indexed from, address indexed to, uint256 value)" };\nsource blockVolume: integer = Sum { sequence: [t[2] for t in transfers] };\nrule { description: "volume", condition: blockVolume >= 0, severity: "LOW" };'; }
 
-    // ---- Token Intel: prefetch + cache for instant switching ----
-    const tokenCache={}, tokenFetches={};
-    let riskProfiles=null, _prefetching=false;
+    // ---- Token Intel: pre-baked real data for instant render ----
+    // Queried from Chainalysis Data Solutions + Hexagate on June 24, 2026.
+    // Click "Refresh live" to re-query during a demo call.
+    const BAKED_RP={"USDC":{"symbol":"USDC","volume_usd":291623695448,"transfers":4211513,"sanctions_pct":0.0147,"mixer_pct":0.0,"darknet_pct":0.0002,"illicit_pct":0.0031,"gambling_pct":0.0531,"no_kyc_pct":0.0046,"sanctions_usd":42982074,"mixer_usd":23295,"darknet_usd":529837,"illicit_usd":9160866,"gambling_usd":154835516,"no_kyc_usd":13386285,"risky_pct":0.0758,"risk_level":"Low"},"USDT":{"symbol":"USDT","volume_usd":102316512162,"transfers":5960933,"sanctions_pct":0.2953,"mixer_pct":0.0,"darknet_pct":0.0002,"illicit_pct":0.007,"gambling_pct":0.3259,"no_kyc_pct":0.0373,"sanctions_usd":302104259,"mixer_usd":7791,"darknet_usd":172375,"illicit_usd":7117474,"gambling_usd":333499563,"no_kyc_usd":38138180,"risky_pct":0.6656,"risk_level":"Medium"},"DAI":{"symbol":"DAI","volume_usd":17516695617,"transfers":95729,"sanctions_pct":0.0009,"mixer_pct":0.0002,"darknet_pct":0.0,"illicit_pct":0.0685,"gambling_pct":0.0665,"no_kyc_pct":0.0063,"sanctions_usd":152749,"mixer_usd":31291,"darknet_usd":0,"illicit_usd":12005625,"gambling_usd":11641585,"no_kyc_usd":1099516,"risky_pct":0.1423,"risk_level":"Medium"},"PYUSD":{"symbol":"PYUSD","volume_usd":3004783044,"transfers":30661,"sanctions_pct":0.0068,"mixer_pct":0.0,"darknet_pct":0.0001,"illicit_pct":0.0,"gambling_pct":0.0,"no_kyc_pct":0.0,"sanctions_usd":204015,"mixer_usd":0,"darknet_usd":2809,"illicit_usd":55,"gambling_usd":609,"no_kyc_usd":0,"risky_pct":0.0069,"risk_level":"Low"},"USDE":{"symbol":"USDE","volume_usd":1493837911,"transfers":40436,"sanctions_pct":0.0224,"mixer_pct":0.0,"darknet_pct":0.0,"illicit_pct":0.0018,"gambling_pct":0.0,"no_kyc_pct":0.0,"sanctions_usd":334711,"mixer_usd":0,"darknet_usd":0,"illicit_usd":26445,"gambling_usd":0,"no_kyc_usd":0,"risky_pct":0.0242,"risk_level":"Low"}};
+    const BAKED_HX={"PYUSD":{"risk_level":"LOW","type":"ERC20","name":"AdminUpgradeabilityProxy","age":"3 years","issues":[{"type":"SMARTCONTRACT_IS_A_PROXY","risk_level":"MEDIUM"}],"checks":21},"DAI":{"risk_level":"LOW","type":"ERC20","name":"Dai","age":"6 years","issues":[],"checks":21},"USDT":{"risk_level":"LOW","type":"ERC20","name":"TetherToken","age":"8 years","issues":[{"type":"SMARTCONTRACT_IMPLEMENTS_OWNABLE_FUNCTIONALITY","risk_level":"LOW"},{"type":"SMARTCONTRACT_IMPLEMENTS_PAUSABLE_FUNCTIONALITY","risk_level":"LOW"}],"checks":21},"USDE":{"risk_level":"LOW","type":"ERC20","name":"Unknown","age":"2 years","issues":[{"type":"SMARTCONTRACT_IMPLEMENTS_OWNABLE_FUNCTIONALITY","risk_level":"LOW"},{"type":"SMARTCONTRACT_REFERS_STATIC_ADDRESSES_IN_THE_CODE","risk_level":"LOW"}],"checks":20},"USDC":{"risk_level":"LOW","type":"ERC20","name":"FiatTokenProxy","age":"7 years","issues":[{"type":"SMARTCONTRACT_IS_A_PROXY","risk_level":"MEDIUM"}],"checks":21}};
 
-    function startPrefetch(){
-      if(_prefetching) return; _prefetching=true;
-      // One call for all tokens' risk data (Data Solutions)
-      wfCall(TI_SLUG,{mode:'risk_profiles'}).then(r=>{
-        if(r.ok){ riskProfiles={}; (r.profiles||[]).forEach(p=>{riskProfiles[p.symbol]=p;}); }
-        if(tokenCache[tokSel]) rerenderToken();
-      }).catch(()=>{});
-      // Only analyze_address per token (fast, ~3s each)
-      STABLES.forEach(s=>fetchTokenDetail(s.sym));
-    }
+    const tokenCache={};
+    let riskProfiles=BAKED_RP;
+    STABLES.forEach(function(s){ if(BAKED_HX[s.sym]) tokenCache[s.sym]={hx:BAKED_HX[s.sym],sandbox:false}; });
 
-    function fetchTokenDetail(sym){
-      if(tokenCache[sym]) return Promise.resolve();
-      if(tokenFetches[sym]) return tokenFetches[sym];
-      const t=STABLES.find(x=>x.sym===sym);
-      const p=(async()=>{
-        let hx, sandbox=false;
-        try{ hx=await wfCall(HEX_SLUG,{mode:'analyze_address',address:t.addr}); }
-        catch(e){ sandbox=true; hx={risk_level:'LOW',type:'ERC20',name:t.name,age:'n/a',issues:[],checks:21}; }
-        tokenCache[sym]={hx,sandbox};
-        if(sym===tokSel) rerenderToken();
-      })();
-      tokenFetches[sym]=p;
-      return p;
+    async function refreshTokenIntel(){
+      var btn=document.getElementById('refreshBtn');
+      if(btn){btn.disabled=true;btn.innerHTML='↻ Refreshing...';}
+      try{
+        var rp=await wfCall(TI_SLUG,{mode:'risk_profiles'});
+        if(rp.ok){ riskProfiles={}; (rp.profiles||[]).forEach(function(p){riskProfiles[p.symbol]=p;}); }
+      }catch(e){}
+      var ps=STABLES.map(function(s){
+        return wfCall(HEX_SLUG,{mode:'analyze_address',address:s.addr}).then(function(hx){
+          var old=tokenCache[s.sym]||{};
+          tokenCache[s.sym]={hx:hx,sandbox:false,gt:old.gt,ex:old.ex};
+        }).catch(function(){});
+      });
+      await Promise.all(ps);
+      rerenderToken();
+      if(btn){btn.disabled=false;btn.innerHTML='↻ Refresh live';}
     }
 
     async function loadGateDSL(sym){
-      const t=STABLES.find(x=>x.sym===sym), c=tokenCache[sym]; if(!c) return;
-      const btn=document.getElementById('gateBtn'); if(btn) btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;vertical-align:middle;"></div> Reading block...';
-      try{
-        const gt=await wfCall(HEX_SLUG,{mode:'gate_validate',gate:tokGate(t.addr),chainId:1});
-        c.gt=gt;
-      }catch(e){ c.gt={trace:{transfers:{_count:0},blockVolume:0},block:'n/a'}; }
+      var t=STABLES.find(function(x){return x.sym===sym;}), c=tokenCache[sym]; if(!c) return;
+      var btn=document.getElementById('gateBtn'); if(btn) btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;vertical-align:middle;"></div> Reading block...';
+      try{ c.gt=await wfCall(HEX_SLUG,{mode:'gate_validate',gate:tokGate(t.addr),chainId:1}); }
+      catch(e){ c.gt={trace:{transfers:{_count:0},blockVolume:0},block:'n/a'}; }
       if(sym===tokSel) rerenderToken();
     }
 
     async function loadExposure(sym){
-      const t=STABLES.find(x=>x.sym===sym), c=tokenCache[sym]; if(!c) return;
-      const btn=document.getElementById('expBtn'); if(btn) btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid #1e293b;border-top-color:#eab308;border-radius:50%;vertical-align:middle;"></div> Querying...';
+      var t=STABLES.find(function(x){return x.sym===sym;}), c=tokenCache[sym]; if(!c) return;
+      var btn=document.getElementById('expBtn'); if(btn) btn.innerHTML='<div class="animate-spin" style="display:inline-block;width:10px;height:10px;border:2px solid #1e293b;border-top-color:#eab308;border-radius:50%;vertical-align:middle;"></div> Querying...';
       try{ c.ex=await wfCall(TI_SLUG,{mode:'token_exposure',address:t.addr}); }
       catch(e){ c.ex={ok:false}; }
       if(sym===tokSel) rerenderToken();
     }
 
     function rerenderToken(){
-      const t=STABLES.find(x=>x.sym===tokSel), c=tokenCache[tokSel];
+      var t=STABLES.find(function(x){return x.sym===tokSel;}), c=tokenCache[tokSel];
       if(!c) return;
-      renderTokenIntel(t,c.hx,c.gt,c.ex,riskProfiles?riskProfiles[tokSel]:null,c.sandbox);
+      renderTokenIntel(t,c.hx,c.gt||null,c.ex||null,riskProfiles?riskProfiles[tokSel]:null,c.sandbox);
     }
 
-    async function selectToken(sym){
-      tokSel=sym; renderTokenBtns();
-      if(tokenCache[sym]){ rerenderToken(); }
-      else {
-        document.getElementById('tokenIntel').innerHTML='<div class="qd-card" style="padding:18px;"><div class="flex items-center gap-2"><div class="animate-spin" style="width:16px;height:16px;border:2px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Loading due diligence for '+sym+'...</span></div></div>';
-        await fetchTokenDetail(sym);
-      }
-      if(typeof coveTrack==='function') coveTrack('token_intel',{demo:'Trading Firm',address:STABLES.find(x=>x.sym===sym).addr});
+    function selectToken(sym){
+      tokSel=sym; renderTokenBtns(); rerenderToken();
+      if(typeof coveTrack==='function') coveTrack('token_intel',{demo:'Trading Firm',address:STABLES.find(function(x){return x.sym===sym;}).addr});
     }
 
     function renderTokenIntel(t,hx,gt,ex,rp,sandbox){
