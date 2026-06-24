@@ -161,7 +161,7 @@
         description:'Follow-up investigation on the suspected secondary wallet linked to claim CG-2026-0847. This wallet received funds from the scammer\'s main wallet and cashed out at multiple exchanges including Backpack, VALR, and LBank.',
         wallet:'0xfada7810576254bed369065f988b6377a97fc7f1',
         walletLabel:'Suspected secondary scammer wallet',
-        scenario:'exploit',
+        scenario:'laundering',
         flow:[
           {label:'Scammer Wallet',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$100K+',entity:null,risk:'High',note:'Source: main scammer wallet'},
           {label:'Secondary Wallet',addr:'0xfada7810576254bed369065f988b6377a97fc7f1',amount:'$100K+',entity:null,risk:'High',note:'Suspected accomplice or same operator'},
@@ -178,7 +178,7 @@
         description:'Account compromised via SIM swap attack. Attacker bypassed 2FA and withdrew funds from exchange account. Exchange confirmed unauthorized access from a new IP address and device fingerprint.',
         wallet:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',
         walletLabel:'Recipient of stolen funds',
-        scenario:'theft',
+        scenario:'takeover',
         flow:[
           {label:'Exchange Account',addr:'0xeefb36c4458da7798742cf038c5c27e07ab9c51e',amount:'$89K',entity:null,risk:'High',note:'Funds withdrawn via compromised account'},
           {label:'Layering',addr:'0x9b2a3b92b1d869384f6a51e104f9e49fba6a6d09',amount:'$89K',entity:null,risk:'High',note:'Same cluster as other scam wallets'},
