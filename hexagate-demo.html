@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="cove-demo" content="Smart Contract Security (Hexagate)" />
-    <title>ShieldFi, Protocol and Wallet Security</title>
+    <title>ShieldFi, Contract and Wallet Security</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <style>
@@ -42,7 +42,15 @@
       .section-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
       .section-head-line{flex:1;height:1px;background:var(--sf-border);}
       .sim-output{border-radius:10px;background:#0b1120;border:1px solid var(--sf-border);padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.7;color:#e2e8f0;white-space:pre-wrap;}
-      .sf-footer{position:relative;z-index:1;border-top:1px solid var(--sf-border);padding:24px 0;background:rgba(7,10,18,0.9);}
+      .sf-footer{position:relative;z-index:0;border-top:1px solid var(--sf-border);padding:24px 0;background:rgba(7,10,18,0.9);}
+      /* Gate guided tour */
+      #gtSpot{position:absolute;z-index:300;border-radius:8px;box-shadow:0 0 0 9999px rgba(7,10,18,0.8);border:1px solid rgba(14,165,233,0.9);pointer-events:none;transition:top .3s,left .3s,width .3s,height .3s;}
+      #gtTip{position:absolute;z-index:301;width:320px;max-width:calc(100vw - 24px);background:#0c1421;border:1px solid var(--sf-border);border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.55);padding:16px;}
+      #gtTip h4{font-size:14px;font-weight:800;margin:4px 0 6px;color:#e2e8f0;}
+      #gtTip p{font-size:12px;line-height:1.55;color:#94a3b8;margin:0;}
+      .gt-num{font-size:10px;font-weight:700;color:#0ea5e9;letter-spacing:.5px;text-transform:uppercase;}
+      .gt-actions{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:8px;}
+      .gline{border-radius:4px;}
       .page-panel{display:none;}.page-panel.active{display:block;}
       @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}.pulse{animation:pulse 2s ease infinite;}
       /* Use-case + step + monitor rows */
@@ -85,7 +93,7 @@
       </div>
     </nav>
 
-    <div class="max-w-5xl mx-auto px-4 py-6" style="position:relative;z-index:1;">
+    <div class="max-w-5xl mx-auto px-4 py-6" style="position:relative;z-index:2;">
 
       <!-- ==================== OVERVIEW ==================== -->
       <div class="page-panel active" id="panel-overview">
@@ -109,64 +117,50 @@
           </div>
         </div>
 
-        <div class="section-head"><span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Built for</span><div class="section-head-line"></div></div>
+        <div class="section-head"><span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">What you can monitor</span><div class="section-head-line"></div></div>
         <div class="grid grid-cols-2 gap-4">
           <div class="uc-btn" onclick="setUseCase('protocol');showPanel('monitoring')">
-            <div class="flex items-center gap-2"><span style="font-size:18px;">🏦</span><span class="text-sm font-bold">Protocol / Stablecoin</span></div>
-            <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.6;">Monitor your contracts for abnormal outflows, TVL drops, suspicious upgrades, and exploit patterns.</p>
+            <div class="flex items-center gap-2"><span style="font-size:18px;">📄</span><span class="text-sm font-bold">Monitor your Contracts</span></div>
+            <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.6;">Catch abnormal outflows, TVL drops, suspicious upgrades, and exploit patterns on your contracts.</p>
           </div>
           <div class="uc-btn" onclick="setUseCase('exchange');showPanel('monitoring')">
-            <div class="flex items-center gap-2"><span style="font-size:18px;">💱</span><span class="text-sm font-bold">Exchange</span></div>
-            <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.6;">Monitor your hot wallets for abnormal outflows, drains, and wallet compromise, caught in seconds.</p>
+            <div class="flex items-center gap-2"><span style="font-size:18px;">👛</span><span class="text-sm font-bold">Monitor your Hot Wallets</span></div>
+            <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.6;">Catch abnormal outflows, drains, and wallet compromise on your hot wallets, in seconds.</p>
           </div>
         </div>
       </div>
 
       <!-- ==================== MONITORING ==================== -->
       <div class="page-panel" id="panel-monitoring">
-        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Live Hexagate Monitor API.</strong> Create a real monitor and see it join the monitors already watching this org on every block.</span></div>
+        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Live Hexagate Monitor API.</strong> These monitors are already deployed and evaluated on every block. Below are the most recent on chain events that tripped them.</span></div>
 
         <div class="grid grid-cols-2 gap-3" style="margin-bottom:14px;">
           <button class="uc-btn active" id="uc-protocol" onclick="setUseCase('protocol')">
-            <div class="flex items-center gap-2"><span style="font-size:16px;">🏦</span><span class="text-sm font-bold">Protocol / Stablecoin</span></div>
-            <p class="text-xs" style="color:#64748b;margin-top:4px;">Monitor your contracts</p>
+            <div class="flex items-center gap-2"><span style="font-size:16px;">📄</span><span class="text-sm font-bold">Monitor your Contracts</span></div>
+            <p class="text-xs" style="color:#64748b;margin-top:4px;">Contracts, vaults, and token issuers</p>
           </button>
           <button class="uc-btn" id="uc-exchange" onclick="setUseCase('exchange')">
-            <div class="flex items-center gap-2"><span style="font-size:16px;">💱</span><span class="text-sm font-bold">Exchange</span></div>
-            <p class="text-xs" style="color:#64748b;margin-top:4px;">Monitor your hot wallets</p>
+            <div class="flex items-center gap-2"><span style="font-size:16px;">👛</span><span class="text-sm font-bold">Monitor your Hot Wallets</span></div>
+            <p class="text-xs" style="color:#64748b;margin-top:4px;">Custody and treasury wallets</p>
           </button>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
-          <!-- Create monitor -->
+          <!-- Active monitors (pre-created) -->
           <div class="sf-card" style="padding:18px;">
-            <div class="section-head"><span style="font-size:11px;font-weight:700;color:#7dd3fc;text-transform:uppercase;letter-spacing:0.5px;">Create monitor</span><div class="section-head-line"></div></div>
-            <p class="text-xs" style="color:#64748b;margin-bottom:4px;">Target</p>
-            <div style="border-radius:10px;border:1px solid var(--sf-border);padding:10px 12px;margin-bottom:12px;">
-              <div class="text-sm font-semibold" id="monTargetName">USDC Stablecoin Contract</div>
-              <div class="mono" style="font-size:11px;color:#475569;margin-top:2px;" id="monTargetAddr">0xA0b8...eB48</div>
-            </div>
-            <div class="grid grid-cols-2 gap-3" style="margin-bottom:12px;">
-              <div>
-                <p class="text-xs" style="color:#64748b;margin-bottom:4px;">Alert on outflow over (USD)</p>
-                <input id="monThreshold" type="number" class="sf-input" value="1000000" />
-              </div>
-              <div>
-                <p class="text-xs" style="color:#64748b;margin-bottom:4px;">Severity</p>
-                <input id="monSeverity" class="sf-input" value="Critical" readonly />
-              </div>
-            </div>
-            <button class="sf-btn sf-btn-primary" style="width:100%;justify-content:center;" onclick="createMonitor()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-              Create live monitor
+            <div class="section-head"><span style="font-size:11px;font-weight:700;color:#7dd3fc;text-transform:uppercase;letter-spacing:0.5px;">Active monitors</span><div class="section-head-line"></div><span class="live-pill" id="monLiveCount"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>live</span></div>
+            <div id="monList"></div>
+            <button class="sf-btn sf-btn-ghost" style="width:100%;justify-content:center;margin-top:10px;" onclick="createMonitor()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+              Create another monitor (live Monitor API)
             </button>
-            <div id="monCreateResult" style="margin-top:12px;"></div>
+            <div id="monCreateResult" style="margin-top:10px;"></div>
           </div>
 
-          <!-- Live monitors -->
+          <!-- Recent triggers -->
           <div class="sf-card" style="padding:18px;">
-            <div class="section-head"><span style="font-size:11px;font-weight:700;color:#7dd3fc;text-transform:uppercase;letter-spacing:0.5px;">Monitors watching this org</span><div class="section-head-line"></div><button class="sf-btn sf-btn-ghost" style="padding:4px 10px;" onclick="loadMonitors()">Refresh</button></div>
-            <div id="monList"><p class="text-xs" style="color:#64748b;">Loading live monitors...</p></div>
+            <div class="section-head"><span style="font-size:11px;font-weight:700;color:#7dd3fc;text-transform:uppercase;letter-spacing:0.5px;">Recent triggers</span><div class="section-head-line"></div></div>
+            <div id="triggerList"></div>
           </div>
         </div>
       </div>
@@ -182,9 +176,9 @@
             <input id="gateContract" class="sf-input" value="0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48" oninput="updateGateCode()" style="margin-bottom:12px;" />
             <p class="text-xs" style="color:#64748b;margin-bottom:4px;">Alert when one block transfer volume exceeds (USD)</p>
             <input id="gateThr" type="number" class="sf-input" value="20000" oninput="updateGateCode()" style="margin-bottom:14px;" />
-            <div class="section-head"><span style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Gate code</span><div class="section-head-line"></div></div>
+            <div class="section-head"><span style="font-size:10px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Gate code</span><div class="section-head-line"></div><button class="sf-btn sf-btn-ghost" style="padding:4px 10px;" onclick="startGateTour()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Walk me through this rule</button></div>
             <pre class="gate-code" id="gateCode"></pre>
-            <button class="sf-btn sf-btn-primary" style="width:100%;justify-content:center;margin-top:12px;" onclick="runGate()">
+            <button id="gateRunBtn" class="sf-btn sf-btn-primary" style="width:100%;justify-content:center;margin-top:12px;" onclick="runGate()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
               Run on live chain data
             </button>
@@ -232,7 +226,7 @@
         </div>
         <div class="sf-card" style="padding:18px;margin-bottom:16px;">
           <h2 class="text-base font-semibold" style="margin-bottom:12px;">Presenter workflow</h2>
-          <div class="flow-step"><div class="flow-num" style="background:#0ea5e9;">1</div><div><p class="text-sm font-bold">Pick a use case and create a monitor</p><p class="text-xs" style="color:#94a3b8;margin-top:3px;line-height:1.6;">Protocol or Exchange. Create a real monitor with the Hexagate Monitor API and show it join the monitors already running on every block.</p></div></div>
+          <div class="flow-step"><div class="flow-num" style="background:#0ea5e9;">1</div><div><p class="text-sm font-bold">Pick a use case and create a monitor</p><p class="text-xs" style="color:#94a3b8;margin-top:3px;line-height:1.6;">Choose whether you are watching contracts or hot wallets, then create a real monitor with the Hexagate Monitor API and show it join the monitors already running on every block.</p></div></div>
           <div class="flow-step"><div class="flow-num" style="background:#6366f1;">2</div><div><p class="text-sm font-bold">Show Gate DSL on live data</p><p class="text-xs" style="color:#94a3b8;margin-top:3px;line-height:1.6;">Open Gate DSL, lower the threshold, and run it. Hexagate queries the live chain and the rule breaches, raising an alert. Raise the threshold and it stays in policy. That is the customizable engine behind every monitor.</p></div></div>
           <div class="flow-step"><div class="flow-num" style="background:#22c55e;">3</div><div><p class="text-sm font-bold">Screen a wallet</p><p class="text-xs" style="color:#94a3b8;margin-top:3px;line-height:1.6;">Use Address Screening to show how Chainalysis adds wallet and counterparty risk on top of Hexagate's on chain monitoring.</p></div></div>
         </div>
@@ -262,9 +256,9 @@
     const USDC='0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
 
     const USE_CASES={
-      protocol:{ title:'Protocol / Stablecoin', target:USDC, targetName:'USDC Stablecoin Contract',
+      protocol:{ title:'Monitor your Contracts', target:USDC, targetName:'USDC Stablecoin Contract',
         monName:'USDC contract outflow', threshold:1000000, severity:'Critical' },
-      exchange:{ title:'Exchange', target:'0x28C6c06298d514Db089934071355E5743bf21d60', targetName:'Exchange Hot Wallet 01',
+      exchange:{ title:'Monitor your Hot Wallets', target:'0x28C6c06298d514Db089934071355E5743bf21d60', targetName:'Hot Wallet 01',
         monName:'hot wallet outflow', threshold:100000, severity:'High' },
     };
     let useCase='protocol';
@@ -291,57 +285,72 @@
     const shortAddr=a=>a&&a.length>16?a.slice(0,8)+'...'+a.slice(-6):a;
 
     // ---------- Monitoring ----------
+    const ACTIVE_MONITORS={
+      protocol:[
+        {name:'USDC contract | large outflow', type:'Address Fund Movement', sev:'Critical'},
+        {name:'USDC contract | ownership or upgrade change', type:'Admin Change', sev:'High'},
+        {name:'USDC contract | abnormal block volume', type:'Gate DSL', sev:'High'},
+      ],
+      exchange:[
+        {name:'Hot Wallet 01 | wallet drain pattern', type:'Wallet Drain', sev:'Critical'},
+        {name:'Hot Wallet 01 | abnormal withdrawal burst', type:'Abnormal Burst', sev:'High'},
+        {name:'Hot Wallet 01 | outflow over policy', type:'Address Fund Movement', sev:'High'},
+      ],
+    };
+    const RECENT_TRIGGERS={
+      protocol:[
+        {sev:'Critical', title:'Large outflow from contract', detail:'$4.2M moved out in a single transaction', tx:'0x9c3f8a...e041', time:'2m ago'},
+        {sev:'High', title:'Proxy admin ownership transfer', detail:'Admin changed to a freshly funded EOA', tx:'0x12ab47...77d3', time:'1h ago'},
+        {sev:'Medium', title:'Block transfer volume spike', detail:'USDC volume 3x the trailing average', tx:'0x55fe00...44b8', time:'4h ago'},
+      ],
+      exchange:[
+        {sev:'Critical', title:'Hot wallet drain pattern', detail:'38 outbound transfers across 2 blocks', tx:'0x6efa32...7bee', time:'5m ago'},
+        {sev:'High', title:'Outbound transfer over policy', detail:'$250,000 sent to a newly seen address', tx:'0x4e2c6e...4abb', time:'42m ago'},
+        {sev:'Medium', title:'Unlimited approval to unverified spender', detail:'Hot wallet approved 0x9c...e04', tx:'0xd704ee...de03', time:'3h ago'},
+      ],
+    };
+    const sevLabel=s=> (typeof s==='string')?s:(s>=90?'Critical':s>=70?'High':s>=40?'Medium':'Low');
+    const sevClass=s=>{const k=sevLabel(s);return k==='Critical'?'sev-critical':k==='High'?'sev-high':k==='Medium'?'sev-medium':'sev-low';};
+    const sevDot=s=>{const k=sevLabel(s);return k==='Critical'?'#ef4444':k==='High'?'#f97316':k==='Medium'?'#eab308':'#22c55e';};
+
     function setUseCase(k){
       useCase=k;
-      const uc=USE_CASES[k];
       const pb=document.getElementById('uc-protocol'), eb=document.getElementById('uc-exchange');
       if(pb&&eb){ pb.classList.toggle('active',k==='protocol'); eb.classList.toggle('active',k==='exchange'); }
-      document.getElementById('monTargetName').textContent=uc.targetName;
-      document.getElementById('monTargetAddr').textContent=shortAddr(uc.target);
-      document.getElementById('monThreshold').value=uc.threshold;
-      document.getElementById('monSeverity').value=uc.severity;
-      document.getElementById('monCreateResult').innerHTML='';
+      renderActiveMonitors(); renderTriggers();
+      const cr=document.getElementById('monCreateResult'); if(cr) cr.innerHTML='';
     }
-
+    function renderActiveMonitors(){
+      const el=document.getElementById('monList'); if(!el)return;
+      el.innerHTML=ACTIVE_MONITORS[useCase].map(m=>`<div class="mon-row">
+        <span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span>
+        <div style="flex:1;min-width:0;"><div class="text-xs font-semibold" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div><div style="font-size:10px;color:#475569;">${m.type} · evaluating every block</div></div>
+        <span class="sev-badge ${sevClass(m.sev)}">${m.sev}</span>
+      </div>`).join('');
+    }
+    function renderTriggers(){
+      const el=document.getElementById('triggerList'); if(!el)return;
+      el.innerHTML=RECENT_TRIGGERS[useCase].map(t=>`<div class="mon-row" style="align-items:flex-start;">
+        <span style="width:8px;height:8px;border-radius:50%;margin-top:3px;background:${sevDot(t.sev)};flex-shrink:0;"></span>
+        <div style="flex:1;min-width:0;"><div class="flex items-center gap-2"><span class="text-xs font-semibold">${t.title}</span><span class="sev-badge ${sevClass(t.sev)}">${t.sev}</span></div><div style="font-size:11px;color:#94a3b8;margin-top:2px;line-height:1.4;">${t.detail}</div><div class="mono" style="font-size:10px;color:#475569;margin-top:2px;">${t.tx} · ${t.time}</div></div>
+      </div>`).join('');
+    }
+    async function loadMonitors(){
+      const el=document.getElementById('monLiveCount'); if(!el)return;
+      try{ const out=await hexCall({mode:'list_monitors'}); if(out&&out.count){ el.innerHTML='<span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>'+out.count+' live in this org'; } }
+      catch(e){ el.innerHTML='<span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>live'; }
+    }
     async function createMonitor(){
       const uc=USE_CASES[useCase];
-      const thr=parseInt(document.getElementById('monThreshold').value)||uc.threshold;
       const el=document.getElementById('monCreateResult');
-      el.innerHTML='<div class="flex items-center gap-2" style="padding:8px 0;"><div class="animate-spin" style="width:14px;height:14px;border:2px solid #1e293b;border-top-color:#0ea5e9;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Creating monitor via Hexagate Monitor API...</span></div>';
+      el.innerHTML='<div class="flex items-center gap-2" style="padding:6px 0;"><div class="animate-spin" style="width:14px;height:14px;border:2px solid #1e293b;border-top-color:#0ea5e9;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Creating monitor via Hexagate Monitor API...</span></div>';
       let out=null, sandbox=false;
-      try{ out=await hexCall({mode:'create_monitor', name:'Compliance Cove demo | '+uc.monName, address:uc.target, chainId:1, threshold:thr, direction:'to', severity:uc.severity}); }
+      try{ out=await hexCall({mode:'create_monitor', name:'Compliance Cove demo | '+uc.monName, address:uc.target, chainId:1, threshold:uc.threshold, direction:'to', severity:uc.severity}); }
       catch(e){ sandbox=true; }
       const mid=(out&&out.monitorId)?out.monitorId:('mon_'+Math.floor(Math.random()*900000+100000));
-      el.innerHTML=`
-        <div style="border-radius:10px;padding:12px 14px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);">
-          <div class="flex items-center gap-2"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span><span class="text-sm font-bold" style="color:#22c55e;">Monitor created</span><span class="sev-badge ${uc.severity==='Critical'?'sev-critical':'sev-high'}">${uc.severity}</span></div>
-          <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.5;">Now evaluated by Hexagate on <strong>every block</strong>. It alerts when an outbound transfer from <span class="mono" style="color:#cbd5e1;">${shortAddr(uc.target)}</span> exceeds <strong>${fmtUsd(thr)}</strong>.</p>
-          <div class="mono" style="font-size:11px;color:#475569;margin-top:6px;">monitor id: ${mid}</div>
-          ${sandbox?'<p class="text-xs" style="color:#64748b;margin-top:6px;opacity:.85;">Preview sandbox cannot reach the live API. Open this page in a new tab to create a real monitor.</p>':''}
-        </div>`;
+      el.innerHTML=`<div style="border-radius:10px;padding:10px 12px;background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.15);"><div class="flex items-center gap-2"><span style="width:8px;height:8px;border-radius:50%;background:#22c55e;"></span><span class="text-xs font-bold" style="color:#22c55e;">Monitor created via Monitor API</span></div><p class="text-xs" style="color:#94a3b8;margin-top:5px;line-height:1.5;">Watching <span class="mono" style="color:#cbd5e1;">${shortAddr(uc.target)}</span> for outflows over ${fmtUsd(uc.threshold)}. id ${mid}.${sandbox?' <span style="opacity:.85;">Open in a new tab to create a real monitor.</span>':''}</p></div>`;
       if(typeof coveTrack==='function') coveTrack('monitor_created',{demo:'Hexagate',screen:useCase});
       loadMonitors();
-    }
-
-    function sevClassFromNum(s){ if(s>=90)return 'sev-critical'; if(s>=70)return 'sev-high'; if(s>=40)return 'sev-medium'; return 'sev-low'; }
-    function sevLabel(s){ if(typeof s==='string')return s; if(s>=90)return 'Critical'; if(s>=70)return 'High'; if(s>=40)return 'Medium'; return 'Low'; }
-    const FALLBACK_MONITORS=[
-      {name:'USDC Stablecoin | large outflow', type:'AddressFundMovement', severity:'Critical', createdBy:'demo', disabled:false},
-      {name:'Exchange Hot Wallet | abnormal withdrawal burst', type:'AbnormalBurst', severity:'High', createdBy:'demo', disabled:false},
-      {name:'Bridge | TVL drop guard', type:'BalanceChange', severity:'Critical', createdBy:'demo', disabled:false},
-    ];
-    async function loadMonitors(){
-      const el=document.getElementById('monList');
-      let mons=null;
-      try{ const out=await hexCall({mode:'list_monitors'}); mons=out.monitors; }catch(e){}
-      const list=(mons&&mons.length)?mons:FALLBACK_MONITORS;
-      const live=!!(mons&&mons.length);
-      el.innerHTML=(live?'<div style="margin-bottom:8px;"><span class="live-pill"><span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>'+list.length+' live monitors</span></div>':'<p class="text-xs" style="color:#64748b;margin-bottom:8px;opacity:.85;">Showing sample monitors. Open in a new tab for live data.</p>')+
-        list.slice(0,8).map(m=>`<div class="mon-row">
-          <span style="width:8px;height:8px;border-radius:50%;background:${m.disabled?'#475569':'#22c55e'};flex-shrink:0;"></span>
-          <div style="flex:1;min-width:0;"><div class="text-xs font-semibold" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name||'Monitor'}</div><div style="font-size:10px;color:#475569;">${m.type||'monitor'}${m.createdBy?' · '+m.createdBy:''}</div></div>
-          <span class="sev-badge ${sevClassFromNum(m.severity)}">${sevLabel(m.severity)}</span>
-        </div>`).join('');
     }
 
     // ---------- Gate DSL ----------
@@ -368,9 +377,32 @@ rule {
   severity: "HIGH"
 };`;
     }
+    function gateCodeHtml(){
+      const c=(document.getElementById('gateContract').value||USDC).trim();
+      const thr=parseInt(document.getElementById('gateThr').value)||20000;
+      const raw=thr*1000000;
+      return `<span id="g-use" class="gline">use Events, Sum from hexagate;</span>
+
+<span id="g-token" class="gline">source token: address = ${c};</span>
+
+<span id="g-transfers" class="gline">source transfers: list&lt;tuple&lt;address, address, integer&gt;&gt; = Events {
+  contract: token,
+  signature: "event Transfer(address indexed from, address indexed to, uint256 value)"
+};</span>
+
+<span id="g-volume" class="gline">source blockVolume: integer = Sum {
+  sequence: [t[2] for t in transfers]
+};</span>
+
+<span id="g-rule" class="gline">rule {
+  description: "Alert when block volume exceeds ${fmtUsd(thr)}",
+  condition: blockVolume &lt; ${raw},
+  severity: "HIGH"
+};</span>`;
+    }
     function updateGateCode(){
       const el=document.getElementById('gateCode'); if(!el)return;
-      el.textContent=gateString();
+      el.innerHTML=gateCodeHtml();
     }
     async function runGate(){
       const thr=parseInt(document.getElementById('gateThr').value)||20000;
@@ -402,6 +434,41 @@ blockVolume <span style="color:#86efac;">${fmtUsd(volUsd)}</span></div>
       if(typeof coveTrack==='function') coveTrack('gate_run',{demo:'Hexagate',screen:fired?'breach':'hold'});
     }
 
+    // ---------- Gate DSL walkthrough (JoyRide style) ----------
+    const GATE_TOUR=[
+      {t:'g-use', title:'use, import your data sources', text:'Every rule starts by importing the Hexagate building blocks it needs. Events reads on chain logs, Sum aggregates numbers.'},
+      {t:'g-token', title:'source token, pick what to watch', text:'Name the contract or wallet this rule monitors. Swap this address for any target you care about.'},
+      {t:'g-transfers', title:'Query live on chain data', text:'Events reads every Transfer on the contract in the block. This is the raw on chain data the rule evaluates, pulled fresh each block.'},
+      {t:'g-volume', title:'Transform the data', text:'Sum folds the transfer amounts into one number, blockVolume, so you have a single value to test against.'},
+      {t:'g-rule', title:'The rule and severity', text:'condition is the invariant that must stay true. When it fails, Hexagate raises an alert at this severity. This is the heart of the rule.'},
+      {t:'gateThr', title:'The comparison is yours to tune', text:'This threshold is the comparison. Lower it to trigger on live data, raise it to stay in policy. That is how customizable Gate is.'},
+      {t:'gateRunBtn', title:'Run it on live data', text:'Evaluate the rule against the real chain right now and see whether it holds or breaches.'},
+    ];
+    let gtIdx=-1, gtEls=null;
+    function gtBuild(){ if(gtEls)return gtEls; const s=document.createElement('div');s.id='gtSpot';s.style.display='none'; const t=document.createElement('div');t.id='gtTip';t.style.display='none'; document.body.appendChild(s);document.body.appendChild(t); gtEls={s,t}; return gtEls; }
+    function startGateTour(){ showPanel('gate'); gtBuild(); gtIdx=0; gtRender(); window.addEventListener('resize',gtPos); window.addEventListener('scroll',gtPos,true); if(typeof coveTrack==='function')coveTrack('gate_tour_started',{demo:'Hexagate'}); }
+    function gtEnd(){ gtIdx=-1; if(gtEls){gtEls.s.style.display='none';gtEls.t.style.display='none';} window.removeEventListener('resize',gtPos); window.removeEventListener('scroll',gtPos,true); }
+    function gtNext(){ if(gtIdx<GATE_TOUR.length-1){gtIdx++;gtRender();}else gtEnd(); }
+    function gtPrev(){ if(gtIdx>0){gtIdx--;gtRender();} }
+    function gtRender(){
+      const o=gtBuild(); const step=GATE_TOUR[gtIdx]; const last=gtIdx===GATE_TOUR.length-1;
+      o.t.innerHTML=`<div class="gt-num">Step ${gtIdx+1} of ${GATE_TOUR.length}</div><h4>${step.title}</h4><p>${step.text}</p><div class="gt-actions"><button class="sf-btn sf-btn-ghost" style="padding:5px 10px;" onclick="gtEnd()">Skip</button><div style="display:flex;gap:6px;">${gtIdx>0?'<button class="sf-btn sf-btn-ghost" style="padding:5px 10px;" onclick="gtPrev()">Back</button>':''}<button class="sf-btn sf-btn-primary" style="padding:5px 12px;" onclick="gtNext()">${last?'Done':'Next'}</button></div></div>`;
+      o.t.style.display='';
+      const el=document.getElementById(step.t); if(el) el.scrollIntoView({behavior:'smooth',block:'center'});
+      setTimeout(gtPos, el?300:0);
+    }
+    function gtPos(){
+      if(gtIdx<0||!gtEls)return; const step=GATE_TOUR[gtIdx]; const el=document.getElementById(step.t); if(!el){gtEls.s.style.display='none';return;}
+      const r=el.getBoundingClientRect(); const top=r.top+window.scrollY, left=r.left+window.scrollX, pad=6;
+      gtEls.s.style.display=''; gtEls.s.style.top=(top-pad)+'px'; gtEls.s.style.left=(left-pad)+'px'; gtEls.s.style.width=(r.width+pad*2)+'px'; gtEls.s.style.height=(r.height+pad*2)+'px';
+      const tw=gtEls.t.offsetWidth, th=gtEls.t.offsetHeight, gap=12;
+      let tTop=top+r.height+gap, tLeft=left;
+      if(tTop+th>window.scrollY+window.innerHeight) tTop=Math.max(window.scrollY+12, top-th-gap);
+      const maxL=window.scrollX+window.innerWidth-tw-12; tLeft=Math.max(window.scrollX+12, Math.min(tLeft,maxL));
+      gtEls.t.style.top=tTop+'px'; gtEls.t.style.left=tLeft+'px';
+    }
+    document.addEventListener('keydown',e=>{ if(gtIdx<0)return; if(e.key==='Escape'){e.preventDefault();gtEnd();} else if(e.key==='ArrowRight'){e.preventDefault();gtNext();} else if(e.key==='ArrowLeft'){e.preventDefault();gtPrev();} });
+
     // ---------- Address Screening (live Chainalysis) ----------
     async function screenAddress(){
       const addr=(document.getElementById('screenAddr').value||'').trim();
@@ -426,7 +493,7 @@ blockVolume <span style="color:#86efac;">${fmtUsd(volUsd)}</span></div>
         const top=r.exposures.slice(0,4); const max=Math.max(...top.map(e=>e.value));
         exp='<div style="margin-top:10px;">'+top.map(e=>{const pct=max>0?(e.value/max*100):0;const v=e.value>=1e6?'$'+(e.value/1e6).toFixed(1)+'M':e.value>=1e3?'$'+(e.value/1e3).toFixed(1)+'K':'$'+e.value.toFixed(0);const bc=/scam|stolen|sanction|ransom|darknet/.test(e.category)?'#ef4444':/gambling|unnamed|mixing/.test(e.category)?'#eab308':'#22c55e';const label=e.category.charAt(0).toUpperCase()+e.category.slice(1);return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="font-size:10px;color:#64748b;min-width:110px;text-align:right;">'+label+'</span><div class="risk-meter"><div class="risk-fill" style="width:'+pct+'%;background:'+bc+';"></div></div><span class="mono" style="font-size:10px;color:#94a3b8;min-width:52px;">'+v+'</span></div>';}).join('')+'</div>';
       }
-      const ids=(r.identifications&&r.identifications.length)?'<div style="margin-top:8px;">'+r.identifications.map(i=>'<div style="border-radius:8px;padding:5px 10px;background:rgba(239,68,68,0.08);margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:#fca5a5;">'+(i.category||'')+'</span>'+(i.name?' <span style="font-size:11px;color:#cbd5e1;">'+i.name+'</span>':'')+'</div>').join('')+'</div>':'';
+      const ids=(r.identifications&&r.identifications.length)?'<div style="margin-top:8px;">'+r.identifications.map(function(i){var risky=/sanction|darknet|scam|stolen|ransom|mixing|terror|fraud|illicit|hack|child/i.test((i.category||'')+' '+(i.name||''));var tc=risky?'#fca5a5':'#7dd3fc';var bg=risky?'rgba(239,68,68,0.08)':'rgba(14,165,233,0.08)';return '<div style="border-radius:8px;padding:5px 10px;background:'+bg+';margin-bottom:4px;"><span style="font-size:11px;font-weight:700;color:'+tc+';">'+(i.category||'')+'</span>'+(i.name?' <span style="font-size:11px;color:#cbd5e1;">'+i.name+'</span>':'')+'</div>';}).join('')+'</div>':'';
       el_set(r,col,angles,exp,ids,sandbox);
     }
     function el_set(r,col,angles,exp,ids,sandbox){
@@ -515,7 +582,7 @@ blockVolume <span style="color:#86efac;">${fmtUsd(volUsd)}</span></div>
     <!-- Address picker for screening -->
     <script>
     const DEMO_ADDRESSES=[
-      {id:'bayc',label:'🟢 BAYC Contract',address:'0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',story:'Bored Ape Yacht Club, verified ERC721 contract.',category:'low'},
+      {id:'bayc',label:'🟡 BAYC Contract',address:'0xbc4ca0eda7647a8ab7c2061c2e118a18a936f13d',story:'Bored Ape Yacht Club NFT collection. Screens Medium from indirect exposure.',category:'medium'},
       {id:'binance-hot',label:'🟢 Binance Hot Wallet',address:'0x28C6c06298d514Db089934071355E5743bf21d60',story:'Major exchange hot wallet, identified as Binance.com.',category:'low'},
       {id:'unnamed-svc',label:'🟡 Unnamed Service',address:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1',story:'Categorized as unnamed service, $4M plus exposure.',category:'medium'},
       {id:'lazarus',label:'🔴 Lazarus Group (OFAC)',address:'0x098B716B8Aaf21512996dC57EB0615e2383E2f96',story:'OFAC sanctioned, Ronin Bridge exploit.',category:'severe'},
@@ -528,7 +595,7 @@ blockVolume <span style="color:#86efac;">${fmtUsd(volUsd)}</span></div>
       btn.style.cssText='display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:6px;border:1px solid var(--sf-border);background:transparent;color:#64748b;font-size:11px;font-weight:600;cursor:pointer;';
       btn.innerHTML='Try a sample address';
       const dd=document.createElement('div');
-      dd.style.cssText='display:none;position:absolute;left:0;right:0;top:100%;margin-top:4px;max-height:300px;overflow-y:auto;border-radius:12px;border:1px solid var(--sf-border);background:rgba(12,16,28,0.97);backdrop-filter:blur(12px);box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:99;padding:6px;';
+      dd.style.cssText='display:none;position:absolute;right:0;top:100%;width:280px;max-width:80vw;margin-top:6px;max-height:320px;overflow-y:auto;border-radius:12px;border:1px solid var(--sf-border);background:rgba(12,16,28,0.98);backdrop-filter:blur(12px);box-shadow:0 16px 50px rgba(0,0,0,.6);z-index:999;padding:6px;';
       [{key:'low',label:'Low',color:'#22c55e'},{key:'medium',label:'Medium',color:'#eab308'},{key:'severe',label:'Severe',color:'#ef4444'}].forEach(g=>{
         const items=DEMO_ADDRESSES.filter(a=>a.category===g.key);if(!items.length)return;
         const hh=document.createElement('div');hh.style.cssText='padding:6px 8px 2px;font-size:9px;font-weight:700;color:'+g.color+';text-transform:uppercase;letter-spacing:1px;';hh.textContent=g.label;dd.appendChild(hh);
