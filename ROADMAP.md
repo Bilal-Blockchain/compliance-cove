@@ -271,7 +271,7 @@ Sandbox-safe validated fallbacks throughout; brand-swap (?brand=&color=&domain=)
 | 4.1 | Trade listing board | ✅ | Offer rows with price, margin, limits, payment method, trader reputation, online dot, asset filter |
 | 4.2 | Counterparty screening on match | ✅ | Live Address Screening on the seller wallet with risk gauge, identifications, exposure bars, Reactor link |
 | 4.3 | Escrow + compliance gate | ✅ | KYT monitors escrow deposit; payout pre-screened before release; sanctioned counterparties blocked pre-escrow |
-| 4.4 | Dispute flow | ✅ | Dispute modal with auto-assembled Chainalysis evidence + compliance report. (Trade chat dropped as low value.) |
+| 4.4 | Trade chat + dispute flow | ✅ | Live buyer/seller chat on the trade screen with quick-reply chips, seller auto-replies, and a typing indicator. Compliance/system messages post into the thread at key events (blocked trade, post-release alert). Dispute modal auto-assembles Chainalysis evidence (screening, KYT, Reactor, chat transcript) and files a compliance report. |
 
 **Integration points:**
 - Address Screening for counterparty wallets

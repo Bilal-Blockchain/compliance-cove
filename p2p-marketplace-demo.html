@@ -75,6 +75,25 @@
       .modal-overlay.open { display:flex; }
       .modal-box { width:100%; max-width:460px; border-radius:16px; background:var(--card); border:1px solid var(--border); box-shadow:0 20px 60px rgba(0,0,0,.25); animation:mUp .25s cubic-bezier(.16,1,.3,1); overflow:hidden; }
       @keyframes mUp { from{opacity:0;transform:translateY(16px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+      /* Trade chat */
+      .chat-scroll { max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding:4px; }
+      .chat-row { display:flex; gap:8px; align-items:flex-end; max-width:88%; }
+      .chat-row.me { align-self:flex-end; flex-direction:row-reverse; }
+      .chat-av { width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:white; flex-shrink:0; }
+      .chat-bubble { padding:8px 11px; border-radius:12px; font-size:12px; line-height:1.45; }
+      .chat-row.them .chat-bubble { background:var(--muted); color:var(--foreground); border-bottom-left-radius:4px; }
+      .chat-row.me .chat-bubble { background:#16a34a; color:white; border-bottom-right-radius:4px; }
+      .chat-sys { align-self:center; max-width:96%; text-align:center; }
+      .chat-sys .chat-bubble { background:rgba(234,179,8,.1); color:#854d0e; border:1px solid rgba(234,179,8,.2); font-size:11px; }
+      .chat-sys.alert .chat-bubble { background:rgba(239,68,68,.08); color:#b91c1c; border-color:rgba(239,68,68,.2); }
+      .chat-time { font-size:9px; color:var(--muted-foreground); margin-top:2px; }
+      .chat-typing { display:inline-flex; gap:3px; padding:9px 11px; }
+      .chat-typing span { width:5px; height:5px; border-radius:50%; background:var(--muted-foreground); animation:chatDot 1.2s infinite; }
+      .chat-typing span:nth-child(2){ animation-delay:.2s; } .chat-typing span:nth-child(3){ animation-delay:.4s; }
+      @keyframes chatDot { 0%,60%,100%{opacity:.3;transform:translateY(0)} 30%{opacity:1;transform:translateY(-3px)} }
+      .chat-chip { font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:var(--background); color:var(--muted-foreground); cursor:pointer; transition:all .15s; white-space:nowrap; }
+      .chat-chip:hover { border-color:#16a34a; color:#16a34a; }
     </style>
   </head>
   <body class="bg-background text-foreground" style="min-height:100vh;">
@@ -171,6 +190,20 @@
             <div id="trade-setup" class="trade-card"></div>
             <div id="trade-cards" class="trade-card" style="display:none;margin-top:0;"></div>
             <div id="trade-actions" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;"></div>
+
+            <div id="trade-chat" class="trade-card" style="display:none;margin-top:14px;">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <div id="chatPeerAv" class="chat-av" style="background:#16a34a;">S</div>
+                <div style="flex:1;"><div class="text-sm font-bold" id="chatPeerName">seller</div><div class="text-xs text-muted-foreground">Trade chat, escrow protected</div></div>
+                <span class="pill" style="background:rgba(22,163,74,.1);color:#15803d;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><path d="M20 6L9 17l-5-5"/></svg>Verified</span>
+              </div>
+              <div id="chatMessages" class="chat-scroll"></div>
+              <div id="chatChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 8px;"></div>
+              <div style="display:flex;gap:8px;">
+                <input id="chatInput" type="text" placeholder="Type a message" onkeydown="if(event.key==='Enter')chatSend()" class="h-10 flex-1 rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus:ring-2" />
+                <button onclick="chatSend()" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-semibold text-primary-foreground accent-bg">Send</button>
+              </div>
+            </div>
           </div>
           <!-- RIGHT: order summary + audit trail -->
           <div style="display:flex;flex-direction:column;gap:14px;position:sticky;top:72px;">
@@ -287,7 +320,7 @@
         kytInput:{ mode:'transfer', network:'BITCOIN', asset:'BTC', direction:'sent', transferReference:'6dd7ede9526c3bb8b670696b96a6edf6d39d445f02b8496da3335d69c6640c47:bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar' } },
     ];
 
-    let currentOffer = null, tradeUsd = 0, tradeCrypto = 0, lastScreen = null, tradeBlocked = false;
+    let currentOffer = null, tradeUsd = 0, tradeCrypto = 0, lastScreen = null, tradeBlocked = false, stage = 'greet', chatLog = [];
 
     function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); window.scrollTo(0,0); if(id==='market') renderMarket(); }
 
@@ -343,6 +376,7 @@
       document.getElementById('auditList').innerHTML='';
       document.getElementById('auditEmpty').style.display='';
       setEscrow('Not started','var(--muted)','var(--muted-foreground)');
+      stage='greet'; chatReset();
     }
 
     function renderSetup(){
@@ -411,11 +445,51 @@
     function setIcon(id,ch){ document.getElementById(id).querySelector('.step-icon').textContent=ch; }
     const delay = ms => new Promise(r=>setTimeout(r,ms));
 
+    // ---- Trade chat ----
+    function chatReset(){ chatLog=[]; const m=document.getElementById('chatMessages'); if(m) m.innerHTML=''; document.getElementById('trade-chat').style.display='none'; document.getElementById('chatChips').innerHTML=''; }
+    function chatShow(){ const o=currentOffer; document.getElementById('trade-chat').style.display=''; document.getElementById('chatPeerName').textContent=o.trader; const av=document.getElementById('chatPeerAv'); av.textContent=o.trader.charAt(0).toUpperCase(); av.style.background=o.color; }
+    function chatTime(){ const d=new Date(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+    function chatRender(){
+      const wrap=document.getElementById('chatMessages');
+      wrap.innerHTML=chatLog.map(m=>{
+        if(m.role==='system') return `<div class="chat-sys ${m.alert?'alert':''}"><div class="chat-bubble">${m.text}</div></div>`;
+        const me=m.role==='me';
+        const av = me ? `<div class="chat-av" style="background:#0f172a;">Me</div>` : `<div class="chat-av" style="background:${currentOffer.color};">${currentOffer.trader.charAt(0).toUpperCase()}</div>`;
+        return `<div class="chat-row ${me?'me':'them'}">${av}<div><div class="chat-bubble">${m.text}</div><div class="chat-time" style="text-align:${me?'right':'left'};">${m.time}</div></div></div>`;
+      }).join('');
+      wrap.scrollTop=wrap.scrollHeight;
+    }
+    function chatPush(role,text,opts){ opts=opts||{}; chatLog.push({role,text,time:chatTime(),alert:opts.alert}); chatRender(); }
+    function chatTyping(show){
+      const wrap=document.getElementById('chatMessages'); let t=document.getElementById('chatTyping');
+      if(show){ if(!t){ t=document.createElement('div'); t.id='chatTyping'; t.className='chat-row them'; t.innerHTML=`<div class="chat-av" style="background:${currentOffer.color};">${currentOffer.trader.charAt(0).toUpperCase()}</div><div class="chat-typing"><span></span><span></span><span></span></div>`; wrap.appendChild(t); wrap.scrollTop=wrap.scrollHeight; } }
+      else if(t){ t.remove(); }
+    }
+    async function sellerSay(text, ms){ chatTyping(true); await delay(ms||900); chatTyping(false); chatPush('them',text); }
+    function renderChips(list){ document.getElementById('chatChips').innerHTML=(list||[]).map(t=>`<button class="chat-chip" data-t="${t}" onclick="chatChip(this.dataset.t)">${t}</button>`).join(''); }
+    function chatChip(text){ if(text==='I have sent the payment'){ markPaid(); return; } chatPush('me',text); handleBuyer(text); }
+    function chatSend(){ const inp=document.getElementById('chatInput'); const t=(inp.value||'').trim(); if(!t) return; inp.value=''; chatPush('me',t); handleBuyer(t); }
+    function handleBuyer(text){ sellerSay(pickReply(text), 700+Math.random()*500); }
+    function pickReply(text){
+      const t=(text||'').toLowerCase();
+      if(/avail|still there|^hi|hello|hey/.test(t)) return 'Hey! Yes, ready to trade whenever you are.';
+      if(/how.*pay|payment|how do i/.test(t)) return 'Send the '+fmtUsd(tradeUsd)+' via '+currentOffer.payment+', then tap "I have sent the payment" so I can confirm.';
+      if(/sent|paid|done|transfer/.test(t)) return 'Great. Tap "I have sent the payment" and I will confirm and release the escrow.';
+      if(/release|how fast|how long|when/.test(t)) return 'As soon as I confirm your payment I release the escrow, usually a couple of minutes.';
+      if(/price|discount|cheaper|lower/.test(t)) return 'Price is firm, it already reflects the current market rate.';
+      if(/thank|thanks|cheers/.test(t)) return 'Anytime, happy trading!';
+      return 'Got it. Let me know once the payment is on the way.';
+    }
+
     async function beginTrade(){
       const o = currentOffer;
       if(tradeUsd < o.min || tradeUsd > o.max){ document.getElementById('tradeAmt').style.borderColor='var(--destructive)'; return; }
       document.getElementById('trade-setup').style.display='none';
       const cards = document.getElementById('trade-cards'); cards.style.display=''; cards.innerHTML='';
+      chatShow();
+      chatPush('system','Secure trade started. Funds are held in escrow until both sides confirm.');
+      renderChips(['Hi, is this still available?','How fast do you release?']);
+      sellerSay('Hi! Thanks for opening a trade. I am online and ready when you are.', 700);
       await runScreening();
     }
 
@@ -452,6 +526,8 @@
           <p class="text-xs text-muted-foreground" style="margin-top:6px;line-height:1.5;">This trade cannot proceed. The counterparty wallet is ${r.risk.toLowerCase()} risk, so no funds were placed in escrow. The case has been routed to compliance.</p>
         </div>`);
         addAudit('Policy', 'Trade blocked before escrow. Counterparty is sanctioned or high risk.', 'alert');
+        stage='blocked'; renderChips([]);
+        chatPush('system','Compliance blocked this trade. The counterparty wallet is sanctioned, so no funds were placed in escrow.',{alert:true});
         renderActions(['reactor','dispute','back']);
         return;
       }
@@ -514,15 +590,23 @@
         <div style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="text-sm font-semibold" style="color:#15803d;">${fmtCrypto(tradeCrypto,o.asset)} held in escrow</span></div>
         <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.5;">The seller has locked the crypto. Send your ${fmtUsd(tradeUsd)} payment by ${o.payment}, then mark it as sent to release escrow.</p>
       </div>`);
+      stage='escrow';
+      await sellerSay('I have locked the '+o.asset+' in escrow. Please send the '+fmtUsd(tradeUsd)+' by '+o.payment+' and let me know here.', 1000);
+      renderChips(['How do I pay?','I have sent the payment']);
       renderActions(['paid','dispute']);
     }
 
     async function markPaid(){
+      if(stage==='paid'||stage==='done') return;
+      stage='paid';
       document.getElementById('trade-actions').innerHTML='';
+      renderChips([]);
+      if(chatLog.length===0 || chatLog[chatLog.length-1].text!=='I have sent the payment.') chatPush('me','I have sent the payment.');
       addStep('p-s4','Buyer marks fiat payment sent','Seller confirms receipt');
       await animateStep('p-s4','running',900); await animateStep('p-s4','success',0);
       document.getElementById('p-s4').querySelector('.step-icon').textContent='✓';
       addAudit('Trade', `Buyer reported ${fmtUsd(tradeUsd)} sent by ${currentOffer.payment}.`, 'info');
+      await sellerSay('Payment confirmed on my end. Releasing the escrow now.', 900);
       await delay(300);
       await runRelease();
     }
@@ -545,6 +629,8 @@
         `<div id="p2pMonitorBox" style="margin-top:10px;border-radius:10px;padding:10px 12px;background:rgba(22,163,74,.05);border:1px solid rgba(22,163,74,.14);"><div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span style="font-size:11px;font-weight:600;color:#15803d;">KYT Continuous Monitoring Active</span></div><p style="font-size:10px;color:var(--muted-foreground);margin-top:4px;line-height:1.5;">This trade stays registered with Chainalysis KYT. Compliance is alerted automatically if the funds reach a risky or sanctioned entity after release.</p></div>`+
         `</div>`);
 
+      stage='done';
+      await sellerSay('Payment received and the escrow is released. Pleasure doing business, leave a review if you can!', 900);
       if(o.kind==='monitor'){ await runContinuousMonitoring(); }
       else { renderActions(['dispute','back']); }
     }
@@ -582,6 +668,7 @@
           box.innerHTML=`<div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:11px;font-weight:700;color:#b91c1c;">KYT Continuous Monitoring, Alert</span></div><p style="font-size:10px;color:var(--muted-foreground);margin-top:4px;line-height:1.5;">This trade <strong style="color:#0f172a;">cleared at the time of release</strong>. Six weeks later, KYT detected the funds reaching <strong style="color:#0f172a;">OFAC sanctioned Chatex.com</strong> (SEVERE, indirect exposure) and automatically raised an alert. Compliance has been notified.</p>${links}`;
         }
         addAudit('KYT', 'Continuous monitoring raised a SEVERE indirect alert. Funds reached OFAC sanctioned Chatex.com.', 'alert');
+        chatPush('system','Compliance notice: this completed trade was flagged after release. The funds reached an OFAC sanctioned entity. The case is under review.',{alert:true});
         tradeBlocked = true;
       }
       renderActions(['reactor','dispute','back']);
@@ -606,6 +693,7 @@
       ev.push(['KYT', 'Escrow deposit and payout monitored end to end.']);
       if(tradeBlocked) ev.push(['KYT alert', 'Funds linked to an OFAC sanctioned entity (Chatex.com).']);
       ev.push(['Reactor', 'Investigation graph available for the counterparty cluster.']);
+      ev.push(['Trade chat', `Full transcript retained (${chatLog.filter(m=>m.role!=='system').length} messages between buyer and seller).`]);
       document.getElementById('disputeEvidence').innerHTML = ev.map(e=>`<div style="display:flex;gap:8px;align-items:start;"><span style="width:7px;height:7px;border-radius:50%;background:#16a34a;margin-top:5px;flex-shrink:0;"></span><div><span style="font-size:11px;font-weight:700;">${e[0]}</span> <span style="font-size:11px;color:var(--muted-foreground);">${e[1]}</span></div></div>`).join('');
       document.getElementById('disputeDone').style.display='none';
       document.getElementById('disputeModal').classList.add('open');
