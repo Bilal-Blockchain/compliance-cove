@@ -130,9 +130,9 @@
 
       <!-- ==================== TOKEN INTEL (live) ==================== -->
       <div class="page-panel" id="panel-token">
-        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Live data.</strong> Before you make markets in a token, check its contract security and on-chain activity. Hexagate analyzes the contract, and Gate DSL reads the live chain. Pick a stablecoin to run it now.</span></div>
+        <div class="cove-disclaimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span><strong>Token Due Diligence.</strong> Before making markets in a stablecoin, run the full compliance check. Contract security (Hexagate), live on-chain activity (Gate DSL), and risk exposure analysis (Data Solutions, 7-day window). All tokens pre-load in the background for instant switching.</span></div>
         <div class="qd-card" style="padding:14px;margin-bottom:12px;">
-          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Stablecoin Intelligence, live</span><div class="section-head-line"></div></div>
+          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Token Due Diligence, live</span><div class="section-head-line"></div></div>
           <div id="tokenBtns" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
         </div>
         <div id="tokenIntel"></div>
@@ -303,10 +303,24 @@
                   <span style="color:white;font-size:13px;font-weight:800;">3</span>
                 </div>
                 <div style="flex:1;">
-                  <h3 class="text-sm font-bold">Market Intel, Data Solutions</h3>
-                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Market Intel. Walk through exchange flows, LP monitoring, whale tracking, stablecoin activity, and prediction market signals.</p>
+                  <h3 class="text-sm font-bold">Token Due Diligence, Hexagate + Data Solutions</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Token Intel. Pick a stablecoin (USDC is the default). Walk through the three live checks: contract security (Hexagate), on-chain activity (Gate DSL), and risk exposure (Data Solutions). Point out the verdict card at the bottom.</p>
                   <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
-                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> This is where Data Solutions shines. Exchange inflows tell you where capital is moving. Whale tracking shows who's accumulating. LP monitoring shows which pools are safe to provide liquidity to.</p>
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> Before making markets in any token, your compliance team runs this check. In seconds you know: is the contract safe, is it actively traded, and what percentage of volume touches risky counterparties. Right now, USDT shows 10x the sanctions exposure of USDC. That changes how you size your book and what monitoring you put in place.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
+              <div class="flex items-start gap-3">
+                <div style="width:30px;height:30px;border-radius:8px;background:#eab308;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span style="color:white;font-size:13px;font-weight:800;">4</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 class="text-sm font-bold">Market Intel, Data Solutions</h3>
+                  <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.6;">Switch to Market Intel. Walk through exchange flows, LP monitoring, whale tracking, and the live Token Risk Profiles table (bottom left, powered by Data Solutions).</p>
+                  <div style="margin-top:8px;padding:8px 12px;border-radius:8px;background:rgba(26,107,106,0.06);border:1px solid rgba(26,107,106,0.1);">
+                    <p class="text-xs" style="color:#1a6b6a;line-height:1.5;"><strong>💬 Talking Point:</strong> This is where Data Solutions shines. Exchange inflows tell you where capital is moving. Whale tracking shows who is accumulating. The Token Risk Profiles table pulls live from Data Solutions to show which stablecoins carry the most compliance risk.</p>
                   </div>
                 </div>
               </div>
@@ -314,7 +328,7 @@
             <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
               <div class="flex items-start gap-3">
                 <div style="width:30px;height:30px;border-radius:8px;background:#8b5cf6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <span style="color:white;font-size:13px;font-weight:800;">4</span>
+                  <span style="color:white;font-size:13px;font-weight:800;">5</span>
                 </div>
                 <div style="flex:1;">
                   <h3 class="text-sm font-bold">Counterparty Screening</h3>
@@ -328,7 +342,7 @@
             <div style="padding:16px;border-radius:10px;border:1px solid var(--border);margin-bottom:10px;">
               <div class="flex items-start gap-3">
                 <div style="width:30px;height:30px;border-radius:8px;background:#3b82f6;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                  <span style="color:white;font-size:13px;font-weight:800;">5</span>
+                  <span style="color:white;font-size:13px;font-weight:800;">6</span>
                 </div>
                 <div style="flex:1;">
                   <h3 class="text-sm font-bold">Compliance Reporting</h3>
@@ -388,7 +402,7 @@
       document.getElementById('panel-'+id).classList.add('active');
       document.querySelectorAll('.qd-tab').forEach(t=>t.classList.remove('active'));
       document.querySelectorAll('.qd-tab').forEach(t=>{if(t.textContent.toLowerCase().includes(id.slice(0,4)))t.classList.add('active');});
-      if(id==='token'){ renderTokenBtns(); if(!window._tokInit){ window._tokInit=1; selectToken(tokSel); } }
+      if(id==='token'){ renderTokenBtns(); startPrefetch(); if(!window._tokInit){ window._tokInit=1; selectToken(tokSel); } }
       if(id==='exposure'){ loadTokenRiskProfiles(); }
     }
 
@@ -657,77 +671,145 @@
     function renderTokenBtns(){ const el=document.getElementById('tokenBtns'); if(!el)return; el.innerHTML=STABLES.map(s=>`<button class="qd-tab ${s.sym===tokSel?'active':''}" onclick="selectToken('${s.sym}')" style="font-size:12px;padding:7px 14px;">${s.sym}</button>`).join(''); }
     function tokGate(addr){ return 'use Events, Sum from hexagate;\nsource token: address = '+addr+';\nsource transfers: list<tuple<address, address, integer>> = Events { contract: token, signature: "event Transfer(address indexed from, address indexed to, uint256 value)" };\nsource blockVolume: integer = Sum { sequence: [t[2] for t in transfers] };\nrule { description: "volume", condition: blockVolume >= 0, severity: "LOW" };'; }
 
+    // ---- Token Intel: prefetch + cache for instant switching ----
+    const tokenCache={}, tokenFetches={};
+    let riskProfiles=null, _prefetching=false;
+
+    function startPrefetch(){
+      if(_prefetching) return; _prefetching=true;
+      // One call returns aggregate risk data for all 5 tokens
+      wfCall(TI_SLUG,{mode:'risk_profiles'}).then(r=>{
+        if(r.ok){ riskProfiles={}; (r.profiles||[]).forEach(p=>{riskProfiles[p.symbol]=p;}); }
+        if(tokenCache[tokSel]) rerenderToken();
+      }).catch(()=>{});
+      // Pre-fetch detail data for every token in parallel
+      STABLES.forEach(s=>fetchTokenDetail(s.sym));
+    }
+
+    function fetchTokenDetail(sym){
+      if(tokenCache[sym]) return Promise.resolve();
+      if(tokenFetches[sym]) return tokenFetches[sym];
+      const t=STABLES.find(x=>x.sym===sym);
+      const p=(async()=>{
+        let hx,gt,ex,sandbox=false;
+        try{
+          [hx,gt,ex]=await Promise.all([
+            wfCall(HEX_SLUG,{mode:'analyze_address',address:t.addr}),
+            wfCall(HEX_SLUG,{mode:'gate_validate',gate:tokGate(t.addr),chainId:1}),
+            wfCall(TI_SLUG,{mode:'token_exposure',address:t.addr}).catch(()=>null)
+          ]);
+        }catch(e){
+          sandbox=true;
+          hx={risk_level:'LOW',type:'ERC20',name:t.name,age:'n/a',issues:[],checks:21};
+          gt={trace:{transfers:{_count:0},blockVolume:0}};
+        }
+        tokenCache[sym]={hx,gt,ex,sandbox};
+        if(sym===tokSel) rerenderToken();
+      })();
+      tokenFetches[sym]=p;
+      return p;
+    }
+
+    function rerenderToken(){
+      const t=STABLES.find(x=>x.sym===tokSel), c=tokenCache[tokSel];
+      if(!c) return;
+      renderTokenIntel(t,c.hx,c.gt,c.ex,riskProfiles?riskProfiles[tokSel]:null,c.sandbox);
+    }
+
     async function selectToken(sym){
       tokSel=sym; renderTokenBtns();
-      const t=STABLES.find(x=>x.sym===sym);
-      const el=document.getElementById('tokenIntel');
-      el.innerHTML='<div class="qd-card" style="padding:18px;"><div class="flex items-center gap-2"><div class="animate-spin" style="width:16px;height:16px;border:2px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Querying Hexagate, Gate DSL, and Data Solutions for '+sym+'...</span></div></div>';
-      let hx=null, gt=null, ex=null, sandbox=false;
-      try{ [hx,gt,ex]=await Promise.all([
-        wfCall(HEX_SLUG,{mode:'analyze_address',address:t.addr}),
-        wfCall(HEX_SLUG,{mode:'gate_validate',gate:tokGate(t.addr),chainId:1}),
-        wfCall(TI_SLUG,{mode:'token_exposure',address:t.addr}).catch(()=>null)
-      ]); }
-      catch(e){ sandbox=true; hx={risk_level:'LOW',type:'ERC20',name:t.name,age:'n/a',issues:[],checks:21}; gt={trace:{transfers:{_count:0},blockVolume:0}}; }
-      renderTokenIntel(t,hx,gt,ex,sandbox);
-      if(typeof coveTrack==='function') coveTrack('token_intel',{demo:'Trading Firm',address:t.addr});
+      if(tokenCache[sym]){ rerenderToken(); }
+      else {
+        document.getElementById('tokenIntel').innerHTML='<div class="qd-card" style="padding:18px;"><div class="flex items-center gap-2"><div class="animate-spin" style="width:16px;height:16px;border:2px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Loading due diligence for '+sym+'...</span></div></div>';
+        await fetchTokenDetail(sym);
+      }
+      if(typeof coveTrack==='function') coveTrack('token_intel',{demo:'Trading Firm',address:STABLES.find(x=>x.sym===sym).addr});
     }
-    function renderTokenIntel(t,hx,gt,ex,sandbox){
+
+    function renderTokenIntel(t,hx,gt,ex,rp,sandbox){
       const rl=hx.risk_level||'LOW', rc=hexRiskColor(rl);
       const issues=hx.issues||[], checks=hx.checks||21;
-      const tr=(gt&&gt.trace)||{}; const cnt=tr.transfers&&typeof tr.transfers==='object'?(tr.transfers._count||0):(Array.isArray(tr.transfers)?tr.transfers.length:0);
+      const tr=(gt&&gt.trace)||{};
+      const cnt=tr.transfers&&typeof tr.transfers==='object'?(tr.transfers._count||0):(Array.isArray(tr.transfers)?tr.transfers.length:0);
       const volRaw=tr.blockVolume||0, vol=volRaw/Math.pow(10,t.dec), block=(gt&&gt.block)||'latest';
-      const verdict = rl==='LOW' ? {txt:'Cleared to make markets',c:'#22c55e',sub:'Contract checks pass with no critical security issues.'} : (rl==='MEDIUM' ? {txt:'Proceed with review',c:'#eab308',sub:'Some security findings. Review before sizing up.'} : {txt:'Elevated risk',c:'#ef4444',sub:'Significant findings. Escalate before making markets.'});
-      // Exposure card from Data Solutions
+      // Hero stat from Data Solutions risk profiles
+      const riskyPct=rp?rp.risky_pct:null;
+      const sanctionsPct=rp?rp.sanctions_pct:null;
+      const heroC=riskyPct===null?'#64748b':riskyPct>1?'#ef4444':riskyPct>0.1?'#eab308':'#22c55e';
+      // Smarter verdict: references actual Data Solutions findings
+      let verdict;
+      if(rl!=='LOW'){
+        verdict={txt:'Elevated risk',c:'#ef4444',sub:'Contract security issues detected by Hexagate. Escalate before making markets.'};
+      } else if(sanctionsPct!==null&&sanctionsPct>0.1){
+        verdict={txt:'Cleared with enhanced monitoring',c:'#eab308',sub:'Contract secure. '+sanctionsPct.toFixed(3)+'% of 7-day volume involves sanctioned entities. Recommend enhanced KYT monitoring and periodic re-evaluation.'};
+      } else if(riskyPct!==null&&riskyPct>0.1){
+        verdict={txt:'Cleared with monitoring',c:'#eab308',sub:'Contract secure. '+riskyPct.toFixed(3)+'% of 7-day volume touches risky categories (sanctions, mixers, darknet, illicit, gambling). Standard KYT monitoring recommended.'};
+      } else {
+        verdict={txt:'Cleared to make markets',c:'#22c55e',sub:'Contract secure, active on-chain'+(riskyPct!==null?', risky volume at '+riskyPct.toFixed(3)+'%':'')+'. Standard compliance posture.'};
+      }
+      // Risk Exposure breakdown (Data Solutions risk_profiles per-category)
+      let riskRows='';
+      if(rp){
+        [{l:'Sanctions',p:rp.sanctions_pct,u:rp.sanctions_usd},{l:'Mixer',p:rp.mixer_pct,u:rp.mixer_usd},{l:'Darknet',p:rp.darknet_pct,u:rp.darknet_usd},{l:'Illicit',p:rp.illicit_pct,u:rp.illicit_usd},{l:'Gambling',p:rp.gambling_pct,u:rp.gambling_usd},{l:'No KYC',p:rp.no_kyc_pct,u:rp.no_kyc_usd}].forEach(c=>{
+          const cl=c.p>0.1?'#ef4444':c.p>0.01?'#eab308':'#22c55e';
+          const v=(c.u||0)>=1e9?'$'+((c.u||0)/1e9).toFixed(1)+'B':(c.u||0)>=1e6?'$'+((c.u||0)/1e6).toFixed(0)+'M':'$'+((c.u||0)/1e3).toFixed(0)+'K';
+          riskRows+='<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;border-bottom:1px solid rgba(51,65,85,0.12);font-size:10px;"><span style="color:#94a3b8;">'+c.l+'</span><div style="display:flex;align-items:center;gap:6px;"><span class="mono" style="color:#475569;">'+v+'</span><span class="mono" style="font-weight:700;color:'+cl+';">'+c.p.toFixed(3)+'%</span></div></div>';
+        });
+      } else { riskRows='<div class="flex items-center gap-2" style="padding:4px 0;"><div class="animate-spin" style="width:10px;height:10px;border:2px solid #1e293b;border-top-color:#eab308;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Loading risk data...</span></div>'; }
+      // Source category breakdown (Data Solutions token_exposure)
       let expHtml='';
       if(ex&&ex.ok&&ex.categories&&ex.categories.length){
         const cats=ex.categories.slice(0,10);
         const maxV=Math.max(...cats.map(c=>c.volume_usd));
-        const catColor=c=>/sanction|stolen|ransom|darknet|drug|fraud|malware|terrorist|child/.test(c)?'#ef4444':/gambling|mixing|no kyc/.test(c)?'#eab308':'#22c55e';
-        const bars=cats.map(c=>{const pct=maxV>0?c.volume_usd/maxV*100:0;const v=c.volume_usd>=1e9?'$'+(c.volume_usd/1e9).toFixed(1)+'B':c.volume_usd>=1e6?'$'+(c.volume_usd/1e6).toFixed(0)+'M':'$'+c.volume_usd.toFixed(0);return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="font-size:9px;color:#64748b;min-width:120px;text-align:right;text-transform:capitalize;">'+c.category+'</span><div class="risk-bar"><div class="risk-fill" style="width:'+pct+'%;background:'+catColor(c.category)+';"></div></div><span class="mono" style="font-size:9px;color:#94a3b8;min-width:50px;">'+v+'</span><span class="mono" style="font-size:8px;color:#475569;">'+c.pct+'%</span></div>';}).join('');
+        const catC=c=>/sanction|stolen|ransom|darknet|drug|fraud|malware|terrorist|child/.test(c)?'#ef4444':/gambling|mixing|no kyc/.test(c)?'#eab308':'#22c55e';
+        const bars=cats.map(c=>{const pct=maxV>0?c.volume_usd/maxV*100:0;const v=c.volume_usd>=1e9?'$'+(c.volume_usd/1e9).toFixed(1)+'B':c.volume_usd>=1e6?'$'+(c.volume_usd/1e6).toFixed(0)+'M':'$'+c.volume_usd.toFixed(0);return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="font-size:9px;color:#64748b;min-width:120px;text-align:right;text-transform:capitalize;">'+c.category+'</span><div class="risk-bar"><div class="risk-fill" style="width:'+pct+'%;background:'+catC(c.category)+';"></div></div><span class="mono" style="font-size:9px;color:#94a3b8;min-width:50px;">'+v+'</span><span class="mono" style="font-size:8px;color:#475569;">'+c.pct+'%</span></div>';}).join('');
         expHtml=`<div class="qd-card" style="padding:14px;margin-top:12px;">
-          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Exposure by Category, Data Solutions</span><div class="section-head-line"></div></div>
-          <div class="text-xs" style="color:#64748b;margin-bottom:8px;">Who is sending ${t.sym}? Source category breakdown, ${ex.days||7}-day window. Total: ${fmtUsd0(ex.total_volume_usd)}.</div>
+          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Source Breakdown, Data Solutions</span><div class="section-head-line"></div></div>
+          <div class="text-xs" style="color:#64748b;margin-bottom:8px;">Who is sending ${t.sym}? Full sender-category breakdown, ${ex.days||7}-day window. Total: ${fmtUsd0(ex.total_volume_usd)}.</div>
           ${bars}
           <p class="text-xs" style="color:#475569;margin-top:8px;line-height:1.4;">Queried live from ethereum.transfers_clustered via Chainalysis Data Solutions.</p>
-        </div>`;
-      } else if(!sandbox){
-        expHtml=`<div class="qd-card" style="padding:14px;margin-top:12px;">
-          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Exposure by Category, Data Solutions</span><div class="section-head-line"></div></div>
-          <div class="flex items-center gap-2"><div class="animate-spin" style="width:12px;height:12px;border:2px solid #1e293b;border-top-color:#eab308;border-radius:50%;"></div><span class="text-xs" style="color:#64748b;">Loading exposure data...</span></div>
         </div>`;
       }
       document.getElementById('tokenIntel').innerHTML=`
         <div class="qd-card" style="padding:14px;margin-bottom:12px;">
           <div class="flex items-center justify-between flex-wrap gap-2">
             <div><span class="text-sm font-bold">${t.name}</span> <span style="color:#475569;font-size:11px;">${t.sym}</span></div>
-            <span class="mono" style="font-size:10px;color:#475569;">${shortA(t.addr)}</span>
+            <div class="flex items-center gap-3">
+              <span class="mono" style="font-size:10px;color:#475569;">${shortA(t.addr)}</span>
+              ${riskyPct!==null?'<span class="qd-badge" style="background:'+heroC+'15;color:'+heroC+';">'+riskyPct.toFixed(3)+'% risky volume (7d)</span>':''}
+            </div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
           <div class="qd-card" style="padding:14px;">
             <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#06b6d4;">Contract Security, Hexagate</span><div class="section-head-line"></div></div>
             <div class="flex items-center justify-between" style="margin-bottom:8px;"><span class="qd-badge" style="background:${rc}15;color:${rc};">${rl} RISK</span><span class="text-xs" style="color:#64748b;">${hx.type||'ERC20'}${hx.age?' · '+hx.age:''}</span></div>
             <div class="text-xs" style="color:#94a3b8;margin-bottom:8px;">${hx.name||t.name}</div>
             <div class="text-xs" style="color:#64748b;margin-bottom:6px;">${issues.length} of ${checks} security checks flagged</div>
-            ${issues.length?issues.map(i=>`<div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:3px 0;border-bottom:1px solid rgba(51,65,85,0.15);"><span style="color:#94a3b8;">${i.type}</span><span style="color:${hexRiskColor(i.risk_level)};">${i.risk_level}</span></div>`).join(''):'<div class="text-xs" style="color:#22c55e;">No issues flagged</div>'}
+            ${issues.length?issues.map(i=>'<div style="display:flex;justify-content:space-between;gap:8px;font-size:10px;padding:3px 0;border-bottom:1px solid rgba(51,65,85,0.15);"><span style="color:#94a3b8;">'+i.type+'</span><span style="color:'+hexRiskColor(i.risk_level)+';">'+i.risk_level+'</span></div>').join(''):'<div class="text-xs" style="color:#22c55e;">No issues flagged</div>'}
           </div>
           <div class="qd-card" style="padding:14px;">
-            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">Live On-Chain Activity, Gate DSL</span><div class="section-head-line"></div></div>
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#3b82f6;">On-Chain Pulse, Gate DSL</span><div class="section-head-line"></div></div>
             <div class="qd-stat-val" style="color:#22c55e;font-size:22px;">${fmtUsd0(vol)}</div>
             <div class="text-xs" style="color:#64748b;margin-top:2px;">${t.sym} transfer volume in block #${block}</div>
             <div class="text-xs" style="color:#64748b;margin-top:8px;">${cnt} transfers in the block</div>
             <div class="text-xs" style="color:#475569;margin-top:8px;line-height:1.5;">Pulled live from Ethereum via Hexagate Gate DSL.</div>
           </div>
           <div class="qd-card" style="padding:14px;">
-            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:${verdict.c};">Make-Markets Verdict</span><div class="section-head-line"></div></div>
-            <div class="flex items-center gap-2"><span style="width:10px;height:10px;border-radius:50%;background:${verdict.c};"></span><span class="text-sm font-bold" style="color:${verdict.c};">${verdict.txt}</span></div>
-            <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.5;">${verdict.sub}</p>
-            <div style="margin-top:10px;">${reactorLinkHtml(t.addr)}</div>
-            ${sandbox?'<p class="text-xs" style="color:#475569;margin-top:8px;line-height:1.5;">Preview sandbox cannot reach the live API. Open this page in a new tab for live data.</p>':''}
+            <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:#eab308;">Risk Exposure, Data Solutions</span><div class="section-head-line"></div></div>
+            <div class="text-xs" style="color:#64748b;margin-bottom:6px;">% of 7-day transfer volume touching risky categories:</div>
+            ${riskRows}
+            ${rp?'<div class="text-xs" style="color:#475569;margin-top:6px;">Total 7d volume: '+fmtVol(rp.volume_usd)+'</div>':''}
           </div>
         </div>
-        ${expHtml}`;
+        ${expHtml}
+        <div class="qd-card" style="padding:14px;margin-top:12px;">
+          <div class="section-head"><span class="text-xs font-semibold uppercase tracking-wide" style="color:${verdict.c};">Compliance Verdict</span><div class="section-head-line"></div></div>
+          <div class="flex items-center gap-2"><span style="width:10px;height:10px;border-radius:50%;background:${verdict.c};"></span><span class="text-sm font-bold" style="color:${verdict.c};">${verdict.txt}</span></div>
+          <p class="text-xs" style="color:#94a3b8;margin-top:6px;line-height:1.5;">${verdict.sub}</p>
+          <div style="margin-top:10px;">${reactorLinkHtml(t.addr)}</div>
+          ${sandbox?'<p class="text-xs" style="color:#475569;margin-top:8px;line-height:1.5;">Preview sandbox cannot reach the live API. Open this page in a new tab for live data.</p>':''}
+        </div>`;
     }
 
     async function screenCounterparty(){
