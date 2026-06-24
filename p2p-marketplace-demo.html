@@ -528,12 +528,20 @@
     function handleBuyer(text){ sellerSay(pickReply(text), 700+Math.random()*500); }
     function pickReply(text){
       const t=(text||'').toLowerCase();
-      if(/avail|still there|^hi|hello|hey/.test(t)) return 'Hey! Yes, ready to trade whenever you are.';
+      const sell = tradeMode==='sell';
+      if(/price|discount|cheaper|lower|premium/.test(t)) return sell ? 'Happy with the price, let us proceed.' : 'Price is firm, it already reflects the current market rate.';
+      if(/thank|thanks|cheers/.test(t)) return 'Anytime, happy trading!';
+      if(/avail|still there|^hi|hello|hey/.test(t)) return sell ? 'Hey! Ready to buy as soon as your crypto is in escrow.' : 'Hey! Yes, ready to trade whenever you are.';
+      if(sell){
+        // Counterparty is the BUYER paying you. You will tap "I have received the payment".
+        if(/arriv|receiv|how.*pay|payment|how do i|sent|paid|done|transfer|when|how fast|how long/.test(t))
+          return 'I just sent the '+fmtUsd(tradeUsd)+' by '+currentOffer.payment+'. Once it lands, tap "I have received the payment" to release the '+currentOffer.asset+'.';
+        return 'Sounds good. Tap "I have received the payment" once the funds show up.';
+      }
+      // Buy mode: counterparty is the SELLER, you will tap "I have sent the payment".
       if(/how.*pay|payment|how do i/.test(t)) return 'Send the '+fmtUsd(tradeUsd)+' via '+currentOffer.payment+', then tap "I have sent the payment" so I can confirm.';
       if(/sent|paid|done|transfer/.test(t)) return 'Great. Tap "I have sent the payment" and I will confirm and release the escrow.';
       if(/release|how fast|how long|when/.test(t)) return 'As soon as I confirm your payment I release the escrow, usually a couple of minutes.';
-      if(/price|discount|cheaper|lower/.test(t)) return 'Price is firm, it already reflects the current market rate.';
-      if(/thank|thanks|cheers/.test(t)) return 'Anytime, happy trading!';
       return 'Got it. Let me know once the payment is on the way.';
     }
 
