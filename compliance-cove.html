@@ -873,17 +873,19 @@
         return BRAND_LOOKUP[d]?BRAND_LOOKUP[d].color:null;
       }
 
-      var _lastAutoDomain='';
+      var _lastAutoName='';
       function onDomainInput(){
         var raw=document.getElementById('brandDomain').value.trim();
         var d=raw.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'').toLowerCase();
         var nameInput=document.getElementById('brandName');
         var autoName=domainToName(d);
-        // Auto-fill name if user hasn't manually typed something different
-        if(!nameInput.value.trim()||nameInput.value.trim()===domainToName(_lastAutoDomain)){
+        var cur=nameInput.value.trim();
+        // Auto-fill name if: empty, matches last auto-fill, or matches demo default
+        var demoDefault=brandStudioIndex>=0?(demos[brandStudioIndex].defaultBrand||''):'';
+        if(!cur||cur===_lastAutoName||cur===demoDefault){
           nameInput.value=autoName;
+          _lastAutoName=autoName;
         }
-        _lastAutoDomain=d;
         // Auto-fill brand color from lookup
         var autoColor=domainToColor(d);
         if(autoColor) setBrandColor(autoColor);
@@ -975,7 +977,7 @@
       }
 
       // Listen for live preview on name input
-      document.getElementById('brandName').addEventListener('input', function(){ _lastAutoDomain='__manual__'; updateBrandPreview(); });
+      document.getElementById('brandName').addEventListener('input', function(){ _lastAutoName='__manual__'; updateBrandPreview(); });
 
       function applyBranding() {
         if (brandStudioIndex < 0) return;
