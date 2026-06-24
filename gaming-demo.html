@@ -167,7 +167,7 @@
       <nav class="border-b border-border sticky" style="top:0;z-index:50;background:var(--background);">
         <div class="max-w-4xl mx-auto px-4 flex items-center justify-between" style="height:56px;">
           <div class="flex items-center gap-2 cursor-pointer" onclick="showScreen('dashboard')">
-            <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;">
+            <div data-brand-logo style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#7c3aed,#a855f7);display:flex;align-items:center;justify-content:center;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="15" cy="11" r="1"/><circle cx="18" cy="13" r="1"/></svg>
             </div>
             <span class="text-base font-bold tracking-tight">NexusArena</span>
@@ -1138,9 +1138,9 @@
             st=st.replace(/244,\s*63,\s*94/g,r+','+g+','+b);
             el.setAttribute('style',st);
           });
-        var _bl=document.querySelector('[data-brand-logo]');if(_bl)_bl.style.background='linear-gradient(135deg,'+color+','+color+'cc)';}
+        document.querySelectorAll('[data-brand-logo]').forEach(function(_bl){_bl.style.background='linear-gradient(135deg,'+color+','+color+'cc)';});}
 
-        var logo=p.get('logo');if(logo||domain){if(!domain&&logo){try{var u=new URL(logo);domain=u.searchParams.get('domain')||'';}catch(e){}}if(domain)domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var logoEl=document.querySelector('[data-brand-logo]');if(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src=logo||('https://www.google.com/s2/favicons?domain='+domain+'&sz=128');img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){if(domain){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';}else this.style.display='none';};ch.parentNode.replaceChild(img,ch);}}}
+        var logo=p.get('logo');if(logo||domain){if(!domain&&logo){try{var u=new URL(logo);domain=u.searchParams.get('domain')||'';}catch(e){}}if(domain)domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var _src=logo||('https://www.google.com/s2/favicons?domain='+domain+'&sz=128');document.querySelectorAll('[data-brand-logo]').forEach(function(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src=_src;img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){if(domain){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';}else this.style.display='none';};ch.parentNode.replaceChild(img,ch);}});}
       }
 
       if(!brand&&!color&&!domain&&!logo)return;

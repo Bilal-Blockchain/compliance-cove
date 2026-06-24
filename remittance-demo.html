@@ -205,7 +205,7 @@
     <div class="screen" id="screen-send">
       <nav class="border-b border-border" style="background:var(--background);">
         <div class="max-w-5xl mx-auto px-4 flex items-center gap-2" style="height:56px;">
-          <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#dc2626,#f43f5e);display:flex;align-items:center;justify-content:center;">
+          <div data-brand-logo style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#dc2626,#f43f5e);display:flex;align-items:center;justify-content:center;">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg>
           </div>
           <span class="text-base font-bold tracking-tight">SwiftBridge</span>
@@ -648,9 +648,9 @@
             st=st.replace(/244,\s*63,\s*94/g,r+','+g+','+b);
             el.setAttribute('style',st);
           });
-        var _bl=document.querySelector('[data-brand-logo]');if(_bl)_bl.style.background='linear-gradient(135deg,'+color+','+color+'cc)';}
+        document.querySelectorAll('[data-brand-logo]').forEach(function(_bl){_bl.style.background='linear-gradient(135deg,'+color+','+color+'cc)';});}
 
-        var logo=p.get('logo');if(logo||domain){if(!domain&&logo){try{var u=new URL(logo);domain=u.searchParams.get('domain')||'';}catch(e){}}if(domain)domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var logoEl=document.querySelector('[data-brand-logo]');if(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src=logo||('https://www.google.com/s2/favicons?domain='+domain+'&sz=128');img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){if(domain){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';}else this.style.display='none';};ch.parentNode.replaceChild(img,ch);}}}
+        var logo=p.get('logo');if(logo||domain){if(!domain&&logo){try{var u=new URL(logo);domain=u.searchParams.get('domain')||'';}catch(e){}}if(domain)domain=domain.replace(/^https?:\/\//,'').replace(/\/.*$/,'').toLowerCase();var _src=logo||('https://www.google.com/s2/favicons?domain='+domain+'&sz=128');document.querySelectorAll('[data-brand-logo]').forEach(function(logoEl){var ch=logoEl.querySelector('svg')||logoEl.querySelector('span');if(ch){var img=document.createElement('img');img.src=_src;img.style.cssText='width:60%;height:60%;object-fit:contain;border-radius:3px;';img.onerror=function(){if(domain){this.onerror=function(){this.style.display="none";};this.src='https://icons.duckduckgo.com/ip3/'+domain+'.ico';}else this.style.display='none';};ch.parentNode.replaceChild(img,ch);}});}
       }
 
       if(!brand&&!color&&!domain&&!logo)return;
