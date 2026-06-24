@@ -251,7 +251,9 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 ### 4. 👥 P2P Marketplace `p2p-marketplace-demo.html`
 **Priority:** Medium — Common prospect type, but Address Screening + KYT overlap with other demos  
 **Effort:** ~3–4 hours  
-**Status:** ✅ Complete — built as **Peerly** (light theme, green accent). Live on the hub.  
+**Status:** ✅ Complete — built as **Peerly** (light theme, green accent). Live on the hub. Now includes a **Buy and Sell side** with **per-offer pre-screen trust badges** and a right-rail live chat.  
+
+**v2 additions:** (a) **Buy/Sell toggle** on the marketplace. Buy mode screens the seller (source of funds) at trade start; **Sell mode screens the buyer wallet (destination) before your crypto is released**, and a sanctioned buyer is blocked so funds never leave escrow. (b) **Per-offer pre-screen trust badges** (Cleared / Enhanced review / Sanctioned) on every listing, the trade setup, and the chat header, so trust is visible before committing funds (a natural compliance talking point). (c) The trade **chat moved to the right rail**; the Compliance Audit Trail and Products cards were removed for a cleaner layout (dispute evidence is still assembled from state).  
 **Products:** Address Screening ★, KYT, Reactor  
 **Industry:** P2P Exchange
 

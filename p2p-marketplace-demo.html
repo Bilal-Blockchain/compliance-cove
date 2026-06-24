@@ -94,6 +94,12 @@
       @keyframes chatDot { 0%,60%,100%{opacity:.3;transform:translateY(0)} 30%{opacity:1;transform:translateY(-3px)} }
       .chat-chip { font-size:11px; font-weight:600; padding:5px 10px; border-radius:999px; border:1px solid var(--border); background:var(--background); color:var(--muted-foreground); cursor:pointer; transition:all .15s; white-space:nowrap; }
       .chat-chip:hover { border-color:#16a34a; color:#16a34a; }
+
+      /* Buy/Sell mode toggle */
+      .mode-toggle { display:flex; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+      .mode-btn { font-size:12px; font-weight:700; padding:7px 16px; border:none; background:var(--background); color:var(--muted-foreground); cursor:pointer; transition:all .15s; }
+      .mode-btn:hover { color:var(--foreground); }
+      .mode-btn.active { background:#16a34a; color:#fff; }
     </style>
   </head>
   <body class="bg-background text-foreground" style="min-height:100vh;">
@@ -149,21 +155,25 @@
         </div>
       </nav>
       <div class="max-w-5xl mx-auto px-4 py-6">
-        <div class="flex items-center justify-between flex-wrap gap-3" style="margin-bottom:14px;">
+        <div class="flex items-center justify-between flex-wrap gap-3" style="margin-bottom:12px;">
           <div>
-            <h2 class="text-xl font-bold tracking-tight">Buy crypto from verified peers</h2>
-            <p class="text-sm text-muted-foreground">Pick an offer to start a secure, escrow protected trade.</p>
+            <h2 class="text-xl font-bold tracking-tight" id="marketHeading">Buy crypto from verified peers</h2>
+            <p class="text-sm text-muted-foreground" id="marketSub">Pick an offer to start a secure, escrow protected trade.</p>
           </div>
-          <div class="flex gap-1.5" id="marketFilters">
-            <button class="mkt-filter" data-asset="all" onclick="filterMarket('all',this)">All</button>
-            <button class="mkt-filter" data-asset="BTC" onclick="filterMarket('BTC',this)">BTC</button>
-            <button class="mkt-filter" data-asset="USDT" onclick="filterMarket('USDT',this)">USDT</button>
+          <div class="mode-toggle" id="modeToggle">
+            <button id="modeBuy" class="mode-btn active" onclick="setMode('buy')">Buy crypto</button>
+            <button id="modeSell" class="mode-btn" onclick="setMode('sell')">Sell crypto</button>
           </div>
+        </div>
+        <div class="flex items-center gap-1.5" id="marketFilters" style="margin-bottom:14px;">
+          <button class="mkt-filter" data-asset="all" onclick="filterMarket('all',this)">All</button>
+          <button class="mkt-filter" data-asset="BTC" onclick="filterMarket('BTC',this)">BTC</button>
+          <button class="mkt-filter" data-asset="USDT" onclick="filterMarket('USDT',this)">USDT</button>
         </div>
 
         <div class="cove-disclaimer" style="margin-bottom:14px;">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span><strong>How Peerly stays safe:</strong> before any trade starts, the counterparty wallet is screened with Chainalysis Address Screening. Sanctioned and high risk counterparties are blocked automatically.</span>
+          <span><strong>How Peerly stays safe:</strong> every counterparty wallet is pre-screened with Chainalysis Address Screening. The badge on each offer shows whether a trader is trusted, needs review, or is blocked, before you ever commit funds.</span>
         </div>
 
         <div id="offerList" style="display:flex;flex-direction:column;gap:10px;"></div>
@@ -205,7 +215,7 @@
               <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                 <div id="chatPeerAv" class="chat-av" style="background:#16a34a;">S</div>
                 <div style="flex:1;"><div class="text-sm font-bold" id="chatPeerName">seller</div><div class="text-xs text-muted-foreground">Trade chat, escrow protected</div></div>
-                <span class="pill" style="background:rgba(22,163,74,.1);color:#15803d;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><path d="M20 6L9 17l-5-5"/></svg>Verified</span>
+                <span id="chatTrust" class="pill" style="background:rgba(22,163,74,.1);color:#15803d;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:3px;"><path d="M20 6L9 17l-5-5"/></svg>Cleared</span>
               </div>
               <div id="chatMessages" class="chat-scroll"></div>
               <div id="chatChips" style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 8px;"></div>
@@ -305,7 +315,50 @@
         kytInput:{ mode:'transfer', network:'BITCOIN', asset:'BTC', direction:'sent', transferReference:'6dd7ede9526c3bb8b670696b96a6edf6d39d445f02b8496da3335d69c6640c47:bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar' } },
     ];
 
-    let currentOffer = null, tradeUsd = 0, tradeCrypto = 0, lastScreen = null, tradeBlocked = false, stage = 'greet', chatLog = [];
+    // Sell-side offers: these are BUYERS who want to buy your crypto. Same wallets/outcomes,
+    // but the screen happens on the buyer's destination wallet before your crypto is released.
+    const BUYERS = [
+      { id:'b1', asset:'BTC', priceUsd:67180, margin:'+1.0%', min:100, max:6000,
+        trader:'crypto_carol', rating:99.1, trades:3120, payment:'Bank Transfer (SEPA)', online:true, color:'#0891b2',
+        wallet:'bc1qakvuk920fcal063mpvz6gym0nsse0auuz9ny0u', net:'BITCOIN', kind:'clean', expected:'Low',
+        blurb:'Reliable buyer, pays fast and on time.' },
+      { id:'b2', asset:'USDT', priceUsd:1.00, margin:'+0.3%', min:50, max:25000,
+        trader:'otc_mike', rating:95.4, trades:880, payment:'Wise / Revolut', online:true, color:'#7c3aed',
+        wallet:'0x0038AC785dfB6C82b2c9A7B3B6854e08a10cb9f1', net:'ETHEREUM', kind:'review', expected:'Medium',
+        blurb:'Receiving wallet routes through an unnamed service.' },
+      { id:'b3', asset:'BTC', priceUsd:68400, margin:'+2.6%', min:200, max:15000,
+        trader:'fast_cashout', rating:88.2, trades:140, payment:'Cash App', online:true, color:'#9333ea',
+        wallet:'3JaAYDPJkwdSYtBDML3QUtaSJjB6eebd2R', net:'BITCOIN', kind:'sanctioned', expected:'Severe',
+        blurb:'Pays well above market. The premium is the red flag.' },
+      { id:'b4', asset:'BTC', priceUsd:67000, margin:'+0.7%', min:100, max:9000,
+        trader:'lucky_luke', rating:97.3, trades:610, payment:'Zelle', online:true, color:'#f97316',
+        wallet:'bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar', net:'BITCOIN', kind:'monitor', expected:'Low',
+        blurb:'Clean at trade time. Watched after release.',
+        kytInput:{ mode:'transfer', network:'BITCOIN', asset:'BTC', direction:'sent', transferReference:'6dd7ede9526c3bb8b670696b96a6edf6d39d445f02b8496da3335d69c6640c47:bc1q68k9yatpytxurh94gk6ulk764lc37vxa54y4ar' } },
+    ];
+
+    let currentOffer = null, tradeUsd = 0, tradeCrypto = 0, lastScreen = null, tradeBlocked = false, stage = 'greet', chatLog = [], tradeMode = 'buy';
+
+    function offersForMode(){ return tradeMode==='sell' ? BUYERS : OFFERS; }
+    function setMode(m){
+      tradeMode = m;
+      document.getElementById('modeBuy').classList.toggle('active', m==='buy');
+      document.getElementById('modeSell').classList.toggle('active', m==='sell');
+      document.getElementById('marketHeading').textContent = m==='sell' ? 'Sell crypto to screened buyers' : 'Buy crypto from verified peers';
+      document.getElementById('marketSub').textContent = m==='sell' ? 'Pick a buyer. We screen their wallet before your crypto is ever released.' : 'Pick an offer to start a secure, escrow protected trade.';
+      renderMarket();
+    }
+    // Pre-screen trust badge derived from the counterparty wallet outcome.
+    function screenBadge(kind){
+      if(kind==='sanctioned') return { label:'Sanctioned', trust:'Do not trade', color:'#b91c1c', bg:'rgba(239,68,68,.1)' };
+      if(kind==='review') return { label:'Enhanced review', trust:'Trade with caution', color:'#a16207', bg:'rgba(234,179,8,.14)' };
+      return { label:'Cleared', trust:'Trusted counterparty', color:'#15803d', bg:'rgba(22,163,74,.1)' };
+    }
+    function badgeIcon(kind){
+      if(kind==='sanctioned') return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+      if(kind==='review') return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+      return '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>';
+    }
 
     function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('screen-'+id).classList.add('active'); window.scrollTo(0,0); if(id==='market') renderMarket(); }
 
@@ -316,14 +369,18 @@
     let marketFilter = 'all';
     function renderMarket(){
       const list = document.getElementById('offerList');
-      const offers = OFFERS.filter(o=> marketFilter==='all' || o.asset===marketFilter);
-      list.innerHTML = offers.map(o=>`
+      const offers = offersForMode().filter(o=> marketFilter==='all' || o.asset===marketFilter);
+      const action = tradeMode==='sell' ? 'Sell' : 'Buy';
+      list.innerHTML = offers.map(o=>{
+        const b=screenBadge(o.kind);
+        return `
         <div class="offer-row">
           <div style="display:flex;align-items:center;gap:10px;min-width:0;">
             <div class="avatar" style="background:${o.color};">${o.trader.charAt(0).toUpperCase()}</div>
             <div style="min-width:0;">
               <div style="display:flex;align-items:center;gap:6px;"><span class="text-sm font-semibold" style="white-space:nowrap;">${o.trader}</span><span class="pulse-dot" style="width:6px;height:6px;background:${o.online?'#22c55e':'#cbd5e1'};" title="${o.online?'Online':'Offline'}"></span></div>
               <div class="text-xs text-muted-foreground" style="margin-top:1px;">${o.rating}% positive, ${o.trades.toLocaleString()} trades</div>
+              <span class="pill" title="Chainalysis pre-screen of the counterparty wallet" style="margin-top:5px;background:${b.bg};color:${b.color};">${badgeIcon(o.kind)} ${b.label}</span>
             </div>
           </div>
           <div>
@@ -335,8 +392,8 @@
             <div class="text-sm font-bold mono">${fmtUsd(o.priceUsd)} <span class="text-xs font-normal" style="color:${o.margin.startsWith('-')?'#16a34a':'#64748b'};">${o.margin}</span></div>
             <div class="text-xs text-muted-foreground mono">${fmtUsd(o.min)} - ${fmtUsd(o.max)}</div>
           </div>
-          <button onclick="startTrade('${o.id}')" class="inline-flex items-center justify-center rounded-lg h-9 px-4 text-sm font-semibold text-primary-foreground accent-bg" style="white-space:nowrap;">Buy ${o.asset}</button>
-        </div>`).join('');
+          <button onclick="startTrade('${o.id}')" class="inline-flex items-center justify-center rounded-lg h-9 px-4 text-sm font-semibold text-primary-foreground accent-bg" style="white-space:nowrap;">${action} ${o.asset}</button>
+        </div>`;}).join('');
     }
     function filterMarket(asset, btn){
       marketFilter = asset;
@@ -346,7 +403,7 @@
     }
 
     function startTrade(id){
-      currentOffer = OFFERS.find(o=>o.id===id);
+      currentOffer = offersForMode().find(o=>o.id===id);
       tradeBlocked = false; lastScreen = null;
       showScreen('trade');
       resetTrade();
@@ -363,24 +420,34 @@
     }
 
     function renderSetup(){
-      const o = currentOffer;
+      const o = currentOffer; const sell = tradeMode==='sell'; const b = screenBadge(o.kind);
+      const amtLabel = sell ? 'You sell (USD value)' : 'You pay (USD)';
+      const desc = sell ? ('Buying '+o.asset+' at '+fmtUsd(o.priceUsd)+', '+o.payment) : ('Selling '+o.asset+' at '+fmtUsd(o.priceUsd)+', '+o.payment);
+      const previewRows = sell
+        ? `<div class="flex justify-between"><span class="text-muted-foreground">You send</span><span class="font-bold mono" id="tradeRecv">0</span></div>
+           <div class="flex justify-between"><span class="text-muted-foreground">You receive</span><span class="font-bold mono accent" id="tradeRecvUsd">0</span></div>`
+        : `<div class="flex justify-between"><span class="text-muted-foreground">You receive</span><span class="font-bold mono accent" id="tradeRecv">0</span></div>`;
+      const note = sell
+        ? 'When you start, your crypto is locked in escrow under <strong>KYT</strong> monitoring. Before it is released, Peerly screens the <strong>buyer wallet</strong> with <strong>Address Screening</strong> and blocks the release if it is sanctioned.'
+        : 'When you start, Peerly screens the counterparty wallet with <strong>Address Screening</strong>, locks the crypto in escrow under <strong>KYT</strong> monitoring, and pre-screens the payout before release.';
       document.getElementById('trade-setup').style.display='';
       document.getElementById('trade-setup').innerHTML = `
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
           <div class="avatar" style="background:${o.color};">${o.trader.charAt(0).toUpperCase()}</div>
-          <div><div class="text-sm font-bold">${o.trader}</div><div class="text-xs text-muted-foreground">Selling ${o.asset} at ${fmtUsd(o.priceUsd)}, ${o.payment}</div></div>
+          <div style="flex:1;"><div class="text-sm font-bold">${o.trader}</div><div class="text-xs text-muted-foreground">${desc}</div></div>
+          <span class="pill" style="background:${b.bg};color:${b.color};">${badgeIcon(o.kind)} ${b.label}</span>
         </div>
-        <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">You pay (USD)</label>
+        <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">${amtLabel}</label>
         <div style="border-radius:14px;border:1px solid var(--border);padding:12px 14px;background:var(--muted);margin-top:6px;display:flex;align-items:center;gap:8px;">
           <span class="text-lg font-bold">$</span>
           <input id="tradeAmt" type="number" value="500" min="${o.min}" max="${o.max}" oninput="updateTradePreview()" class="mono" style="border:none;background:none;outline:none;font-size:24px;font-weight:800;width:100%;color:var(--foreground);" />
         </div>
         <div class="rounded-lg bg-muted p-3 space-y-1 text-sm" style="margin-top:12px;">
-          <div class="flex justify-between"><span class="text-muted-foreground">You receive</span><span class="font-bold mono accent" id="tradeRecv">0</span></div>
+          ${previewRows}
           <div class="flex justify-between text-xs"><span class="text-muted-foreground">Limits</span><span class="mono">${fmtUsd(o.min)} - ${fmtUsd(o.max)}</span></div>
-          <div class="flex justify-between text-xs"><span class="text-muted-foreground">Counterparty wallet</span><span class="mono">${shortAddr(o.wallet)}</span></div>
+          <div class="flex justify-between text-xs"><span class="text-muted-foreground">${sell?'Buyer wallet':'Counterparty wallet'}</span><span class="mono">${shortAddr(o.wallet)}</span></div>
         </div>
-        <div class="cove-disclaimer" style="margin-top:12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>When you start, Peerly screens the counterparty wallet with <strong>Address Screening</strong>, locks the crypto in escrow under <strong>KYT</strong> monitoring, and pre-screens the payout before release.</span></div>
+        <div class="cove-disclaimer" style="margin-top:12px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span>${note}</span></div>
         <button onclick="beginTrade()" id="startTradeBtn" class="w-full inline-flex items-center justify-center rounded-lg h-11 gap-2 text-sm font-semibold text-primary-foreground accent-bg" style="margin-top:14px;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Start Secure Trade
@@ -393,15 +460,19 @@
       tradeUsd = parseFloat(document.getElementById('tradeAmt').value)||0;
       tradeCrypto = tradeUsd / o.priceUsd;
       const el = document.getElementById('tradeRecv'); if(el) el.textContent = fmtCrypto(tradeCrypto,o.asset);
+      const eu = document.getElementById('tradeRecvUsd'); if(eu) eu.textContent = fmtUsd(tradeUsd);
       renderOrderSummary();
     }
     function renderOrderSummary(){
-      const o = currentOffer;
+      const o = currentOffer; const sell = tradeMode==='sell';
       document.getElementById('orderSummary').innerHTML = `
-        <div class="flex justify-between"><span class="text-muted-foreground">Seller</span><span class="font-medium">${o.trader}</span></div>
+        <div class="flex justify-between"><span class="text-muted-foreground">${sell?'Buyer':'Seller'}</span><span class="font-medium">${o.trader}</span></div>
         <div class="flex justify-between"><span class="text-muted-foreground">Asset</span><span class="font-medium">${o.asset}</span></div>
-        <div class="flex justify-between"><span class="text-muted-foreground">You pay</span><span class="font-semibold mono">${fmtUsd(tradeUsd)}</span></div>
-        <div class="flex justify-between"><span class="text-muted-foreground">You receive</span><span class="font-semibold mono accent">${fmtCrypto(tradeCrypto,o.asset)}</span></div>
+        ${sell
+          ? `<div class="flex justify-between"><span class="text-muted-foreground">You sell</span><span class="font-semibold mono">${fmtCrypto(tradeCrypto,o.asset)}</span></div>
+             <div class="flex justify-between"><span class="text-muted-foreground">You receive</span><span class="font-semibold mono accent">${fmtUsd(tradeUsd)}</span></div>`
+          : `<div class="flex justify-between"><span class="text-muted-foreground">You pay</span><span class="font-semibold mono">${fmtUsd(tradeUsd)}</span></div>
+             <div class="flex justify-between"><span class="text-muted-foreground">You receive</span><span class="font-semibold mono accent">${fmtCrypto(tradeCrypto,o.asset)}</span></div>`}
         <div class="flex justify-between"><span class="text-muted-foreground">Payment</span><span class="font-medium">${o.payment}</span></div>`;
     }
     function setEscrow(text,bg,color){ const el=document.getElementById('escrowStatus'); el.textContent=text; el.style.background=bg; el.style.color=color; }
@@ -432,7 +503,7 @@
 
     // ---- Trade chat ----
     function chatReset(){ chatLog=[]; const m=document.getElementById('chatMessages'); if(m) m.innerHTML=''; document.getElementById('trade-chat').style.display='none'; document.getElementById('chatChips').innerHTML=''; }
-    function chatShow(){ const o=currentOffer; document.getElementById('trade-chat').style.display=''; document.getElementById('chatPeerName').textContent=o.trader; const av=document.getElementById('chatPeerAv'); av.textContent=o.trader.charAt(0).toUpperCase(); av.style.background=o.color; }
+    function chatShow(){ const o=currentOffer; document.getElementById('trade-chat').style.display=''; document.getElementById('chatPeerName').textContent=o.trader; const av=document.getElementById('chatPeerAv'); av.textContent=o.trader.charAt(0).toUpperCase(); av.style.background=o.color; const b=screenBadge(o.kind); const tp=document.getElementById('chatTrust'); if(tp){ tp.style.background=b.bg; tp.style.color=b.color; tp.innerHTML=badgeIcon(o.kind)+' '+b.label; } }
     function chatTime(){ const d=new Date(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
     function chatRender(){
       const wrap=document.getElementById('chatMessages');
@@ -452,7 +523,7 @@
     }
     async function sellerSay(text, ms){ chatTyping(true); await delay(ms||900); chatTyping(false); chatPush('them',text); }
     function renderChips(list){ document.getElementById('chatChips').innerHTML=(list||[]).map(t=>`<button class="chat-chip" data-t="${t}" onclick="chatChip(this.dataset.t)">${t}</button>`).join(''); }
-    function chatChip(text){ if(text==='I have sent the payment'){ markPaid(); return; } chatPush('me',text); handleBuyer(text); }
+    function chatChip(text){ if(text==='I have sent the payment'){ markPaid(); return; } if(text==='I have received the payment'){ markFiatReceived(); return; } chatPush('me',text); handleBuyer(text); }
     function chatSend(){ const inp=document.getElementById('chatInput'); const t=(inp.value||'').trim(); if(!t) return; inp.value=''; chatPush('me',t); handleBuyer(t); }
     function handleBuyer(text){ sellerSay(pickReply(text), 700+Math.random()*500); }
     function pickReply(text){
@@ -473,9 +544,15 @@
       const cards = document.getElementById('trade-cards'); cards.style.display=''; cards.innerHTML='';
       chatShow();
       chatPush('system','Secure trade started. Funds are held in escrow until both sides confirm.');
-      renderChips(['Hi, is this still available?','How fast do you release?']);
-      sellerSay('Hi! Thanks for opening a trade. I am online and ready when you are.', 700);
-      await runScreening();
+      if(tradeMode==='sell'){
+        renderChips(['How do you want to pay?','Ready when you are']);
+        sellerSay('Hi! Ready to buy. As soon as your '+currentOffer.asset+' is in escrow I will send the '+fmtUsd(tradeUsd)+'.', 700);
+        await runSellEscrow();
+      } else {
+        renderChips(['Hi, is this still available?','How fast do you release?']);
+        sellerSay('Hi! Thanks for opening a trade. I am online and ready when you are.', 700);
+        await runScreening();
+      }
     }
 
     function screenFallback(o){
@@ -581,6 +658,89 @@
       renderActions(['paid','dispute']);
     }
 
+    // ===== SELL SIDE =====
+    async function runSellEscrow(){
+      const o = currentOffer;
+      setEscrow('Funding escrow...','rgba(234,179,8,.12)','#a16207');
+      addStep('p-s1','Lock your crypto in escrow','You fund the trade', true);
+      await animateStep('p-s1','running',800); await animateStep('p-s1','success',0);
+      document.getElementById('p-s1').querySelector('.step-icon').textContent='✓';
+      addStep('p-s2','Register escrow with KYT','POST /v2/users/{userId}/transfers');
+      await animateStep('p-s2','running',900); await animateStep('p-s2','success',0);
+      document.getElementById('p-s2').querySelector('.step-icon').textContent='✓';
+      setEscrow('In escrow','rgba(22,163,74,.12)','#15803d');
+      addAudit('KYT', `Your ${fmtCrypto(tradeCrypto,o.asset)} placed in escrow and under monitoring.`, 'ok');
+      appendCard(`<div style="margin-top:12px;border-radius:12px;padding:12px 14px;background:rgba(22,163,74,.05);border:1px solid rgba(22,163,74,.14);">
+        <div style="display:flex;align-items:center;gap:6px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="text-sm font-semibold" style="color:#15803d;">${fmtCrypto(tradeCrypto,o.asset)} held in escrow</span></div>
+        <p class="text-xs text-muted-foreground" style="margin-top:4px;line-height:1.5;">Your crypto is safely escrowed. ${o.trader} will send ${fmtUsd(tradeUsd)} by ${o.payment}. Confirm once the funds arrive, and the buyer wallet is screened before any crypto is released.</p>
+      </div>`);
+      stage='escrow';
+      await sellerSay('Great, I can see the '+o.asset+' in escrow. Sending the '+fmtUsd(tradeUsd)+' now by '+o.payment+'.', 1000);
+      renderChips(['Has the payment arrived?','I have received the payment']);
+      renderActions(['fiatrecv','dispute']);
+    }
+
+    async function markFiatReceived(){
+      if(stage==='paid'||stage==='done') return;
+      stage='paid';
+      document.getElementById('trade-actions').innerHTML='';
+      renderChips([]);
+      chatPush('me','Payment received, thank you. Releasing now.');
+      addStep('p-s3','Confirm fiat received','You confirm the buyer paid');
+      await animateStep('p-s3','running',900); await animateStep('p-s3','success',0);
+      document.getElementById('p-s3').querySelector('.step-icon').textContent='✓';
+      addAudit('Trade', `Seller confirmed ${fmtUsd(tradeUsd)} received by ${currentOffer.payment}.`, 'info');
+      await delay(250);
+      await runSellRelease();
+    }
+
+    async function runSellRelease(){
+      const o = currentOffer;
+      setEscrow('Screening buyer...','rgba(234,179,8,.12)','#a16207');
+      addStep('p-s4','Screen buyer wallet before release','Chainalysis Address Screening');
+      await animateStep('p-s4','running',600);
+      let r=null, sandbox=false;
+      try{
+        const res=await fetch(`/api/workflow/${SLUG}/invoke/sync`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address:o.wallet}})});
+        if(!res.ok) throw new Error('api');
+        const data=await res.json(); r=data.output??data; if(r.error) throw new Error('api');
+      }catch(e){ sandbox=true; r=screenFallback(o); r.sandbox=true; }
+      r.address=o.wallet; lastScreen=r;
+      await animateStep('p-s4','success',0);
+      document.getElementById('p-s4').querySelector('.step-icon').textContent='✓';
+      appendCard(renderScreenResult(r, sandbox));
+      addAudit('Address Screening', `Buyer ${shortAddr(o.wallet)} screened, ${r.risk} risk.`, r.risk==='Low'?'ok':(r.risk==='Medium'?'warn':'alert'));
+
+      const blocked = r.risk==='High' || r.risk==='Severe';
+      if(blocked){
+        tradeBlocked = true; stage='blocked';
+        setEscrow('Release blocked','rgba(239,68,68,.12)','#b91c1c');
+        appendCard(`<div style="margin-top:12px;border-radius:12px;padding:14px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.18);">
+          <div style="display:flex;align-items:center;gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span class="text-sm font-bold" style="color:#b91c1c;">Release Blocked</span></div>
+          <p class="text-xs text-muted-foreground" style="margin-top:6px;line-height:1.5;">The buyer wallet is ${r.risk.toLowerCase()} risk (sanctioned). Your ${fmtCrypto(tradeCrypto,o.asset)} was <strong style="color:#0f172a;">not released</strong> and stays safe in escrow, ready to return to you. You never sent crypto to a sanctioned wallet.</p>
+        </div>`);
+        addAudit('Policy', 'Release blocked. Buyer wallet is sanctioned. Crypto retained in escrow.', 'alert');
+        chatPush('system','Compliance blocked this release. The buyer wallet is sanctioned, so your crypto was not sent.',{alert:true});
+        renderActions(['reactor','dispute','back']);
+        return;
+      }
+      if(r.risk==='Medium') addAudit('Policy', 'Enhanced monitoring applied. Release allowed to proceed.', 'warn');
+      addStep('p-s5','Release crypto to buyer','Funds delivered');
+      await animateStep('p-s5','running',700); await animateStep('p-s5','success',0);
+      document.getElementById('p-s5').querySelector('.step-icon').textContent='✓';
+      setEscrow('Released','rgba(34,197,94,.14)','#15803d');
+      addAudit('KYT', 'Payout monitored after release.', 'ok');
+      appendCard(`<div style="margin-top:12px;border-radius:12px;padding:14px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.15);">
+        <div style="display:flex;align-items:center;gap:8px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span class="text-sm font-bold" style="color:#15803d;">Sale Complete</span></div>
+        <p class="text-xs text-muted-foreground" style="margin-top:6px;line-height:1.5;">You sold ${fmtCrypto(tradeCrypto,o.asset)} for ${fmtUsd(tradeUsd)}. Transaction ID <span class="mono">${Array.from({length:8},()=>Math.floor(Math.random()*16).toString(16)).join('').toUpperCase()}</span>.</p>`+
+        `<div id="p2pMonitorBox" style="margin-top:10px;border-radius:10px;padding:10px 12px;background:rgba(22,163,74,.05);border:1px solid rgba(22,163,74,.14);"><div style="display:flex;align-items:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg><span style="font-size:11px;font-weight:600;color:#15803d;">KYT Continuous Monitoring Active</span></div><p style="font-size:10px;color:var(--muted-foreground);margin-top:4px;line-height:1.5;">This payout stays registered with Chainalysis KYT. Compliance is alerted automatically if the funds reach a risky or sanctioned entity after release.</p></div>`+
+        `</div>`);
+      stage='done';
+      await sellerSay('Got the '+o.asset+', thank you! Great trading with you.', 900);
+      if(o.kind==='monitor'){ await runContinuousMonitoring(); }
+      else { renderActions(['dispute','back']); }
+    }
+
     async function markPaid(){
       if(stage==='paid'||stage==='done') return;
       stage='paid';
@@ -664,6 +824,7 @@
       const wrap = document.getElementById('trade-actions');
       let html='';
       if(which.includes('paid')) html += `<button onclick="markPaid()" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-semibold text-primary-foreground accent-bg gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>I have sent the payment</button>`;
+      if(which.includes('fiatrecv')) html += `<button onclick="markFiatReceived()" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-semibold text-primary-foreground accent-bg gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>I have received the payment</button>`;
       if(which.includes('reactor')) html += `<button onclick="openInReactor('${o.wallet}','${o.net}',this)" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-semibold gap-1.5" style="border:1px solid #9333ea;background:rgba(147,51,234,.06);color:#9333ea;">Investigate counterparty in Reactor</button>`;
       if(which.includes('dispute')) html += `<button onclick="openDispute()" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Raise dispute</button>`;
       if(which.includes('back')) html += `<button onclick="backToMarket()" class="inline-flex items-center justify-center rounded-lg h-10 px-4 text-sm font-medium border border-border bg-background text-foreground hover:bg-muted transition-all">Back to marketplace</button>`;
