@@ -285,28 +285,30 @@
     const shortAddr=a=>a&&a.length>16?a.slice(0,8)+'...'+a.slice(-6):a;
 
     // ---------- Monitoring ----------
+    const HEX_APP='https://app.hexagate.com/monitors';
+    const extLink='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-1px;margin-left:3px;"><path d="M7 17L17 7M8 7h9v9"/></svg>';
     const ACTIVE_MONITORS={
       protocol:[
-        {name:'USDC contract | large outflow', type:'Address Fund Movement', sev:'Critical'},
-        {name:'USDC contract | ownership or upgrade change', type:'Admin Change', sev:'High'},
-        {name:'USDC contract | abnormal block volume', type:'Gate DSL', sev:'High'},
+        {name:'USDC contract | large outflow', type:'Address Fund Movement', sev:'Critical', target:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', condition:'Outbound transfer over $1,000,000', created:'Created 12 days ago'},
+        {name:'USDC contract | ownership or upgrade change', type:'Admin / Upgrade', sev:'High', target:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', condition:'Owner, admin, or implementation changes', created:'Created 30 days ago'},
+        {name:'USDC contract | abnormal block volume', type:'Gate DSL', sev:'High', target:'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48', condition:'Block transfer volume over 3x the trailing average', created:'Created 5 days ago'},
       ],
       exchange:[
-        {name:'Hot Wallet 01 | wallet drain pattern', type:'Wallet Drain', sev:'Critical'},
-        {name:'Hot Wallet 01 | abnormal withdrawal burst', type:'Abnormal Burst', sev:'High'},
-        {name:'Hot Wallet 01 | outflow over policy', type:'Address Fund Movement', sev:'High'},
+        {name:'Hot Wallet 01 | wallet drain pattern', type:'Wallet Drain', sev:'Critical', target:'0x28C6c06298d514Db089934071355E5743bf21d60', condition:'Rapid sequential outflows draining the balance', created:'Created 21 days ago'},
+        {name:'Hot Wallet 01 | abnormal withdrawal burst', type:'Abnormal Burst', sev:'High', target:'0x28C6c06298d514Db089934071355E5743bf21d60', condition:'Withdrawal count far above the hourly baseline', created:'Created 21 days ago'},
+        {name:'Hot Wallet 01 | outflow over policy', type:'Address Fund Movement', sev:'High', target:'0x28C6c06298d514Db089934071355E5743bf21d60', condition:'Single outbound transfer over $100,000', created:'Created 9 days ago'},
       ],
     };
     const RECENT_TRIGGERS={
       protocol:[
-        {sev:'Critical', title:'Large outflow from contract', detail:'$4.2M moved out in a single transaction', tx:'0x9c3f8a...e041', time:'2m ago'},
-        {sev:'High', title:'Proxy admin ownership transfer', detail:'Admin changed to a freshly funded EOA', tx:'0x12ab47...77d3', time:'1h ago'},
-        {sev:'Medium', title:'Block transfer volume spike', detail:'USDC volume 3x the trailing average', tx:'0x55fe00...44b8', time:'4h ago'},
+        {sev:'Critical', title:'Large outflow from contract', detail:'$4.2M moved out in a single transaction', amount:'$4,200,000', condition:'Outbound transfer over $1,000,000', block:25384531, addr:'0x12d9b4c3746b7664fd57250b6a5c1d660593161d', txFull:'0x9c3f8a1d4e7b2c0f5a6d8e9b0c1a2f3d4e5b6c7a8d9e0f1a2b3c4d5e6f70e041', time:'2m ago'},
+        {sev:'High', title:'Proxy admin ownership transfer', detail:'Admin changed to a freshly funded EOA', amount:'n/a', condition:'Owner or admin change', block:25384402, addr:'0x55fe002aeff02f77364de339a1292923a15844b8', txFull:'0x12ab47f0c9d8e6b5a4f3c2d1e0b9a8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e377d3', time:'1h ago'},
+        {sev:'Medium', title:'Block transfer volume spike', detail:'USDC volume 3x the trailing average', amount:'$58,585', condition:'Volume over 3x average', block:25384200, addr:'0x8f10b468b06c6fd214b65f87778827f7d113f996', txFull:'0x55fe002aeff02f77364de339a1292923a15844b8c1d0e9f8a7b6c5d4e3f244b8', time:'4h ago'},
       ],
       exchange:[
-        {sev:'Critical', title:'Hot wallet drain pattern', detail:'38 outbound transfers across 2 blocks', tx:'0x6efa32...7bee', time:'5m ago'},
-        {sev:'High', title:'Outbound transfer over policy', detail:'$250,000 sent to a newly seen address', tx:'0x4e2c6e...4abb', time:'42m ago'},
-        {sev:'Medium', title:'Unlimited approval to unverified spender', detail:'Hot wallet approved 0x9c...e04', tx:'0xd704ee...de03', time:'3h ago'},
+        {sev:'Critical', title:'Hot wallet drain pattern', detail:'38 outbound transfers across 2 blocks', amount:'$3,910,000', condition:'Drain pattern', block:25384540, addr:'0x6efa3205a385420cf1cfd6b725b48f96117a7bee', txFull:'0x6efa3205a385420cf1cfd6b725b48f96117a7bee0c1a2f3d4e5b6c7a8d9e7bee', time:'5m ago'},
+        {sev:'High', title:'Outbound transfer over policy', detail:'$250,000 sent to a newly seen address', amount:'$250,000', condition:'Single outflow over $100,000', block:25384498, addr:'0x4e2c6eee0c98418a982777888edbc93fc34f4abb', txFull:'0x4e2c6eee0c98418a982777888edbc93fc34f4abb1d0e9f8a7b6c5d4e3f24abb1', time:'42m ago'},
+        {sev:'Medium', title:'Unlimited approval to unverified spender', detail:'Hot wallet approved a new spender for unlimited USDC', amount:'unlimited', condition:'Risky approval', block:25384300, addr:'0xd704eec61f0c6cbe1073ae0a17aec290f5b6de03', txFull:'0xd704eec61f0c6cbe1073ae0a17aec290f5b6de030c1a2f3d4e5b6c7a8d9ede03', time:'3h ago'},
       ],
     };
     const sevLabel=s=> (typeof s==='string')?s:(s>=90?'Critical':s>=70?'High':s>=40?'Medium':'Low');
@@ -320,21 +322,40 @@
       renderActiveMonitors(); renderTriggers();
       const cr=document.getElementById('monCreateResult'); if(cr) cr.innerHTML='';
     }
+    const detRow=(k,v,mono,col)=>`<div style="display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#64748b;margin-bottom:3px;"><span>${k}</span><span class="${mono?'mono':''}" style="color:${col||'#cbd5e1'};text-align:right;">${v}</span></div>`;
     function renderActiveMonitors(){
       const el=document.getElementById('monList'); if(!el)return;
-      el.innerHTML=ACTIVE_MONITORS[useCase].map(m=>`<div class="mon-row">
+      el.innerHTML=ACTIVE_MONITORS[useCase].map((m,i)=>`<div class="mon-row" style="cursor:pointer;" onclick="toggleMon(${i})">
         <span class="pulse" style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;"></span>
         <div style="flex:1;min-width:0;"><div class="text-xs font-semibold" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${m.name}</div><div style="font-size:10px;color:#475569;">${m.type} · evaluating every block</div></div>
         <span class="sev-badge ${sevClass(m.sev)}">${m.sev}</span>
+        <svg id="monchev-${i}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" style="flex-shrink:0;transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div id="mondet-${i}" style="display:none;margin:2px 0 8px;border-radius:10px;border:1px solid var(--sf-border);padding:10px 12px;background:rgba(14,165,233,0.04);">
+        ${detRow('Target', shortAddr(m.target), true)}
+        ${detRow('Condition', m.condition)}
+        ${detRow('Severity', m.sev)}
+        ${detRow('Status', 'Live · '+m.created, false, '#22c55e')}
+        <a href="${HEX_APP}" target="_blank" rel="noopener" class="sf-btn sf-btn-ghost" style="text-decoration:none;font-size:11px;margin-top:6px;">View monitor in Hexagate${extLink}</a>
       </div>`).join('');
     }
+    function toggleMon(i){ const d=document.getElementById('mondet-'+i),c=document.getElementById('monchev-'+i); if(!d)return; const open=d.style.display==='none'; d.style.display=open?'block':'none'; if(c)c.style.transform=open?'rotate(180deg)':''; }
     function renderTriggers(){
       const el=document.getElementById('triggerList'); if(!el)return;
-      el.innerHTML=RECENT_TRIGGERS[useCase].map(t=>`<div class="mon-row" style="align-items:flex-start;">
+      el.innerHTML=RECENT_TRIGGERS[useCase].map((t,i)=>`<div class="mon-row" style="align-items:flex-start;cursor:pointer;" onclick="toggleTrig(${i})">
         <span style="width:8px;height:8px;border-radius:50%;margin-top:3px;background:${sevDot(t.sev)};flex-shrink:0;"></span>
-        <div style="flex:1;min-width:0;"><div class="flex items-center gap-2"><span class="text-xs font-semibold">${t.title}</span><span class="sev-badge ${sevClass(t.sev)}">${t.sev}</span></div><div style="font-size:11px;color:#94a3b8;margin-top:2px;line-height:1.4;">${t.detail}</div><div class="mono" style="font-size:10px;color:#475569;margin-top:2px;">${t.tx} · ${t.time}</div></div>
+        <div style="flex:1;min-width:0;"><div class="flex items-center gap-2"><span class="text-xs font-semibold">${t.title}</span><span class="sev-badge ${sevClass(t.sev)}">${t.sev}</span></div><div style="font-size:11px;color:#94a3b8;margin-top:2px;line-height:1.4;">${t.detail}</div><div class="mono" style="font-size:10px;color:#475569;margin-top:2px;">${t.txFull.slice(0,10)}...${t.txFull.slice(-6)} · ${t.time}</div></div>
+        <svg id="trigchev-${i}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5" style="flex-shrink:0;margin-top:2px;transition:transform .2s;"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div id="trigdet-${i}" style="display:none;margin:2px 0 8px;border-radius:10px;border:1px solid var(--sf-border);padding:10px 12px;background:rgba(14,165,233,0.04);">
+        ${detRow('Amount', t.amount, true)}
+        ${detRow('Condition breached', t.condition)}
+        ${detRow('Block', '#'+t.block, true)}
+        <div style="font-size:11px;color:#64748b;margin-bottom:8px;">Transaction<div class="mono" style="color:#7dd3fc;word-break:break-all;margin-top:2px;">${t.txFull}</div></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="${HEX_APP}" target="_blank" rel="noopener" class="sf-btn sf-btn-ghost" style="text-decoration:none;font-size:11px;">View event in Hexagate${extLink}</a>${reactorLinkHtml(t.addr)}</div>
       </div>`).join('');
     }
+    function toggleTrig(i){ const d=document.getElementById('trigdet-'+i),c=document.getElementById('trigchev-'+i); if(!d)return; const open=d.style.display==='none'; d.style.display=open?'block':'none'; if(c)c.style.transform=open?'rotate(180deg)':''; }
     async function loadMonitors(){
       const el=document.getElementById('monLiveCount'); if(!el)return;
       try{ const out=await hexCall({mode:'list_monitors'}); if(out&&out.count){ el.innerHTML='<span class="pulse" style="width:6px;height:6px;border-radius:50%;background:#22c55e;"></span>'+out.count+' live in this org'; } }
@@ -436,13 +457,10 @@ blockVolume <span style="color:#86efac;">${fmtUsd(volUsd)}</span></div>
 
     // ---------- Gate DSL walkthrough (JoyRide style) ----------
     const GATE_TOUR=[
-      {t:'g-use', title:'use, import your data sources', text:'Every rule starts by importing the Hexagate building blocks it needs. Events reads on chain logs, Sum aggregates numbers.'},
-      {t:'g-token', title:'source token, pick what to watch', text:'Name the contract or wallet this rule monitors. Swap this address for any target you care about.'},
-      {t:'g-transfers', title:'Query live on chain data', text:'Events reads every Transfer on the contract in the block. This is the raw on chain data the rule evaluates, pulled fresh each block.'},
-      {t:'g-volume', title:'Transform the data', text:'Sum folds the transfer amounts into one number, blockVolume, so you have a single value to test against.'},
-      {t:'g-rule', title:'The rule and severity', text:'condition is the invariant that must stay true. When it fails, Hexagate raises an alert at this severity. This is the heart of the rule.'},
-      {t:'gateThr', title:'The comparison is yours to tune', text:'This threshold is the comparison. Lower it to trigger on live data, raise it to stay in policy. That is how customizable Gate is.'},
-      {t:'gateRunBtn', title:'Run it on live data', text:'Evaluate the rule against the real chain right now and see whether it holds or breaches.'},
+      {t:'g-token', title:'1. Pick what to watch', text:'Name the contract or wallet this rule monitors. Swap this address for any target.'},
+      {t:'g-transfers', title:'2. Query live on chain data', text:'Events reads every Transfer on the contract in the block, pulled fresh each block. This is the raw data the rule runs on.'},
+      {t:'g-volume', title:'3. Transform the data', text:'Sum folds the transfer amounts into one number, blockVolume, that you can test against.'},
+      {t:'g-rule', title:'4. Set the rule and threshold', text:'condition is the invariant that must hold. If it fails, Hexagate alerts at this severity. Change the threshold to make it stricter or looser, then run it on live data.'},
     ];
     let gtIdx=-1, gtEls=null;
     function gtBuild(){ if(gtEls)return gtEls; const s=document.createElement('div');s.id='gtSpot';s.style.display='none'; const t=document.createElement('div');t.id='gtTip';t.style.display='none'; document.body.appendChild(s);document.body.appendChild(t); gtEls={s,t}; return gtEls; }
