@@ -317,7 +317,7 @@
       const cr=document.getElementById('monCreateResult'); if(cr) cr.innerHTML='';
     }
     const detRow=(k,v,mono,col)=>`<div style="display:flex;justify-content:space-between;gap:10px;font-size:11px;color:#64748b;margin-bottom:3px;"><span>${k}</span><span class="${mono?'mono':''}" style="color:${col||'#cbd5e1'};text-align:right;">${v}</span></div>`;
-    const monUrl=id=>HEX_APP+'/'+id;
+    const monUrl=id=>HEX_APP;
     function renderLiveMonitors(list, live){
       const el=document.getElementById('monList'); if(!el)return;
       if(!list||!list.length){ el.innerHTML='<p class="text-xs" style="color:#64748b;">No monitors found.</p>'; return; }
