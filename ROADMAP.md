@@ -233,27 +233,33 @@ Writes are namespaced under the `compliance-cove-demo` user in the shared KYT or
 
 ## 📋 Coming Soon Demos — Full Backlog
 
-### 3. 🔍 Insurance Claim Verification `insurance-demo.html`
+### 3. 🔍 Insurance Claims Investigation `insurance-demo.html`
 **Priority:** Medium — Unique use case (investigations, not monitoring)  
-**Effort:** ~4–5 hours  
-**Products:** Reactor, KYT, Address Screening  
+**Status:** ✅ Complete — built as **ChainGuard** (dark teal theme). Live on the hub. Reactor headline demo. Last "Coming Soon" card is now active, so every demo on the hub is clickable.  
+**Products:** Reactor ★, Address Screening, Data Solutions  
 **Industry:** Insurance / Investigations
 
-**Concept:** An insurance investigations console for crypto-related claims. An adjuster receives a claim, traces the crypto assets, verifies fund origins, and identifies fraud patterns.
+**Concept:** An insurance claims investigation console. An adjuster opens a claims dashboard, clicks a claim, and runs a 4-step investigation: (1) live Address Screening on the affected wallet, (2) a visual fund-flow trace (inline diagram with risk badges), (3) "Open Investigation in Reactor" which builds a real multi-node graph, (4) adjuster findings + verdict (approve/deny/escalate).
 
-| # | Task | Effort | Notes |
-|---|------|--------|-------|
-| 3.1 | Claims intake screen | 45 min | Claim form with policy number, claimant info, wallet addresses involved |
-| 3.2 | Reactor-style fund tracing view | 60 min | Simplified graph visualization showing fund flow from claimant's wallet |
-| 3.3 | KYT screening of claim addresses | 30 min | Screen all addresses in the claim, show risk exposure |
-| 3.4 | Fraud pattern detection panel | 45 min | Flag suspicious patterns: rapid movement, mixer usage, round-trip transactions |
-| 3.5 | Adjuster decision + report | 30 min | Disposition screen with approve/deny/escalate + exportable report |
+**Built with REAL attributed stolen-funds clusters (famous hacks), not synthetic data.** Three claims, three different cashout exchanges:
+- **CG-0847: AscendEX exchange hack** ($74M, Dec 2021) → cashout at **KuCoin.com**
+- **CG-0812: Atomic Wallet hack** ($100M, Lazarus Group, Jun 2023) → cashout at **HTX.com**
+- **CG-0756: AlphaPo payment processor hack** (Lazarus, Jul 2023) → cashout at **Binance.com**
+
+Each graph's **source node is a NAMED stolen-funds cluster** (e.g. "AscendEX.com Stolen Funds 2021-12-11") and the **final node is a NAMED exchange** (KuCoin/HTX/Binance), with labeled `add_annotation_edge` arrows showing the laundering amounts and indirect cashout exposure. All addresses traced via Data Solutions `sending_exposure_aggregation_alltime` + `transfers_clustered`.
+
+**New workflow `cove-insurance-graph`** (`workflow/insurance_graph.py`, deployed $LATEST, org-public). Builds multi-node Reactor graphs in two phases: (1) `add_cluster` nodes laid out left-to-right + title `add_annotation`, then `execute_commands`; (2) `add_annotation_edge` between nodes with labels, then `execute_commands` (edges need node IDs from phase 1). Modes via `scenario`: `ascendex` | `atomic` | `alphapo`.
+
+> **Key learning:** Real verified cases come from either (a) a real tx hash, or (b) **Chainalysis-attributed stolen-funds clusters** (`utils.entities WHERE entity_category='stolen funds'` — hundreds available: Atomic Wallet, AlphaPo, AscendEX, plus DeFi exploits like Abracadabra, Arcadia, AirDAO). On-chain pattern-matching for "victim→cashout" flows is NOT reliable: it surfaces high-volume laundering services, not clean individual scammer wallets. Use attributed clusters for new cases.
+
+> **Graph gotcha:** `add_cluster` alone does NOT draw edges between nodes when funds moved through DEX contracts/mixers/intermediate hops (Reactor only auto-draws direct on-chain transfers). Always add explicit `add_annotation_edge` arrows so the flow reads clearly. To show a named exchange as the cashout endpoint, add the exchange's **cluster root address** (not the deposit address, which renders unattributed) — e.g. Backpack `0x2228e5...`, KuCoin `0x03e6fa59...`.
+
+Sandbox-safe fallbacks; brand-swap (?brand=&color=&domain=&logo=) + analytics wired; em-dash free. Hub entry: status `active`, `defaultBrand:'ChainGuard'`, products Reactor / Address Screening / Data Solutions.
 
 **Integration points:**
-- Reactor deep links (investigate flagged addresses)
-- Address Screening API (via workflow) for live screening
-- KYT for transaction monitoring on claim addresses
-- Could link to Data Solutions for broader exposure analysis
+- Reactor multi-node investigation graphs (via `cove-insurance-graph`)
+- Address Screening API (`demochain-address-screen`) for live screening
+- Data Solutions for cluster attribution and fund tracing
 
 ---
 
@@ -534,12 +540,18 @@ Scenarios: Clean Exchange User, Unnamed Service (enhanced review), OFAC Sanction
 - ~~**Prediction Markets** (Task 6)~~ ✅ Built (ForecastX) · ~~**Branding standardization** (I.4 + T1.3)~~ ✅
 - ~~**cove-token-intel** Data Solutions workflow~~ ✅ Deployed, pre-baked data for instant render
 
+### Completed (latest session)
+- ~~**Insurance Claims** (Task 3)~~ ✅ Built (ChainGuard) — Reactor headline, real attributed hacks, ALL hub cards now active
+- ~~**Branding overhaul**~~ ✅ Domain-first Branding Studio with 35-company auto-detect (name/color/logo); `data-brand-logo` + `&logo=` param + `querySelectorAll` across all 12 demos (multi-screen logos now swap)
+- ~~**Reactor button feedback**~~ ✅ DeFi "Investigate in Reactor" shows "Building graph…" spinner then "Graph opened"
+- ~~**Continuous-monitoring indicator**~~ ✅ "Watching… fast-forwarding to show what continuous monitoring catches" added to DeFi, Remittance, Gaming, P2P
+
 ### Next Up
-1. 🟡 **Insurance Claims** (Task 3) — ~4 hrs — Reactor headline demo, last "Coming Soon"
-2. **📋 SA Presenter Mode** (T2) — ~3 hrs — Per-demo guided tours (hub engine done)
-3. **🎯 Scenario Presets** (T4) — ~2 hrs — Named compliance stories for screener
-4. **📈 Analytics Dashboard** (T5) — ~3 hrs — Usage tracking (events already firing)
-5. **🏛️ Compliance Command Center** (T6) — ~5 hrs — Platform story meta-demo
+1. **📋 SA Presenter Mode** (T2) — ~3 hrs — Per-demo guided tours (hub engine done)
+2. **🎯 Scenario Presets** (T4) — ~2 hrs — Named compliance stories for screener
+3. **📈 Analytics Dashboard** (T5) — ~3 hrs — Usage tracking (events already firing)
+4. **🏛️ Compliance Command Center** (T6) — ~5 hrs — Platform story meta-demo
+5. **More demos with real Reactor investigations** — apply the `cove-insurance-graph` pattern (attributed stolen-funds clusters + annotation edges) elsewhere
 
 ### Backlog
 - **🤖 AI Demo Narrator** (T7) — ~5 hrs
@@ -567,6 +579,7 @@ trading-firm-demo.html    # Trading Firm (QuantDesk) — multi-product, pre-bake
 stablecoin-demo.html      # Stablecoin Issuer (Meridian/USDM) — Data Solutions headline
 prediction-demo.html      # Prediction Markets (ForecastX) — wash trading detection
 p2p-marketplace-demo.html # P2P Marketplace (Peerly) — escrow + continuous monitoring
+insurance-demo.html       # Insurance Claims (ChainGuard) — Reactor multi-node investigations
 screener.html             # Live Address Screener — SA tool
 screening-explainer.html  # Address Screening API walkthrough
 kyt-explainer.html        # KYT API walkthrough
@@ -576,7 +589,8 @@ workflow/workflow.py       # Address Screening backend (demochain-address-screen
 workflow/kyt_screen.py     # KYT screening backend (cove-kyt-screen)
 workflow/token_intel.py    # Data Solutions token risk analytics (cove-token-intel)
 workflow/hexagate.py       # Hexagate monitoring + Gate DSL (cove-hexagate)
-workflow/reactor-graph.py  # Reactor graph creation (arcswap-reactor-graph)
+workflow/reactor-graph.py  # Single-node Reactor graph (arcswap-reactor-graph)
+workflow/insurance_graph.py # Multi-node Reactor investigation graphs (cove-insurance-graph)
 workflow/analytics.py      # Usage tracking (compliance-cove-analytics)
 ROADMAP.md                # ← This file
 ```
