@@ -84,7 +84,7 @@ All 15 industry demos and 3 SA tools are **live**. Every hub card is active. All
 
 ## Changelog
 
-- **Jun 25, 2026** - New cove: **Tokenized Securities / RWA (EquiChain)**. Eligibility gate (Address Screening before a wallet can hold a security token), secondary-transfer restriction (KYT), and a real Data Solutions landscape across USDY / BUIDL / OUSG with counterparty mapping (new `cove-rwa-landscape` workflow, org-public). Built on the stablecoin scaffold.
+- **Jun 25, 2026** - New cove: **Tokenized Securities / RWA (EquiChain)**. Eligibility gate (Address Screening before a wallet can hold a security token), secondary-transfer restriction (KYT), and a real Data Solutions landscape across 7 RWA tokens (BUIDL, USDY, OUSG, USYC, USTB, PAXG, XAUT) with counterparty mapping (new `cove-rwa-landscape` workflow, org-public). Built on the stablecoin scaffold.
 - **Jun 25, 2026** - Launch hardening: all backing workflows set org-public; light/dark theme pinned per page; popup-safe Reactor open across all demos; analytics shows a graceful admin-only message; public Confluence page published (SAT space); `PUBLISH.md` distribution runbook added.
 - **Earlier** - Insurance Claims (ChainGuard) built; Trading Firm Token Intel + `cove-token-intel`; domain-first Branding Studio (35-company auto-detect, logo/color/domain); hub guided tour; all 14 demos brought live.
 
