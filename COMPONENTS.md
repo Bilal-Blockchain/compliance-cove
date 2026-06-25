@@ -22,6 +22,7 @@
 | Prediction (ForecastX) | `prediction-demo.html` | Light | N/A | N/A | ✅ | N/A | ✅ |
 | P2P Marketplace (Peerly) | `p2p-marketplace-demo.html` | Light | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Insurance Claims (ChainGuard) | `insurance-demo.html` | Dark | ✅ | ✅ | ✅ | ✅ (multi-node) | ✅ |
+| Tokenized Securities / RWA (EquiChain) | `rwa-demo.html` | Light | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Address Screener | `screener.html` | Light | ✅ | ✅ | tool | ✅ | ✅ |
 | Screening API Walkthrough | `screening-explainer.html` | Light | N/A | N/A | N/A | N/A | ✅ |
 | KYT API Walkthrough | `kyt-explainer.html` | Light | N/A | N/A | N/A | N/A | ✅ |

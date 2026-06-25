@@ -10,7 +10,7 @@
 
 ## Current state - shipped
 
-All 14 industry demos and 3 SA tools are **live**. Every hub card is active. All 7 backing workflows are org-public.
+All 15 industry demos and 3 SA tools are **live**. Every hub card is active. All 8 backing workflows are org-public.
 
 | Cove | File | Example brand | Headline products |
 |---|---|---|---|
@@ -28,10 +28,11 @@ All 14 industry demos and 3 SA tools are **live**. Every hub card is active. All
 | Digital Marketplace | `nft-demo.html` | NovaMint | Address Screening |
 | P2P Marketplace | `p2p-marketplace-demo.html` | Peerly | Address Screening, KYT, Reactor |
 | Insurance Claims | `insurance-demo.html` | ChainGuard | Reactor, Address Screening, Data Solutions |
+| Tokenized Securities / RWA | `rwa-demo.html` | EquiChain | Data Solutions, Address Screening, KYT, Entity Monitoring, Reactor |
 
 **SA tools:** `screener.html` (Live Address Screener), `screening-explainer.html` and `kyt-explainer.html` (API walkthroughs).
 
-**Workflows (all org-public):** `demochain-address-screen`, `cove-kyt-screen`, `arcswap-reactor-graph`, `cove-insurance-graph`, `cove-hexagate`, `cove-token-intel`, `compliance-cove-analytics`.
+**Workflows (all org-public):** `demochain-address-screen`, `cove-kyt-screen`, `arcswap-reactor-graph`, `cove-insurance-graph`, `cove-hexagate`, `cove-token-intel`, `cove-rwa-landscape`, `compliance-cove-analytics`.
 
 **Distribution:** see `PUBLISH.md` (Holder Session model + Confluence pointer). Public page lives in the Confluence SAT space under the Demo and POV folder.
 
@@ -83,6 +84,7 @@ All 14 industry demos and 3 SA tools are **live**. Every hub card is active. All
 
 ## Changelog
 
+- **Jun 25, 2026** - New cove: **Tokenized Securities / RWA (EquiChain)**. Eligibility gate (Address Screening before a wallet can hold a security token), secondary-transfer restriction (KYT), and a real Data Solutions landscape across USDY / BUIDL / OUSG with counterparty mapping (new `cove-rwa-landscape` workflow, org-public). Built on the stablecoin scaffold.
 - **Jun 25, 2026** - Launch hardening: all backing workflows set org-public; light/dark theme pinned per page; popup-safe Reactor open across all demos; analytics shows a graceful admin-only message; public Confluence page published (SAT space); `PUBLISH.md` distribution runbook added.
 - **Earlier** - Insurance Claims (ChainGuard) built; Trading Firm Token Intel + `cove-token-intel`; domain-first Branding Studio (35-company auto-detect, logo/color/domain); hub guided tour; all 14 demos brought live.
 
@@ -107,6 +109,7 @@ stablecoin-demo.html       # Stablecoin Issuer (Meridian) - Data Solutions headl
 prediction-demo.html       # Prediction Markets (ForecastX)
 p2p-marketplace-demo.html  # P2P Marketplace (Peerly)
 insurance-demo.html        # Insurance Claims (ChainGuard) - Reactor investigations
+rwa-demo.html              # Tokenized Securities / RWA (EquiChain) - real RWA landscape
 screener.html              # Live Address Screener (SA tool)
 screening-explainer.html   # Address Screening API walkthrough
 kyt-explainer.html         # KYT API walkthrough
@@ -119,6 +122,7 @@ workflow/token_intel.py     # Data Solutions token risk (cove-token-intel)
 workflow/hexagate.py        # Hexagate monitoring + Gate DSL (cove-hexagate)
 workflow/reactor-graph.py   # Single-node Reactor graph (arcswap-reactor-graph)
 workflow/insurance_graph.py # Multi-node Reactor graphs (cove-insurance-graph)
+workflow/rwa_landscape.py   # Tokenized RWA landscape (cove-rwa-landscape)
 workflow/analytics.py       # Usage tracking (compliance-cove-analytics)
 PUBLISH.md                 # Distribution & update runbook
 COMPONENTS.md              # Per-demo component matrix

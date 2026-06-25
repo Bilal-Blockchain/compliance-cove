@@ -24,6 +24,7 @@ Each "cove" is a self-contained, browser-based prototype showing how Chainalysis
 | Digital Marketplace | `nft-demo.html` | NovaMint | Address Screening |
 | P2P Marketplace | `p2p-marketplace-demo.html` | Peerly | Address Screening, KYT, Reactor |
 | Insurance Claims Investigation | `insurance-demo.html` | ChainGuard | Reactor, Address Screening, Data Solutions |
+| Tokenized Securities / RWA | `rwa-demo.html` | EquiChain | Data Solutions, Address Screening, KYT, Entity Monitoring, Reactor |
 
 **SA tools:** `screener.html` (Live Address Screener), `screening-explainer.html` and `kyt-explainer.html` (API walkthroughs), `analytics.html` (usage dashboard, admin-only).
 
