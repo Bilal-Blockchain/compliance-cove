@@ -1,4 +1,4 @@
-# Compliance Cove — Roadmap
+# Compliance Cove - Roadmap
 
 > **Purpose:** Source of truth for the project. New Chain sessions should read this first.
 >
@@ -8,7 +8,7 @@
 
 ---
 
-## Current state — shipped
+## Current state - shipped
 
 All 14 industry demos and 3 SA tools are **live**. Every hub card is active. All 7 backing workflows are org-public.
 
@@ -54,7 +54,7 @@ All 14 industry demos and 3 SA tools are **live**. Every hub card is active. All
 ## Key learnings (carry these forward)
 
 **Real investigation cases**
-- Use either a real tx hash, OR Chainalysis-attributed stolen-funds clusters (`utils.entities WHERE entity_category='stolen funds'` — hundreds: Atomic Wallet, AlphaPo, AscendEX, plus DeFi exploits).
+- Use either a real tx hash, OR Chainalysis-attributed stolen-funds clusters (`utils.entities WHERE entity_category='stolen funds'` - hundreds: Atomic Wallet, AlphaPo, AscendEX, plus DeFi exploits).
 - Do NOT pattern-match "victim → cashout" flows on-chain; that surfaces high-volume laundering services, not clean scammer wallets.
 
 **Reactor graphs**
@@ -68,7 +68,7 @@ All 14 industry demos and 3 SA tools are **live**. Every hub card is active. All
 - Withdrawal-attempts need `assetAmount` + `attemptTimestamp`; register token transfers with the correct `asset` (USDT/USDC), not ETH.
 
 **Data Solutions**
-- Call `get_dataset_schema()` before writing SQL. `transfers_clustered` for hop-level tracing; `sending_exposure_aggregation_alltime` for cashout exposure. Backend occasionally 502s — retry. Keep predicates selective.
+- Call `get_dataset_schema()` before writing SQL. `transfers_clustered` for hop-level tracing; `sending_exposure_aggregation_alltime` for cashout exposure. Backend occasionally 502s - retry. Keep predicates selective.
 
 **UI / platform**
 - **No em-dashes** anywhere in copy.
@@ -83,8 +83,8 @@ All 14 industry demos and 3 SA tools are **live**. Every hub card is active. All
 
 ## Changelog
 
-- **Jun 25, 2026** — Launch hardening: all backing workflows set org-public; light/dark theme pinned per page; popup-safe Reactor open across all demos; analytics shows a graceful admin-only message; public Confluence page published (SAT space); `PUBLISH.md` distribution runbook added.
-- **Earlier** — Insurance Claims (ChainGuard) built; Trading Firm Token Intel + `cove-token-intel`; domain-first Branding Studio (35-company auto-detect, logo/color/domain); hub guided tour; all 14 demos brought live.
+- **Jun 25, 2026** - Launch hardening: all backing workflows set org-public; light/dark theme pinned per page; popup-safe Reactor open across all demos; analytics shows a graceful admin-only message; public Confluence page published (SAT space); `PUBLISH.md` distribution runbook added.
+- **Earlier** - Insurance Claims (ChainGuard) built; Trading Firm Token Intel + `cove-token-intel`; domain-first Branding Studio (35-company auto-detect, logo/color/domain); hub guided tour; all 14 demos brought live.
 
 ---
 
@@ -92,21 +92,21 @@ All 14 industry demos and 3 SA tools are **live**. Every hub card is active. All
 
 ### File structure
 ```
-compliance-cove.html       # Hub — demo grid, Branding Studio, guided tour
-demochain.html             # DeFi Trading (ArcSwap) — forced dark, canvas particle bg
-banking-demo.html          # Banking — 5-stage scroll journey (forced light)
+compliance-cove.html       # Hub - demo grid, Branding Studio, guided tour
+demochain.html             # DeFi Trading (ArcSwap) - forced dark, canvas particle bg
+banking-demo.html          # Banking - 5-stage scroll journey (forced light)
 merchant-demo.html         # Merchant Services (Basecamp)
 exchange-demo.html         # Exchange Onboarding (VaultX)
 nft-demo.html              # Digital Marketplace (NovaMint)
 atm-demo.html              # Crypto ATM (CoinVault)
 gaming-demo.html           # Gaming (NexusArena)
-remittance-demo.html       # Remittance (SwiftBridge) — forced light
-hexagate-demo.html         # Protocol & Wallet Security (ShieldFi) — live Hexagate
-trading-firm-demo.html     # Trading Firm (QuantDesk) — Token Intel
-stablecoin-demo.html       # Stablecoin Issuer (Meridian) — Data Solutions headline
+remittance-demo.html       # Remittance (SwiftBridge) - forced light
+hexagate-demo.html         # Protocol & Wallet Security (ShieldFi) - live Hexagate
+trading-firm-demo.html     # Trading Firm (QuantDesk) - Token Intel
+stablecoin-demo.html       # Stablecoin Issuer (Meridian) - Data Solutions headline
 prediction-demo.html       # Prediction Markets (ForecastX)
 p2p-marketplace-demo.html  # P2P Marketplace (Peerly)
-insurance-demo.html        # Insurance Claims (ChainGuard) — Reactor investigations
+insurance-demo.html        # Insurance Claims (ChainGuard) - Reactor investigations
 screener.html              # Live Address Screener (SA tool)
 screening-explainer.html   # Address Screening API walkthrough
 kyt-explainer.html         # KYT API walkthrough

@@ -1,4 +1,4 @@
-# Compliance Cove — Component Matrix
+# Compliance Cove - Component Matrix
 
 > **Purpose:** Quick reference for which components each demo includes. Check this before sweeping changes.
 >

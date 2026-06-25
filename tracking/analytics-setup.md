@@ -1,4 +1,4 @@
-# Compliance Cove — Analytics
+# Compliance Cove - Analytics
 
 ## How it works
 

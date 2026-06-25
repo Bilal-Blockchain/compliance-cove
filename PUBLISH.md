@@ -1,4 +1,4 @@
-# Compliance Cove — Publishing & Update Runbook
+# Compliance Cove - Publishing & Update Runbook
 
 How the Cove is shared company-wide and kept up to date. Read this before touching the public site.
 
@@ -45,7 +45,7 @@ Then:
 
 ---
 
-## B. Routine update (PREFERRED — keeps the same URL)
+## B. Routine update (PREFERRED - keeps the same URL)
 
 Use this whenever you push new demo content to GitHub and want the public site refreshed. **This does NOT change the URL, so deep-links and the Confluence link keep working.**
 
@@ -59,7 +59,7 @@ That is it. Viewers opening the Share URL now see the latest version. Do not cha
 
 ---
 
-## C. Full respawn (LAST RESORT — the URL changes)
+## C. Full respawn (LAST RESORT - the URL changes)
 
 Only when the Holder Session is dead, reset, or its context window is exhausted and it can no longer render.
 

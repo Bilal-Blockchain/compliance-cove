@@ -1,4 +1,4 @@
-# Compliance Cove — Internal Data Disclaimer
+# Compliance Cove - Internal Data Disclaimer
 
 Add this wherever Chainalysis screening/monitoring results are shown, to make clear the data is for the compliance team, not the end customer.
 
