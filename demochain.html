@@ -6,6 +6,7 @@
     <meta name="cove-demo" content="DeFi Trading (ArcSwap)" />
     <title>ArcSwap, DeFi Trading</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <style id="cove-force-dark">:root{color-scheme:dark;--background:#0a0e17;--foreground:#e6edf3;--card:#0c101c;--card-foreground:#e6edf3;--popover:#0c101c;--popover-foreground:#e6edf3;--muted:#1e293b;--muted-foreground:#94a3b8;--secondary:#1e293b;--secondary-foreground:#e6edf3;--accent:#1e293b;--accent-foreground:#e6edf3;--border:#1e293b;--input:#1e293b;--ring:#8b5cf6;}</style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <style>
       :root {
@@ -1697,6 +1698,7 @@
     const REACTOR_GRAPH_SLUG = 'arcswap-reactor-graph';
 
     async function openInReactor(address, network, btn) {
+        var __coveTab=window.open('','_blank');if(__coveTab){try{__coveTab.document.write('<title>Building graph\u2026</title><body style="margin:0;background:#0a0e17;color:#94a3b8;font:14px system-ui;display:flex;align-items:center;justify-content:center;height:100vh">Building Reactor graph\u2026</body>');}catch(_){}}
       let orig = null;
       if (btn) {
         orig = btn.innerHTML;
@@ -1715,7 +1717,7 @@
         const data = await res.json();
         const result = data.output ?? data;
         if (result.graphUrl) {
-          window.open(result.graphUrl, '_blank');
+          (__coveTab?(__coveTab.location.href=result.graphUrl):window.open(result.graphUrl,'_blank'));
           if (btn) {
             btn.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Graph opened';
             btn.style.color = '#34d399';
@@ -1724,7 +1726,7 @@
         } else {
           throw new Error('no graph url');
         }
-      } catch (e) {
+      } catch (e) {if(typeof __coveTab!=='undefined'&&__coveTab){try{__coveTab.close();}catch(_){}}
         if (btn) {
           btn.innerHTML = orig;
           btn.disabled = false;

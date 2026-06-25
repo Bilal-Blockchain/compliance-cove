@@ -6,6 +6,7 @@
     <meta name="cove-demo" content="Trading Firm / Market Maker" />
     <title>QuantDesk, Institutional Trading</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <style id="cove-force-dark">:root{color-scheme:dark;--background:#0a0e17;--foreground:#e6edf3;--card:#0c101c;--card-foreground:#e6edf3;--popover:#0c101c;--popover-foreground:#e6edf3;--muted:#1e293b;--muted-foreground:#94a3b8;--secondary:#1e293b;--secondary-foreground:#e6edf3;--accent:#1e293b;--accent-foreground:#e6edf3;--border:#1e293b;--input:#1e293b;--ring:#8b5cf6;}</style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <style>
       :root{color-scheme:dark;--qd-bg:#080b14;--qd-card:rgba(13,17,30,0.85);--qd-border:rgba(51,65,85,0.3);--qd-green:#22c55e;--qd-red:#ef4444;--qd-blue:#3b82f6;--qd-cyan:#06b6d4;--qd-yellow:#eab308;}
@@ -694,7 +695,8 @@
     const shortA=a=>a&&a.length>16?a.slice(0,8)+'...'+a.slice(-6):a;
     const hexRiskColor=l=>({LOW:'#22c55e',MEDIUM:'#eab308',HIGH:'#f97316',CRITICAL:'#ef4444'})[l]||'#64748b';
 
-    async function openInReactor(address,btn){ if(btn){btn.disabled=true;btn.style.opacity='.6';} try{ const r=await fetch('/api/workflow/arcswap-reactor-graph/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address,network:'ETH'}})}); if(!r.ok)throw 0; const d=await r.json(); const o=d.output??d; if(o.graphUrl)window.open(o.graphUrl,'_blank'); else throw 0; }catch(e){ if(btn)btn.title='Open this page in a new tab to create a live Reactor graph.'; }finally{ if(btn){btn.disabled=false;btn.style.opacity='';} } }
+    async function openInReactor(address,btn){
+        var __coveTab=window.open('','_blank');if(__coveTab){try{__coveTab.document.write('<title>Building graph\u2026</title><body style="margin:0;background:#0a0e17;color:#94a3b8;font:14px system-ui;display:flex;align-items:center;justify-content:center;height:100vh">Building Reactor graph\u2026</body>');}catch(_){}} if(btn){btn.disabled=true;btn.style.opacity='.6';} try{ const r=await fetch('/api/workflow/arcswap-reactor-graph/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address,network:'ETH'}})}); if(!r.ok)throw 0; const d=await r.json(); const o=d.output??d; if(o.graphUrl)(__coveTab?(__coveTab.location.href=o.graphUrl):window.open(o.graphUrl,'_blank')); else throw 0; }catch(e){if(typeof __coveTab!=='undefined'&&__coveTab){try{__coveTab.close();}catch(_){}} if(btn)btn.title='Open this page in a new tab to create a live Reactor graph.'; }finally{ if(btn){btn.disabled=false;btn.style.opacity='';} } }
     function reactorLinkHtml(a){ return '<button type="button" onclick="openInReactor(\''+a+'\',this)" style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:10px;font-weight:600;color:#a855f7;background:rgba(168,85,247,.1);border:1px solid rgba(168,85,247,.2);cursor:pointer;">Investigate in Reactor</button>'; }
 
     const STABLES=[

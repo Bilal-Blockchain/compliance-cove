@@ -6,6 +6,7 @@
     <meta name="cove-demo" content="Smart Contract Security (Hexagate)" />
     <title>ShieldFi, Contract and Wallet Security</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <style id="cove-force-dark">:root{color-scheme:dark;--background:#0a0e17;--foreground:#e6edf3;--card:#0c101c;--card-foreground:#e6edf3;--popover:#0c101c;--popover-foreground:#e6edf3;--muted:#1e293b;--muted-foreground:#94a3b8;--secondary:#1e293b;--secondary-foreground:#e6edf3;--accent:#1e293b;--accent-foreground:#e6edf3;--border:#1e293b;--input:#1e293b;--ring:#8b5cf6;}</style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
     <style>
       :root{color-scheme:dark;--sf-bg:#070a12;--sf-card:rgba(12,16,28,0.85);--sf-border:rgba(14,165,233,0.1);--sf-glow:rgba(14,165,233,0.12);--sf-cyan:#0ea5e9;--sf-navy:#0c1e3a;--sf-green:#22c55e;--sf-red:#ef4444;--sf-yellow:#eab308;}
@@ -540,12 +541,13 @@ blockVolume <span style="color:#86efac;">${fmtUsd(volUsd)}</span></div>
 
     // ---------- Reactor deep link ----------
     async function openInReactor(address, btn){
+        var __coveTab=window.open('','_blank');if(__coveTab){try{__coveTab.document.write('<title>Building graph\u2026</title><body style="margin:0;background:#0a0e17;color:#94a3b8;font:14px system-ui;display:flex;align-items:center;justify-content:center;height:100vh">Building Reactor graph\u2026</body>');}catch(_){}}
       if(btn){btn.disabled=true;btn.style.opacity='.65';}
       try{
         const res=await fetch('/api/workflow/arcswap-reactor-graph/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address,network:'ETH'}})});
         if(!res.ok) throw new Error('wf'); const data=await res.json(); const r=data.output??data;
-        if(r.graphUrl) window.open(r.graphUrl,'_blank'); else throw new Error('nourl');
-      }catch(e){ if(btn) btn.title='Open this page in a new tab to create a live Reactor graph.'; }
+        if(r.graphUrl) (__coveTab?(__coveTab.location.href=r.graphUrl):window.open(r.graphUrl,'_blank')); else throw new Error('nourl');
+      }catch(e){if(typeof __coveTab!=='undefined'&&__coveTab){try{__coveTab.close();}catch(_){}} if(btn) btn.title='Open this page in a new tab to create a live Reactor graph.'; }
       finally{ if(btn){btn.disabled=false;btn.style.opacity='';} }
     }
     function reactorLinkHtml(address){

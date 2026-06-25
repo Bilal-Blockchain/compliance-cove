@@ -632,14 +632,15 @@
     
     // Reactor deep link helper
     async function openInReactor(address, network, btn) {
+        var __coveTab=window.open('','_blank');if(__coveTab){try{__coveTab.document.write('<title>Building graph\u2026</title><body style="margin:0;background:#0a0e17;color:#94a3b8;font:14px system-ui;display:flex;align-items:center;justify-content:center;height:100vh">Building Reactor graph\u2026</body>');}catch(_){}}
       const net = (network || 'ETH').toUpperCase();
       if (btn) { btn.disabled = true; btn.style.opacity = '.65'; }
       try {
         const res = await fetch('/api/workflow/arcswap-reactor-graph/invoke/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ input: { address, network: net } }) });
         if (!res.ok) throw new Error('wf');
         const data = await res.json(); const r = data.output ?? data;
-        if (r.graphUrl) window.open(r.graphUrl, '_blank'); else throw new Error('nourl');
-      } catch (e) {
+        if (r.graphUrl) (__coveTab?(__coveTab.location.href=r.graphUrl):window.open(r.graphUrl,'_blank')); else throw new Error('nourl');
+      } catch (e) {if(typeof __coveTab!=='undefined'&&__coveTab){try{__coveTab.close();}catch(_){}}
         if (btn) btn.title = 'Open this page in a new tab to create a live Reactor graph, the preview sandbox blocks the API.';
       } finally {
         if (btn) { btn.disabled = false; btn.style.opacity = ''; }

@@ -7,6 +7,7 @@
     <meta name="color-scheme" content="light only" />
     <title>Meridian, USDM Issuer Intelligence Console</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <style id="cove-force-dark">:root{color-scheme:dark;--background:#0a0e17;--foreground:#e6edf3;--card:#0c101c;--card-foreground:#e6edf3;--popover:#0c101c;--popover-foreground:#e6edf3;--muted:#1e293b;--muted-foreground:#94a3b8;--secondary:#1e293b;--secondary-foreground:#e6edf3;--accent:#1e293b;--accent-foreground:#e6edf3;--border:#1e293b;--input:#1e293b;--ring:#8b5cf6;}</style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
     <script src="/assets/chart.min.js"></script>
     <style>
@@ -670,15 +671,16 @@ LIMIT  20;</pre></details>
 
   // ===== Real Reactor graph creation (arcswap-reactor-graph workflow) =====
   async function createReactorGraph(address,btn){
+        var __coveTab=window.open('','_blank');if(__coveTab){try{__coveTab.document.write('<title>Building graph\u2026</title><body style="margin:0;background:#0a0e17;color:#94a3b8;font:14px system-ui;display:flex;align-items:center;justify-content:center;height:100vh">Building Reactor graph\u2026</body>');}catch(_){}}
     const orig=btn.innerHTML;btn.disabled=true;
     btn.innerHTML='<span style="width:13px;height:13px;border:2px solid rgba(124,58,237,.3);border-top-color:#7c3aed;border-radius:50%;display:inline-block;animation:rot 1s linear infinite;"></span> Building graph…';
     try{
       const res=await fetch('/api/workflow/arcswap-reactor-graph/invoke/sync',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({input:{address,network:'ETH'}})});
       if(!res.ok)throw new Error('wf');
       const data=await res.json();const r=data.output??data;
-      if(r.graphUrl){window.open(r.graphUrl,'_blank');btn.innerHTML='✓ Graph opened in Reactor';}
+      if(r.graphUrl){(__coveTab?(__coveTab.location.href=r.graphUrl):window.open(r.graphUrl,'_blank'));btn.innerHTML='✓ Graph opened in Reactor';}
       else throw new Error('nourl');
-    }catch(e){
+    }catch(e){if(typeof __coveTab!=='undefined'&&__coveTab){try{__coveTab.close();}catch(_){}}
       btn.disabled=false;btn.innerHTML=orig;
       const n=document.getElementById('graphNote');
       if(n){n.style.display='block';n.textContent='Live graph creation runs when this page is opened in a new tab, the preview sandbox blocks the API.';}

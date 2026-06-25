@@ -7,6 +7,7 @@
     <meta name="color-scheme" content="light only" />
     <title>SwiftBridge, Send Money Anywhere</title>
     <link rel="stylesheet" href="/assets/pages-theme.css" />
+    <style id="cove-force-light">:root{color-scheme:light;--background:#ffffff;--foreground:#0f172a;--card:#ffffff;--card-foreground:#0f172a;--popover:#ffffff;--popover-foreground:#0f172a;--muted:#f1f5f9;--muted-foreground:#64748b;--secondary:#f1f5f9;--secondary-foreground:#0f172a;--accent:#f1f5f9;--accent-foreground:#0f172a;--border:#e2e8f0;--input:#e2e8f0;--ring:#94a3b8;}</style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet" />
     <style>
       /* Force light mode regardless of system preference */
@@ -578,14 +579,15 @@
     <script>
     // Reactor deep link helper
     async function openInReactor(address, network, btn) {
+        var __coveTab=window.open('','_blank');if(__coveTab){try{__coveTab.document.write('<title>Building graph\u2026</title><body style="margin:0;background:#0a0e17;color:#94a3b8;font:14px system-ui;display:flex;align-items:center;justify-content:center;height:100vh">Building Reactor graph\u2026</body>');}catch(_){}}
       const net = (network || 'ETH').toUpperCase();
       if (btn) { btn.disabled = true; btn.style.opacity = '.65'; }
       try {
         const res = await fetch('/api/workflow/arcswap-reactor-graph/invoke/sync', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ input: { address, network: net } }) });
         if (!res.ok) throw new Error('wf');
         const data = await res.json(); const r = data.output ?? data;
-        if (r.graphUrl) window.open(r.graphUrl, '_blank'); else throw new Error('nourl');
-      } catch (e) {
+        if (r.graphUrl) (__coveTab?(__coveTab.location.href=r.graphUrl):window.open(r.graphUrl,'_blank')); else throw new Error('nourl');
+      } catch (e) {if(typeof __coveTab!=='undefined'&&__coveTab){try{__coveTab.close();}catch(_){}}
         if (btn) btn.title = 'Open this page in a new tab to create a live Reactor graph, the preview sandbox blocks the API.';
       } finally {
         if (btn) { btn.disabled = false; btn.style.opacity = ''; }

@@ -4,7 +4,15 @@
 >
 > **How to use:** Tell Chain: _"Read ROADMAP.md and let's work on the next priority."_
 >
-> **Last updated:** June 24, 2026
+> **Last updated:** June 25, 2026
+
+---
+
+## 🛠️ Recent Fixes (June 25, 2026)
+
+- **Workflow access for colleagues:** `arcswap-reactor-graph` and `cove-kyt-screen` were private (owner-only), so the DeFi "Investigate in Reactor" button and KYT continuous monitoring silently failed for everyone but the owner. Both set **org-public**. All 7 demo workflows are now org-public. (When adding new workflows, always `set_org_public(slug, True)` before release.)
+- **Light/dark theme bug:** demos load `/assets/pages-theme.css`, whose tokens flip with the viewer's OS `prefers-color-scheme`. Pages with a hardcoded background broke in the opposite mode (dark-bg demos = black text in light mode; light-bg pages = white-on-white in dark mode). Added a forced-token `<style>` after the stylesheet link: **force-dark** on demochain/hexagate/insurance/stablecoin/trading-firm; **force-light** on analytics/banking/kyt-explainer/p2p/prediction/remittance/screener/screening-explainer. Adaptive pages (`bg-background` class: atm/exchange/gaming/merchant/nft/hub) left alone. New pages: pick a scheme and pin it.
+- **Reactor popup blocker:** every demo called `window.open(graphUrl)` AFTER `await fetch(...)`, which Safari/strict blockers kill (open is no longer tied to the click). Fixed by opening the tab synchronously on click (`__coveTab`), writing a "Building graph…" placeholder, then navigating it once the workflow returns; closes the tab on error. Applied to all 12 Reactor-opening demos.
 
 ---
 
