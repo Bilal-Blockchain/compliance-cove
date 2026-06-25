@@ -1,130 +1,65 @@
-# 🌊 Compliance Cove
+# Compliance Cove
 
-**Interactive Chainalysis compliance demo hub** — built for Solutions Architecture.
+**Interactive Chainalysis compliance demo hub, built for Solutions Architecture.**
 
-Each "cove" is a fully functional prototype demonstrating how Chainalysis products integrate into real-world platforms. Use them during customer calls to show exactly how our products fit into their user experience.
+Each "cove" is a self-contained, browser-based prototype showing how Chainalysis products (Address Screening, KYT, Reactor, Hexagate, Data Solutions) integrate into a real customer product. Use them during prospect calls to show exactly how our products fit into their user experience. Many demos make real Chainalysis API calls live.
 
-## Live Demos
+> **Internal use only.** Do not share the demos outside Chainalysis.
 
-| Demo | File | Status | Products |
+## Live demos
+
+| Demo | File | Example brand | Products |
 |---|---|---|---|
-| **DeFi Trading** | `demochain.html` | ✅ Live | Address Screening, KYT |
-| **Banking** | `banking-demo.html` | ✅ Live | VASP Risking, Entity Monitoring, KYT, Data Solutions, Alterya |
-| **Merchant Services** | `merchant-demo.html` | ✅ Live | KYT, Address Screening |
-| **Exchange Onboarding** | `exchange-demo.html` | ✅ Live | Address Screening, KYT, VASP Risking |
-| **Digital Marketplace** | `nft-demo.html` | ✅ Live | Address Screening |
-| **Crypto ATM** | `atm-demo.html` | ✅ Live | KYT, Address Screening |
-| **Gaming / Creator Economy** | `gaming-demo.html` | ✅ Live | Address Screening, KYT |
-| **Remittance / Money Transfer** | `remittance-demo.html` | ✅ Live | KYT, Address Screening |
-| Smart Contract Security | — | 🔜 Coming Soon | Hexagate |
-| Insurance Claim Verification | — | 🔜 Coming Soon | Reactor, KYT, Address Screening |
-| P2P Marketplace | — | 🔜 Coming Soon | Address Screening, KYT |
-| Stablecoin Issuer | — | 🔜 Coming Soon | KYT, Entity Monitoring, Address Screening |
-| Prediction Markets | — | 🔜 Coming Soon | Data Solutions |
+| Exchange Onboarding | `exchange-demo.html` | VaultX | Address Screening, KYT, VASP Risking |
+| DeFi Trading | `demochain.html` | ArcSwap | Address Screening, KYT, Reactor |
+| Banking | `banking-demo.html` | (neutral) | VASP Risking, Entity Monitoring, KYT, Data Solutions, Alterya |
+| Merchant Services | `merchant-demo.html` | Basecamp | KYT, Address Screening |
+| Crypto ATM | `atm-demo.html` | CoinVault | KYT, Address Screening |
+| Remittance | `remittance-demo.html` | SwiftBridge | KYT, Address Screening |
+| Trading Firm / Market Maker | `trading-firm-demo.html` | QuantDesk | Hexagate, Data Solutions, KYT, Address Screening |
+| Stablecoin Issuer | `stablecoin-demo.html` | Meridian | Data Solutions, KYT, Address Screening, Reactor |
+| Protocol & Wallet Security | `hexagate-demo.html` | ShieldFi | Hexagate, Address Screening |
+| Gaming / Creator Economy | `gaming-demo.html` | NexusArena | Address Screening, KYT |
+| Prediction Markets | `prediction-demo.html` | ForecastX | Data Solutions |
+| Digital Marketplace | `nft-demo.html` | NovaMint | Address Screening |
+| P2P Marketplace | `p2p-marketplace-demo.html` | Peerly | Address Screening, KYT, Reactor |
+| Insurance Claims Investigation | `insurance-demo.html` | ChainGuard | Reactor, Address Screening, Data Solutions |
 
-## How to Use in Chain
+**SA tools:** `screener.html` (Live Address Screener), `screening-explainer.html` and `kyt-explainer.html` (API walkthroughs), `analytics.html` (usage dashboard, admin-only).
 
-1. Start a new Chain chat session
-2. Tell Chain:
+## How to view it
 
-> Clone the repo `Bilal-Blockchain/compliance-cove` into my workspace and display `compliance-cove.html`
+The Cove is shared company-wide from a dedicated Chain "Holder Session" and linked from a Confluence page. See **`PUBLISH.md`** for the full distribution and update runbook.
 
-3. The hub page will display with all demo cards. Click any **Live** demo to open it in a new tab.
+To work on it yourself, start a new Chain chat and say:
 
-4. To modify an existing demo or build a new one:
+> Pull the `Bilal-Blockchain/compliance-cove` repo into my workspace and display `compliance-cove.html`.
 
-> I have the Compliance Cove project in my workspace. Read the existing files and let's update the [Banking] cove.
+Live results (real screening, real Reactor graphs) require being a logged-in Chainalysis user; otherwise demos render with validated sample data.
 
-5. When you're done making changes, tell Chain to push back to GitHub:
+## Branding a demo for a prospect
 
-> Push the changes back to GitHub
-
-## Demo Highlights
-
-### 🏦 Banking — The Crypto Readiness Journey
-A 5-stage scrolling journey showing how banks adopt crypto compliance:
-1. **Training & Enablement** — Chainalysis Academy certifications (CDAF, CCCA) and compliance courses
-2. **Know Your VASP** — VASP Risking scorecard with exposure categories and off-chain data
-3. **Know Your Asset** — KYT Entity Monitoring asset profiles + Data Solutions Ecosystem Monitoring dashboards
-4. **KYT + Reactor** — Interactive 6-step walkthrough: customer withdrawal → KYT screening → alert → Reactor trace → analyst review → resolution
-5. **Fraud Prevention** — Alterya scam intercept alerts and protection dashboard
-
-### 🎮 Gaming — NexusArena
-Full gaming platform with wallet connect, compliance screening, a 10-second "Risk Blitz" mini-game, marketplace with purchasable skins (that change your player avatar), and crypto withdrawal with KYT monitoring.
-
-### 💸 Remittance — SwiftBridge
-Cross-border payment app with animated globe background showing transfer corridors, country selection, real-time compliance screening, and travel rule enforcement.
-
-
-## Customizing Demos for Prospects
-
-### Quick: ⚙️ Button on the Hub
-Each demo card has a **⚙️ Customize** button. Click it, type a company name, and the demo opens with that branding. The name is passed via URL param (`?brand=Chase+Digital`) and swapped throughout the page on load.
-
-| Demo | Default Brand | Example Custom |
-|---|---|---|
-| DeFi Trading | DemoChain | Uniswap Pro |
-| Exchange | VaultX | Chase Digital |
-| Gaming | NexusArena | Epic Crypto |
-| Merchant | Basecamp | Shopify Crypto |
-| ATM | CoinVault | BitAccess |
-| Digital Marketplace | NovaMint | OpenSea |
-| Remittance | SwiftBridge | Western Union Digital |
-
-### Deep: Chain Prompts for Full Rebranding
-For a fully customized demo with logo changes, color schemes, and industry-specific content, use these Chain prompts:
-
-**Rebrand an existing demo:**
-```
-I have Compliance Cove in my workspace. Rebrand the Exchange demo
-for "Chase Digital" with brand color #0052FF. Update the logo text,
-accent colors, and company name throughout. Save as chase-exchange-demo.html
-and add it to the hub.
-```
-
-**Create a new industry demo:**
-```
-I have Compliance Cove in my workspace. Read the existing demos to
-understand the patterns. Create a new "Insurance" cove that shows
-how an insurance company would use Reactor and KYT to investigate
-crypto-related claims. Add it to the hub.
-```
-
-**Customize for a specific customer call:**
-```
-I have Compliance Cove in my workspace. I have a call with [Bank Name]
-tomorrow. Customize the Banking demo to reference their specific
-compliance challenges around stablecoin custody. Update Stage 3 to
-focus on USDC and USDT monitoring.
-```
-
-## Adding a New Demo
-
-1. Create your demo HTML file (e.g., `insurance-demo.html`)
-2. Open `compliance-cove.html`, find the `demos` array in the `<script>` section
-3. Change your entry's `status` to `'active'` and set `url` to the filename
-4. The card automatically gets the Live badge and becomes clickable
-5. Push changes to GitHub
-
-## Project Structure
+Every demo has a **Branding Studio**. Type a prospect's name or domain and it auto-detects their logo and brand color (35-company lookup, with manual overrides). The brand, color, and logo carry across every screen. You can also pass them in the URL:
 
 ```
-compliance-cove.html      # Landing page / demo hub
-banking-demo.html         # Banking — Crypto Readiness Journey
-demochain.html            # DeFi Trading demo
-merchant-demo.html        # Merchant Services demo
-exchange-demo.html        # Exchange Onboarding demo
-nft-demo.html             # Digital Marketplace demo
-atm-demo.html             # Crypto ATM demo
-gaming-demo.html          # Gaming / Creator Economy demo
-remittance-demo.html      # Remittance / Money Transfer demo
-workflow/workflow.py       # Address screening backend (workflow)
+?brand=Chase+Digital&color=%230052FF&domain=chase.com&logo=https://...
 ```
 
-## Technical Notes
+## Adding a new demo
 
-- All demos are standalone HTML files using the Chain Dialog design system (`/assets/pages-theme.css`)
-- Demos that need dark-mode override use explicit CSS variable overrides at `:root` level
-- The hub page's `buildPageUrl()` function resolves demo links relative to the current file's directory
-- Interactive demos use multi-screen architecture with `showScreen()` toggling `.screen` divs
-- The Banking demo's Stage 4 has a self-contained step-through with `showS4Step()` for the KYT+Reactor walkthrough
+1. Create `{name}-demo.html` following the existing patterns.
+2. Pin theme tokens (force-dark or force-light) right after the `/assets/pages-theme.css` link.
+3. Add `?brand=` support, `renderAddressPicker()` for inputs, and a popup-safe `reactorLinkHtml()` for address displays.
+4. In `compliance-cove.html`, set the card's `status` to `'active'` and its `url`/`defaultBrand`.
+5. If a new workflow is involved, deploy it and run `set_org_public(slug, True)`.
+6. Push to GitHub.
+
+See `ROADMAP.md` for architecture details and key learnings, and `COMPONENTS.md` for the per-demo component matrix.
+
+## Technical notes
+
+- Standalone HTML files using the Chain Dialog design system (`/assets/pages-theme.css`).
+- `/assets/pages-theme.css` flips colors with the viewer's OS light/dark setting, so each page pins its scheme with a force-dark or force-light `<style>` override.
+- The hub's `buildPageUrl()` resolves demo links within Chain's session-scoped page system.
+- Demos invoke backend workflows via `/api/workflow/{slug}/invoke/sync`. All seven backing workflows are org-public.
+- No em-dashes in any copy.

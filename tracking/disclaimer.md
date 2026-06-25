@@ -1,17 +1,19 @@
 # Compliance Cove — Internal Data Disclaimer
 
-## Usage
+Add this wherever Chainalysis screening/monitoring results are shown, to make clear the data is for the compliance team, not the end customer.
 
-Add this HTML wherever Chainalysis screening/monitoring results are displayed:
+## HTML
 
 ```html
 <div class="cove-disclaimer">
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-  <span><strong>Internal Compliance View</strong> — This data is only visible to your compliance team. Your customers never see screening results, risk scores, or exposure data. This is the insight your team uses to make informed decisions.</span>
+  <span><strong>Internal Compliance View</strong>, this data is only visible to your compliance team. Your customers never see screening results, risk scores, or exposure data. This is the insight your team uses to make informed decisions.</span>
 </div>
 ```
 
-## Required CSS (add once per page)
+> No em-dashes in copy. Use a comma, as above.
+
+## CSS (add once per page)
 
 ```css
 .cove-disclaimer {
@@ -23,7 +25,7 @@ Add this HTML wherever Chainalysis screening/monitoring results are displayed:
 .cove-disclaimer svg { flex-shrink: 0; margin-top: 1px; color: #1a6b6a; }
 ```
 
-For dark-themed demos (ArcSwap, Hexagate), use:
+For dark-themed demos (ArcSwap, Hexagate, Trading Firm, Insurance), brighten it:
 
 ```css
 .cove-disclaimer {

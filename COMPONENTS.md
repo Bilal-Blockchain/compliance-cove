@@ -1,56 +1,50 @@
-# 🧩 Compliance Cove — Component Tracking Matrix
+# Compliance Cove — Component Matrix
 
-> **Purpose:** Quick reference for which components are included in each demo. Check this before making sweeping changes.
+> **Purpose:** Quick reference for which components each demo includes. Check this before sweeping changes.
 >
-> **Last updated:** June 22, 2026
+> **Last updated:** June 25, 2026
 
-## Component Matrix
+## Matrix
 
-| Demo | File | Disclaimer | Pre-screened Addresses | Branding Studio | Reactor Link | Analytics | MetaMask Icon |
+| Demo | File | Theme (pinned) | Disclaimer | Address picker | Branding Studio | Reactor (live graph) | Analytics |
 |---|---|---|---|---|---|---|---|
-| **ArcSwap** (DeFi) | `demochain.html` | ✅ Screening + Deposit KYT + Withdrawal KYT | ✅ walletAddr + withdrawAddr | ✅ ArcSwap | ✅ Workflow | ✅ | ✅ Full fox |
-| **Banking** | `banking-demo.html` | ⬜ N/A (narrative demo) | ⬜ N/A | ⬜ No brand | ✅ Hardcoded | ✅ | ⬜ N/A |
-| **Merchant** | `merchant-demo.html` | ✅ Payment results | ✅ paymentAddr | ✅ Basecamp | ✅ | ✅ | ⬜ N/A |
-| **Exchange** | `exchange-demo.html` | ✅ Wallet screening + First Deposit KYT | ✅ walletAddr (attaches on Step 3) | ✅ VaultX | ✅ | ✅ | ✅ Full (6 providers) |
-| **NFT** | `nft-demo.html` | ✅ Screening results | ✅ addressInput | ✅ NovaMint | ✅ | ✅ | ✅ Fixed (full fox) |
-| **ATM** | `atm-demo.html` | ✅ Withdrawal KYT | ⬜ Not added | ✅ CoinVault | ⬜ None | ✅ | ⬜ N/A |
-| **Gaming** | `gaming-demo.html` | ✅ Screening + Withdrawal KYT | ✅ walletAddress | ✅ NexusArena | ✅ | ✅ | ✅ Fixed (full fox) |
-| **Remittance** | `remittance-demo.html` | ✅ Compliance checks | ✅ recipientWallet | ✅ SwiftBridge | ✅ | ✅ | ⬜ N/A |
-| **Hexagate** | `hexagate-demo.html` | ✅ CSS ready | ✅ analyzeAddr | ✅ ShieldFi | ⬜ N/A | ✅ | ⬜ N/A |
-| **Prediction** | `prediction-demo.html` | ⬜ N/A | ⬜ N/A | ✅ ForecastX | ⬜ N/A | ✅ | ⬜ N/A |
-| **Screener** | `screener.html` | ✅ Dashboard results | ✅ addrInput | ⬜ Tool | ✅ Workflow | ✅ | ⬜ N/A |
-| **KYT Explainer** | `kyt-explainer.html` | ⬜ N/A (educational) | ⬜ N/A | ⬜ N/A | ⬜ N/A | ✅ | ⬜ N/A |
-| **Screening Explainer** | `screening-explainer.html` | ⬜ N/A (educational) | ⬜ N/A | ⬜ N/A | ⬜ N/A | ✅ | ⬜ N/A |
+| DeFi Trading (ArcSwap) | `demochain.html` | Dark | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Banking | `banking-demo.html` | Light | N/A (narrative) | N/A | (neutral) | ✅ | ✅ |
+| Merchant (Basecamp) | `merchant-demo.html` | Adaptive | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Exchange (VaultX) | `exchange-demo.html` | Adaptive | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Digital Marketplace (NovaMint) | `nft-demo.html` | Adaptive | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Crypto ATM (CoinVault) | `atm-demo.html` | Adaptive | ✅ | ✅ | ✅ | ⬜ | ✅ |
+| Gaming (NexusArena) | `gaming-demo.html` | Adaptive | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Remittance (SwiftBridge) | `remittance-demo.html` | Light | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Trading Firm (QuantDesk) | `trading-firm-demo.html` | Dark | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Stablecoin (Meridian) | `stablecoin-demo.html` | Light | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Protocol & Wallet Security (ShieldFi) | `hexagate-demo.html` | Dark | ✅ | ✅ | ✅ | N/A | ✅ |
+| Prediction (ForecastX) | `prediction-demo.html` | Light | N/A | N/A | ✅ | N/A | ✅ |
+| P2P Marketplace (Peerly) | `p2p-marketplace-demo.html` | Light | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Insurance Claims (ChainGuard) | `insurance-demo.html` | Dark | ✅ | ✅ | ✅ | ✅ (multi-node) | ✅ |
+| Address Screener | `screener.html` | Light | ✅ | ✅ | tool | ✅ | ✅ |
+| Screening API Walkthrough | `screening-explainer.html` | Light | N/A | N/A | N/A | N/A | ✅ |
+| KYT API Walkthrough | `kyt-explainer.html` | Light | N/A | N/A | N/A | N/A | ✅ |
+| Analytics dashboard | `analytics.html` | Light | N/A | N/A | N/A | N/A | self |
 
-## Disclaimer Placement Details
+**Theme column:** "Adaptive" pages use the `bg-background` class and follow the viewer's OS light/dark setting. "Dark" / "Light" pages have a hardcoded background and pin their tokens with a `cove-force-dark` / `cove-force-light` `<style>` block right after the `/assets/pages-theme.css` link. When adding a page, match the pin to the hardcoded background.
 
-| Demo | Where the disclaimer appears |
-|---|---|
-| ArcSwap | Above risk gauge in screening results · Above "KYT Workflow" label in deposit form · Above "KYT Withdrawal Workflow" label in withdrawal form · Inside dynamic deposit/withdrawal result blocks |
-| Exchange | Above risk gauge in wallet screening results · Above KYT workflow steps in First Deposit |
-| Gaming | Above risk gauge in screening results · Above withdrawal KYT workflow steps |
-| Merchant | Inside dynamic payment screening result blocks |
-| NFT | Above risk gauge in screening results |
-| ATM | Above withdrawal KYT workflow steps |
-| Remittance | Above compliance check KYT workflow steps |
-| Screener | Top of every screening dashboard result |
+## Shared components
 
-## Shared Components Reference
-
-| Component | File/Pattern | How to add |
+| Component | Pattern | How to add |
 |---|---|---|
-| **Disclaimer** | `.cove-disclaimer` CSS class + HTML snippet | Add CSS to `<style>`, add HTML before KYT workflow steps or screening results |
-| **Pre-screened Addresses** | `DEMO_ADDRESSES[]` + `renderAddressPicker(inputId)` | Add inline `<script>` block, call `setTimeout(()=>renderAddressPicker('inputId'),100)` |
-| **Brand Color Swap** | `defaults[]` array — 13 hex codes | Include in brand-swap `<script>` at end of file |
-| **Analytics Tracker** | `coveTrack()` inline script | Add `<script>` block before `</body>` |
-| **MetaMask Icon** | Full 30-path SVG | Replace any 3-path abbreviated version with the full fox |
-| **Chainalysis Logo** | Full SVG path including `M16.6823 25.339...` | Replace abbreviated paths that only have the top portion |
+| Disclaimer | `.cove-disclaimer` class + HTML snippet | See `tracking/disclaimer.md`. Place above screening results / KYT workflow steps. |
+| Address picker | `DEMO_ADDRESSES[]` + `renderAddressPicker('inputId')` | Inline script; call `setTimeout(()=>renderAddressPicker('inputId'),100)`. |
+| Branding | `?brand=&color=&domain=&logo=` params | `data-brand-logo` on nav logos; `querySelectorAll` for multi-screen; `BRAND_LOOKUP` (35 companies). |
+| Reactor link | popup-safe `reactorLinkHtml()` / `openInReactor()` | Open the tab synchronously on click, then navigate it after the workflow returns. |
+| Analytics | `coveTrack()` inline script | Add a `<script>` block before `</body>`. |
+| Theme pin | `cove-force-dark` / `cove-force-light` `<style>` | Insert right after the pages-theme.css link; match the page background. |
 
-## Sweeping Change Checklist
+## Sweeping-change checklist
 
-When making a change that affects all demos:
-1. Check this matrix to see which demos have the component
-2. List the files that need changes
-3. Update each file
-4. Update this matrix after changes
-5. Test at least ArcSwap + one light-theme demo (Exchange or NFT)
+1. Check this matrix for which demos have the component.
+2. List the files that need changes.
+3. Update each file.
+4. Validate: `<div>` open/close balance + em-dash check.
+5. Test at least one dark, one light, and one adaptive demo.
+6. Update this matrix and push.
