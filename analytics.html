@@ -88,7 +88,7 @@
         if(e instanceof TypeError){
           el.innerHTML='<div class="a-card" style="text-align:center;padding:40px;"><h3 class="text-sm font-semibold">Open in a new tab</h3><p class="text-xs text-muted-foreground mt-1">Analytics requires the standalone page viewer.</p></div>';
         }else{
-          el.innerHTML='<div class="a-card" style="text-align:center;padding:40px;"><h3 class="text-sm font-semibold" style="color:#ef4444;">Failed to load</h3><p class="text-xs text-muted-foreground mt-1">'+e.message+'</p></div>';
+          el.innerHTML='<div class="a-card" style="text-align:center;padding:40px;"><h3 class="text-sm font-semibold">Analytics is admin-only</h3><p class="text-xs text-muted-foreground mt-1" style="max-width:440px;margin:8px auto 0;line-height:1.6;">This dashboard reads usage data from a Google Sheet using your Chainalysis Google connection. It is intended for Compliance Cove admins. If you are an admin, make sure your Google account is connected in Chain and has access to the analytics sheet.</p></div>';
         }
       }
     }
