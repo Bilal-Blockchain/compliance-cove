@@ -42,7 +42,7 @@ All 15 industry demos and 3 SA tools are **live**. Every hub card is active. All
 
 | Priority | Item | Notes |
 |---|---|---|
-| 🔥 | **SA Presenter Mode (T2)** | Guided tours now ship on both API explainer pages (request, run, response walkthrough). A self-contained, additive engine lives in `tracking/tour.js`: define `window.COVE_TOUR_STEPS=[{target,title,text,placement}]` then include the snippet, optional `#coveTourTrigger` element becomes the launch button, else a floating pill is added. Remaining: per-demo tours (wire the trigger into each demo's nav). |
+| 🔥 | **SA Presenter Mode (T2)** | The KYT explainer now has an interactive field-anatomy explainer on its complex request bodies (better than a linear tour for ordered pages). A reusable, additive tour engine is parked in `tracking/tour.js` (define `window.COVE_TOUR_STEPS=[...]`, optional `#coveTourTrigger` else a floating pill) for optional per-demo guided tours later. |
 | 🔥 | **Scenario Presets (T4)** | Named compliance stories for the Address Screener (Clean Exchange User, OFAC Sanctioned, Ransomware Proceeds, etc.). |
 | Med | **Analytics polish (T5)** | `analytics.html` exists and reads `compliance-cove-analytics`. **Admin-only** by design (reads the usage Google Sheet via the caller's own Google connection). Broadening to all users would need a shared service identity. |
 | Med | **More real Reactor investigations** | Apply the `cove-insurance-graph` pattern (attributed stolen-funds clusters + annotation edges) to other demos. |
@@ -84,7 +84,7 @@ All 15 industry demos and 3 SA tools are **live**. Every hub card is active. All
 
 ## Changelog
 
-- **Jun 25, 2026** - Guided tours added to both API explainer pages (Screening, KYT) using a new self-contained, additive tour engine (`tracking/tour.js`). Walks request, run, and response. No change to existing flows.
+- **Jun 25, 2026** - KYT explainer: added an interactive "request anatomy" explainer on the complex bodies (register-transfer and withdrawal-attempts). Click any field to see its purpose and format (covers the `direction` and composite `transferReference` gotchas). Additive, self-contained. A linear tour was prototyped then removed as redundant on already-ordered pages; the reusable tour engine remains at `tracking/tour.js` for optional per-demo use.
 - **Jun 25, 2026** - New cove: **Tokenized Securities / RWA (EquiChain)**. Eligibility gate (Address Screening before a wallet can hold a security token), secondary-transfer restriction (KYT), and a real Data Solutions landscape across 7 RWA tokens (BUIDL, USDY, OUSG, USYC, USTB, PAXG, XAUT) with counterparty mapping (new `cove-rwa-landscape` workflow, org-public). Built on the stablecoin scaffold.
 - **Jun 25, 2026** - Launch hardening: all backing workflows set org-public; light/dark theme pinned per page; popup-safe Reactor open across all demos; analytics shows a graceful admin-only message; public Confluence page published (SAT space); `PUBLISH.md` distribution runbook added.
 - **Earlier** - Insurance Claims (ChainGuard) built; Trading Firm Token Intel + `cove-token-intel`; domain-first Branding Studio (35-company auto-detect, logo/color/domain); hub guided tour; all 14 demos brought live.
