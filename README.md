@@ -62,5 +62,5 @@ See `ROADMAP.md` for architecture details and key learnings, and `COMPONENTS.md`
 - Standalone HTML files using the Chain Dialog design system (`/assets/pages-theme.css`).
 - `/assets/pages-theme.css` flips colors with the viewer's OS light/dark setting, so each page pins its scheme with a force-dark or force-light `<style>` override.
 - The hub's `buildPageUrl()` resolves demo links within Chain's session-scoped page system.
-- Demos invoke backend workflows via `/api/workflow/{slug}/invoke/sync`. All seven backing workflows are org-public.
+- Demos invoke backend workflows via `/api/workflow/{slug}/invoke/sync`. All eight backing workflows are org-public.
 - No em-dashes in any copy.
