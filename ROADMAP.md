@@ -27,7 +27,7 @@ All 15 industry demos and 3 SA tools are **live**. Every hub card is active. All
 | Prediction Markets | `prediction-demo.html` | ForecastX | Data Solutions |
 | Digital Marketplace | `nft-demo.html` | NovaMint | Address Screening |
 | P2P Marketplace | `p2p-marketplace-demo.html` | Peerly | Address Screening, KYT, Reactor |
-| Insurance Claims | `insurance-demo.html` | ChainGuard | Reactor, Address Screening, Data Solutions |
+| Insurance Claims | `insurance-demo.html` | ChainGuard | Reactor, Address Screening |
 | Tokenized Securities / RWA | `rwa-demo.html` | EquiChain | Data Solutions, Address Screening, KYT, Entity Monitoring, Reactor |
 
 **SA tools:** `screener.html` (Live Address Screener), `screening-explainer.html` and `kyt-explainer.html` (API walkthroughs).
